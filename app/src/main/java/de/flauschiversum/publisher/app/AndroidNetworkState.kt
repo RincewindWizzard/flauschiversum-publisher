@@ -3,10 +3,10 @@ package de.flauschiversum.publisher.app
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import de.flauschiversum.publisher.git.NetworkState
+import de.flauschiversum.publisher.git.NetworkInfo
 
 /** Netzstatus über den ConnectivityManager. */
-class AndroidNetworkState(context: Context) : NetworkState {
+class AndroidNetworkState(context: Context) : NetworkInfo {
     private val cm = context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     override fun isOnline(): Boolean {
@@ -15,5 +15,5 @@ class AndroidNetworkState(context: Context) : NetworkState {
     }
 
     /** Mobilfunk oder eine andere getaktete Verbindung (Datenvolumen zählt). */
-    fun isMetered(): Boolean = cm.isActiveNetworkMetered
+    override fun isMetered(): Boolean = cm.isActiveNetworkMetered
 }

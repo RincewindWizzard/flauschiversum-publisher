@@ -161,3 +161,32 @@ class SetupTest {
         assertFalse(d.exists())
     }
 }
+
+class KeyInstructionsTest {
+    private fun addr(s: String) = (de.flauschiversum.publisher.git.RepositoryAddresses.parse(s) as de.flauschiversum.publisher.git.AddressParse.Valid).address
+    private val line = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIexample flauschiversum-publisher"
+
+    @Test fun gitHubFuehrtZurDeployKeySeite() {
+        val p = de.flauschiversum.publisher.setup.KeyInstructions.planFor(addr("git@github.com:RincewindWizzard/flauschiversum.git"), line, "Pixel 8")
+        p as de.flauschiversum.publisher.setup.KeyInstructions.Plan.GitHub
+        assertEquals("https://github.com/RincewindWizzard/flauschiversum/settings/keys/new", p.url)
+        assertEquals("Flauschiversum Publisher (Pixel 8)", p.suggestedTitle)
+    }
+
+    @Test fun eigenerServerBekommtAuthorizedKeysBefehl() {
+        val p = de.flauschiversum.publisher.setup.KeyInstructions.planFor(addr("ssh://git@vps.beispiel.de:2222/srv/git/blog.git"), line, "Pixel 8")
+        p as de.flauschiversum.publisher.setup.KeyInstructions.Plan.OwnServer
+        assertEquals("git", p.user); assertEquals("vps.beispiel.de", p.host)
+        assertTrue(p.command.contains(">> ~/.ssh/authorized_keys"))
+        assertTrue(p.command.contains("echo '$line'"))
+    }
+
+    @Test fun anfuehrungszeichenImKommentarSindMaskiert() {
+        val cmd = de.flauschiversum.publisher.setup.KeyInstructions.authorizedKeysCommand("ssh-ed25519 AAAA mein'schluessel")
+        assertTrue(cmd.contains("'ssh-ed25519 AAAA mein'\\''schluessel'"))
+    }
+
+    @Test fun titelOhneGeraetenamenHatVorgabe() {
+        assertEquals("Flauschiversum Publisher (Handy)", de.flauschiversum.publisher.setup.KeyInstructions.deployKeyTitle("  "))
+    }
+}

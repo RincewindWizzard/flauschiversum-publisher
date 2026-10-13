@@ -32,7 +32,9 @@ class AppContainer(val context: Context) {
 
     val keyStore = SshKeyStore(File(filesDir, "ssh"))
     val hostKeys = HostKeyStore(File(filesDir, "ssh/known_hosts"))
-    val network = AndroidNetworkState(context)
+    val network = de.flauschiversum.publisher.git.SwitchableNetwork(AndroidNetworkState(context))
+    /** Freier Speicher für die Prüfung vor dem Klonen (austauschbar für Tests). */
+    var freeSpace: () -> Long = { filesDir.usableSpace }
     val session = RepoSession(File(filesDir, "repo.git"), { settingsSnapshot }, keyStore, hostKeys, network)
     val accessChecker = AccessChecker(keyStore, hostKeys, network)
 
@@ -53,5 +55,17 @@ class AppContainer(val context: Context) {
     }
 
     fun requestSync(reason: SyncReason) { if (session.isInstalled()) sync.request(reason) }
+
+    /** Zähler, der steigt, wenn sich Entwürfe lokal geändert haben (zum Neuladen von Listen). */
+    val draftChanges = kotlinx.coroutines.flow.MutableStateFlow(0L)
+
+    /** Schiebt `draft` nach einer Änderung im Hintergrund zum Server; Fehler bleiben als „Noch nicht hochgeladen“ sichtbar. */
+    fun uploadDraftInBackground() {
+        draftChanges.value++
+        appScope.launch(Dispatchers.IO) {
+            runCatching { session.workflow()?.pushDraft() }
+            draftChanges.value++
+        }
+    }
 
 }

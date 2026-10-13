@@ -29,6 +29,11 @@ object Yaml {
         return sb.append('"').toString()
     }
 
+    private val safePath = Regex("""^/[A-Za-z0-9._/\-]*$""")
+
+    /** Pfade wie Permalinks stehen im Blog ohne Anführungszeichen (`permalink: /2014/04/x/`). */
+    fun pathOrQuoted(s: String): String = if (safePath.matches(s)) s else quote(s)
+
     fun plainOrQuoted(s: String): String = if (isPlainSafe(s)) s else quote(s)
 
     fun inlineList(items: List<String>): String = items.joinToString(", ", "[", "]") { plainOrQuoted(it) }

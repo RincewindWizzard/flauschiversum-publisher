@@ -15,6 +15,17 @@ fun interface NetworkState {
     fun isOnline(): Boolean
 }
 
+/** Netzstatus samt der Information, ob die Verbindung Datenvolumen kostet (Mobilfunk). */
+interface NetworkInfo : NetworkState {
+    fun isMetered(): Boolean
+}
+
+/** Netzstatus, dessen Quelle austauschbar ist (z. B. in Tests). */
+class SwitchableNetwork(var delegate: NetworkInfo) : NetworkInfo {
+    override fun isOnline() = delegate.isOnline()
+    override fun isMetered() = delegate.isMetered()
+}
+
 /** Verständlich eingeordnete Fehler bei Git über SSH. */
 sealed interface GitFailure {
     val message: String

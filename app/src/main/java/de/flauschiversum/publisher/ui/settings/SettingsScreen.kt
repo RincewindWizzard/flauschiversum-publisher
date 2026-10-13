@@ -1,0 +1,124 @@
+package de.flauschiversum.publisher.ui.settings
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
+import de.flauschiversum.publisher.BuildConfig
+import de.flauschiversum.publisher.ui.Platform
+import de.flauschiversum.publisher.ui.theme.ThemeMode
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Unit) {
+    val ui by vm.ui.collectAsState()
+    val s = ui.settings
+    val context = LocalContext.current
+    Scaffold(topBar = { TopAppBar(title = { Text("Einstellungen") }, navigationIcon = { TextButton(onClick = onBack, modifier = Modifier.testTag("settings-back")) { Text("Zurück") } }) }) { padding ->
+        Column(Modifier.padding(padding).padding(horizontal = 16.dp).fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Section("Repository")
+            Text("Adresse: ${s.repositoryAddress}", modifier = Modifier.testTag("settings-address"))
+            OutlinedButton(onClick = { vm.changeAddress(onSetup) }) { Text("Adresse ändern …") }
+            TextField("Zielbranch", s.targetBranch, "settings-branch") { v -> vm.update { it.copy(targetBranch = v.trim().ifEmpty { "main" }) } }
+            var confirmReinstall by remember { mutableStateOf(false) }
+            OutlinedButton(onClick = { confirmReinstall = true }) { Text("Repository neu holen …") }
+            if (confirmReinstall) AlertDialog(
+                onDismissRequest = { confirmReinstall = false },
+                title = { Text("Repository neu holen?") },
+                text = { Text("Der lokale Klon wird gelöscht und neu geholt. Nicht hochgeladene Entwürfe gehen dabei verloren. Der Schlüssel bleibt.") },
+                confirmButton = { TextButton(onClick = { confirmReinstall = false; vm.reinstallRepository(onSetup) }) { Text("Neu holen") } },
+                dismissButton = { TextButton(onClick = { confirmReinstall = false }) { Text("Abbrechen") } },
+            )
+            HorizontalDivider()
+
+            Section("Commits und Bilder")
+            TextField("Name für Commits", s.commitName, "settings-commit-name") { v -> vm.update { it.copy(commitName = v) } }
+            TextField("E-Mail für Commits", s.commitEmail, "settings-commit-email") { v -> vm.update { it.copy(commitEmail = v) } }
+            TextField("Autor für neue Beiträge", s.defaultAuthor, "settings-author") { v -> vm.update { it.copy(defaultAuthor = v) } }
+            TextField("Rechtetext für Bilder (Urheber)", s.rightsText, "settings-rights") { v -> vm.update { it.copy(rightsText = v) } }
+            HorizontalDivider()
+
+            Section("Darstellung")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ThemeMode.entries.forEach { m ->
+                    FilterChip(selected = s.themeMode == m, onClick = { vm.setTheme(m) }, label = { Text(when (m) { ThemeMode.SYSTEM -> "System"; ThemeMode.LIGHT -> "Hell"; ThemeMode.DARK -> "Dunkel" }) }, modifier = Modifier.testTag("theme-${m.name}"))
+                }
+            }
+            Text("Schriftgröße im Editor: ${(s.editorFontScale * 100).toInt()} %")
+            Slider(value = s.editorFontScale, onValueChange = { v -> vm.update { it.copy(editorFontScale = (Math.round(v * 20) / 20f)) } }, valueRange = 0.8f..1.6f)
+            HorizontalDivider()
+
+            Section("Hochladen")
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Switch(checked = s.uploadWifiOnly, onCheckedChange = { v -> vm.update { it.copy(uploadWifiOnly = v) } }, modifier = Modifier.testTag("wifi-only"))
+                Text("Nur über WLAN hochladen")
+            }
+            HorizontalDivider()
+
+            Section("SSH-Schlüssel")
+            Text(ui.keyFingerprint ?: "Kein Schlüssel vorhanden", fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
+            ui.publicKey?.let { pk -> OutlinedButton(onClick = { Platform.copy(context, "Öffentlicher Schlüssel", pk, "Öffentlicher Schlüssel kopiert") }) { Text("Öffentlichen Schlüssel kopieren") } }
+            OutlinedButton(onClick = { vm.forgetRegistration(onSetup) }) { Text("Schlüssel erneut eintragen / prüfen …") }
+            HorizontalDivider()
+
+            Section("Bekannte Server")
+            Text("Fest hinterlegt: " + ui.pinned.keys.joinToString(), style = MaterialTheme.typography.bodySmall)
+            if (ui.hostKeys.isEmpty()) Text("Noch keine bestätigten Server.", style = MaterialTheme.typography.bodySmall)
+            var toRemove by remember { mutableStateOf<String?>(null) }
+            ui.hostKeys.forEach { h ->
+                Column(Modifier.fillMaxWidth().testTag("hostkey-${h.hostId}")) {
+                    Text("${h.hostId} · ${h.type.sshName}", style = MaterialTheme.typography.bodyMedium)
+                    Text(h.fingerprint, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { toRemove = h.hostId }) { Text("Zurücksetzen …") }
+                }
+            }
+            toRemove?.let { id -> AlertDialog(
+                onDismissRequest = { toRemove = null },
+                title = { Text("Server zurücksetzen?") },
+                text = { Text("Beim nächsten Kontakt mit $id fragt die App erneut nach der Bestätigung des Host-Schlüssels. Mache das nur, wenn der Server bewusst neu installiert wurde.") },
+                confirmButton = { TextButton(onClick = { vm.removeHostKey(id); toRemove = null }) { Text("Zurücksetzen") } },
+                dismissButton = { TextButton(onClick = { toRemove = null }) { Text("Abbrechen") } },
+            ) }
+            HorizontalDivider()
+
+            Section("Über")
+            Text("Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", modifier = Modifier.testTag("about-version"))
+        }
+    }
+}
+
+@Composable
+private fun Section(title: String) { Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp)) }
+
+@Composable
+private fun TextField(label: String, value: String, tag: String, onChange: (String) -> Unit) {
+    OutlinedTextField(value = value, onValueChange = onChange, label = { Text(label) }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag(tag))
+}
