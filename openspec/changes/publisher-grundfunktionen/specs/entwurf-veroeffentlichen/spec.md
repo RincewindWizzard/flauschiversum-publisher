@@ -33,7 +33,7 @@ Nach jedem Commit auf `draft` SHALL die App den Branch per SSH nach `origin` pus
 - **THEN** bleibt der Commit lokal, der Entwurf trägt die Kennzeichnung „Noch nicht hochgeladen“, und die App versucht es auf Wunsch erneut
 
 ### Requirement: Entwürfe je Beitrag erkennen
-Die App SHALL die offenen Entwürfe aus dem Unterschied zwischen `draft` und dem Zielbranch ableiten: Jeder Beitrag, dessen Verzeichnis unter `content/posts/` auf `draft` neu, geändert oder gelöscht ist, gilt als Entwurf („Neu“, „Geändert“ oder „Gelöscht“). Weitere Branches dafür gibt es nicht.
+Die App SHALL die offenen Entwürfe aus den Änderungen ableiten, die `draft` gegenüber dem gemeinsamen Vorfahren mit dem Zielbranch selbst mitbringt und die vom Zielbranch noch abweichen: Jeder Beitrag, dessen Verzeichnis unter `content/posts/` so neu, geändert oder gelöscht ist, gilt als Entwurf („Neu“, „Geändert“ oder „Gelöscht“). Weitere Branches dafür gibt es nicht.
 
 #### Scenario: Neuer Beitrag
 - **WHEN** `content/posts/muetze/` auf `draft`, aber nicht auf `main` existiert
@@ -46,6 +46,10 @@ Die App SHALL die offenen Entwürfe aus dem Unterschied zwischen `draft` und dem
 #### Scenario: Gelöschter Beitrag
 - **WHEN** `content/posts/alraune/` auf `draft` fehlt, auf `main` aber existiert
 - **THEN** führt die App „Alraune“ als Entwurf „Gelöscht“
+
+#### Scenario: Zielbranch ist weitergelaufen
+- **WHEN** auf `main` ein neuer Beitrag „Neu“ hinzugekommen ist, den `draft` noch nicht kennt
+- **THEN** zählt „Neu“ nicht als Entwurf, und „Mütze“ bleibt der einzige Entwurf
 
 #### Scenario: Nichts offen
 - **WHEN** `draft` und `main` denselben Inhalt haben

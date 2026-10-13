@@ -29,6 +29,8 @@ sealed interface TreeChange {
     class Delete(override val path: String) : TreeChange
     /** Entfernt ein ganzes Verzeichnis. */
     class DeleteDir(override val path: String) : TreeChange
+    /** Setzt ein Verzeichnis auf den Stand von [fromRev] zurück (existiert es dort nicht, wird es entfernt). */
+    class ReplaceDir(override val path: String, val fromRev: String) : TreeChange
 }
 
 /** Ein Eintrag eines Verzeichnisses im Repository. */
@@ -146,6 +148,29 @@ class GitStore(val dir: File) : AutoCloseable {
                     }
                     is TreeChange.Delete -> editor.add(DirCacheEditor.DeletePath(c.path))
                     is TreeChange.DeleteDir -> editor.add(DirCacheEditor.DeleteTree(c.path.trimEnd('/')))
+                    is TreeChange.ReplaceDir -> {
+                        val dirPath = c.path.trim('/')
+                        editor.add(DirCacheEditor.DeleteTree(dirPath))
+                        val srcTree = repo.resolve("${c.fromRev}^{tree}")
+                        if (srcTree != null) repo.newObjectReader().use { reader ->
+                            val sub = TreeWalk.forPath(repo, reader, dirPath, srcTree)
+                            if (sub != null && sub.isSubtree) {
+                                val walk = TreeWalk(repo, reader)
+                                walk.addTree(sub.getObjectId(0))
+                                walk.isRecursive = true
+                                while (walk.next()) {
+                                    val mode = walk.getFileMode(0)
+                                    val id = walk.getObjectId(0)
+                                    editor.add(object : DirCacheEditor.PathEdit("$dirPath/${walk.pathString}") {
+                                        override fun apply(ent: org.eclipse.jgit.dircache.DirCacheEntry) {
+                                            ent.fileMode = mode
+                                            ent.setObjectId(id)
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    }
                 }
             }
             editor.finish()
