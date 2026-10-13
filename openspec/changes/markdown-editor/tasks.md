@@ -44,7 +44,7 @@
 ## 5. Beiträge bearbeiten (`beitrag-bearbeiten`)
 
 - [ ] 5.1 „Bearbeiten“ in der Beitragsliste; Textfeld zeigt nur den Text, Frontmatter nur über das Menü „Eigenschaften“, Meldung bei nicht trennbarer Datei; Tests mit Beispielbeiträgen und Datei ohne Frontmatter-Ende
-- [ ] 5.2 Aktualisieren vor dem Öffnen, Text aus vorhandenem `draft/<name>` bevorzugen, Hinweis ohne Netz; Test mit lokalem Testrepository
+- [ ] 5.2 Beitrag sofort mit dem letzten Stand öffnen, Hintergrundaktualisierung anstoßen, Text aus vorhandenem `draft/<name>` bevorzugen, neuere Fassung ohne Eingabe übernehmen, bei bereits getippter Eingabe nur Hinweis „Beitrag wurde auf dem Server geändert“; Tests mit Testrepository für alle Fälle inkl. Offline
 - [ ] 5.3 Speichern als Commit auf `draft/<name>` und Push über den vorhandenen Entwurfsweg; keine Änderung bedeutet kein Commit; Tests: nur `index.md` im Diff, `main` unverändert
 
 ## 6. Integration und Dokumentation

@@ -40,16 +40,27 @@ Beim Speichern einer Änderung SHALL die App einen Entwurfs-Branch `draft/<verze
 - **WHEN** der Nutzer speichert, ohne den Text geändert zu haben
 - **THEN** wird kein Commit angelegt
 
-### Requirement: Aktueller Stand vor dem Bearbeiten
-Vor dem Öffnen zum Bearbeiten SHALL die App den Klon aktualisieren, soweit Netz besteht. Gibt es für den Beitrag bereits einen Entwurfs-Branch, SHALL die App den Text aus diesem Branch öffnen, nicht aus dem Zielbranch.
+### Requirement: Aktueller Stand beim Bearbeiten
+Beim Öffnen eines Beitrags SHALL die App sofort den letzten bekannten Stand zeigen und parallel im Hintergrund aktualisieren (Spec `repository-klon`), ohne zu warten. Gibt es für den Beitrag einen Entwurfs-Branch, SHALL die App den Text aus diesem Branch öffnen, nicht aus dem Zielbranch. Bringt die Aktualisierung eine neuere Fassung des Beitrags, die Eingabe aber noch unverändert ist, SHALL der Editor die neue Fassung ohne Rückfrage übernehmen.
 
 #### Scenario: Offener Entwurf
 - **WHEN** `draft/alraune` ungeveröffentlichte Änderungen enthält und der Nutzer „Alraune“ bearbeitet
 - **THEN** zeigt der Editor den Text aus `draft/alraune`
 
+#### Scenario: Neuere Fassung, noch nichts getippt
+- **WHEN** der Nutzer „Alraune“ öffnet, noch nichts geändert hat und die Hintergrundaktualisierung eine neuere Fassung der Datei bringt
+- **THEN** zeigt der Editor kurz danach die neue Fassung, mit einem unaufdringlichen Hinweis „Aktualisiert“
+
 #### Scenario: Ohne Netz
 - **WHEN** kein Netz besteht
 - **THEN** öffnet die App den Beitrag aus dem letzten lokalen Stand und weist darauf hin
+
+### Requirement: Serverseitige Änderung während der Eingabe
+Hat sich die Datei des Beitrags auf dem Server geändert, während der Nutzer schon Änderungen im Editor hat, SHALL die App den Editortext nicht überschreiben. Sie SHALL stattdessen einen Hinweis „Beitrag wurde auf dem Server geändert“ anzeigen, ohne die Eingabe zu blockieren; die Zusammenführung erfolgt später beim Veröffentlichen (bei Konflikt Abbruch nach `entwurf-veroeffentlichen`).
+
+#### Scenario: Gleichzeitige Änderung
+- **WHEN** der Nutzer in „Alraune“ tippt und der Hintergrund-Fetch eine geänderte `index.md` von „Alraune“ bringt
+- **THEN** bleibt der eingegebene Text erhalten, und ein Hinweis erscheint, ohne Dialog und ohne Unterbrechung der Eingabe
 
 ### Requirement: Anhänge-Abschnitt schützen
 Der Editor SHALL den Abschnitt `## Anhänge` am Dateiende wie normalen Text behandeln, aber beim Bearbeiten nicht ohne Warnung dessen Überschrift entfernen oder verschieben, da die App neue Fotos dort anfügt.

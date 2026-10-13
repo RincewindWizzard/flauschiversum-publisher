@@ -17,7 +17,8 @@
 
 - [ ] 3.1 Einstellungen für Repository-Adresse, Zielbranch (Standard `main`), Commit-Name und -E-Mail, Autor für neue Beiträge und Rechtetext (Vorgabe „Flauschiversum / Ermeline Wollknoll“) mit Speicherung; Tests der Vorgaben und der Persistenz
 - [ ] 3.2 Klonen mit Fortschritt, Aufräumen bei Abbruch und Speicherplatzprüfung; Test mit lokalem Testrepository, Abbruch hinterlässt keinen Klon
-- [ ] 3.3 Aktualisieren (Fetch) ohne Verlust lokaler Entwürfe und Anzeige „zuletzt aktualisiert“; Test: neue Commits erscheinen, `draft/*` bleibt
+- [ ] 3.3 Hintergrund-Synchronisation (Fetch und Nachziehen des Zielbranchs) bei Start, Vordergrund und Öffnen eines Beitrags: höchstens ein Lauf, Mindestabstand, blockiert weder Hauptthread noch Commits des Nutzers, Anzeige „zuletzt aktualisiert“ und dezenter Indikator; Tests mit Testrepository: neue Commits erscheinen, `draft/*` bleibt, Fehler/Offline bleibt still, parallele Auslöser starten nur einen Fetch, Commit während Fetch wartet nicht auf das Netz
+- [ ] 3.3a Manuelles Aktualisieren mit Ergebnisanzeige (aktuell, Kein Netz, Fehler mit Grund); UI-Test
 - [ ] 3.4 Beitragsliste aus `content/posts/*/index.md` (Titel, Datum, Verzeichnis, Kennzeichnung Entwurf); Test gegen Beispielbeiträge aus dem Blog (inkl. Datum mit Uhrzeit)
 - [ ] 3.5 Erlaubte Schlagworte aus `content/tags.yaml` einlesen; Test mit dem echten Dateiformat des Blogs
 

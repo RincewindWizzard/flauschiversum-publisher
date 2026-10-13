@@ -108,14 +108,18 @@ Die Übersicht SHALL eine Schaltfläche „Neuer Beitrag“ bieten, die den Edit
 - **THEN** öffnet sich der Editor mit leerem Text und dem Menü „Eigenschaften“ mit Vorgaben (heutiges Datum, Autor aus den Einstellungen)
 
 ### Requirement: Aktualisieren und Offline
-Wischen nach unten SHALL den Klon aktualisieren (Fetch) und die Übersicht neu aufbauen; währenddessen läuft ein Fortschrittsanzeiger. Die Übersicht zeigt, wann zuletzt aktualisiert wurde. Ohne Netz bleibt die Übersicht mit dem letzten Stand benutzbar.
+Die Übersicht SHALL sich nach jeder Hintergrundaktualisierung (Spec `repository-klon`) selbst neu aufbauen, ohne die Bedienung zu unterbrechen. Wischen nach unten SHALL zusätzlich von Hand aktualisieren, währenddessen läuft ein Fortschrittsanzeiger. Die Übersicht zeigt, wann zuletzt aktualisiert wurde. Ohne Netz bleibt die Übersicht mit dem letzten Stand benutzbar.
 
 #### Scenario: Neue Beiträge vom Server
 - **WHEN** auf dem Server ein neuer Beitrag liegt und der Nutzer nach unten wischt
 - **THEN** erscheint der Beitrag danach in der Liste
 
+#### Scenario: Automatische Aktualisierung
+- **WHEN** die App in den Vordergrund kommt und der Server einen neuen Beitrag hat
+- **THEN** erscheint er in der Liste, ohne dass der Nutzer etwas tun muss und ohne dass die Liste springt, an der er gerade ist
+
 #### Scenario: Offline
-- **WHEN** das Handy keine Verbindung hat und der Nutzer aktualisieren will
+- **WHEN** das Handy keine Verbindung hat und der Nutzer von Hand aktualisieren will
 - **THEN** meldet die App „Kein Netz“, die Liste bleibt unverändert
 
 ### Requirement: Flüssige Bedienung bei vielen Beiträgen

@@ -21,7 +21,7 @@
 - [ ] 3.2 Vorschaubilder mit Downsampling und Cache (≈200 px); Test: Dekodieren eines großen Beispielbildes bleibt unter einer Speichergrenze, zweiter Aufruf kommt aus dem Cache
 - [ ] 3.3 Abschnitt „Entwürfe“ mit Kennzeichnung und Upload-Status; kein doppelter Eintrag für Beiträge mit Entwurf; UI-Tests der drei Szenarien
 - [ ] 3.4 Suchfeld, Filter-Chips (Schlagwort, Jahr), Sortiermenü, aktive Filter sichtbar und einzeln entfernbar, „Keine Beiträge gefunden“ mit Zurücksetzen; UI-Tests; Zustand übersteht Drehung und Prozessende
-- [ ] 3.5 Aktualisieren per Wischen (Fetch), „zuletzt aktualisiert“, Meldung „Kein Netz“; Test mit Testrepository und simuliertem Offline
+- [ ] 3.5 Übersicht baut sich nach jeder Hintergrundaktualisierung selbst neu auf (ohne Sprung der Scrollposition), zusätzlich Aktualisieren per Wischen, „zuletzt aktualisiert“, Meldung „Kein Netz“; Tests mit Testrepository und simuliertem Offline
 
 ## 4. Aktionen und Auswahlmodus
 

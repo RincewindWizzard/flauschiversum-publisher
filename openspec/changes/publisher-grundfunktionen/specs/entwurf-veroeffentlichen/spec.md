@@ -36,7 +36,7 @@ Die App SHALL alle Branches `draft/*` (lokal und auf dem Server) als Liste offen
 - **THEN** ist der Branch lokal und auf dem Server gelöscht und der Zielbranch unverändert
 
 ### Requirement: Veröffentlichen per Merge
-Die App SHALL zu jedem Entwurf einen Button „Veröffentlichen“ anbieten. Nach einer Sicherheitsabfrage SHALL die App den Entwurfs-Branch in den Zielbranch zusammenführen, den Zielbranch pushen und den Entwurfs-Branch danach löschen. Ist der Entwurf nicht vollständig hochgeladen, SHALL zuerst gepusht werden.
+Die App SHALL zu jedem Entwurf einen Button „Veröffentlichen“ anbieten. Nach einer Sicherheitsabfrage SHALL die App den Entwurfs-Branch in den Zielbranch zusammenführen, den Zielbranch pushen und den Entwurfs-Branch danach löschen. Zuvor SHALL die App den Zielbranch aktualisieren (mit sichtbarem Fortschritt) und, wenn der Entwurf nicht vollständig hochgeladen ist, ihn zuerst pushen.
 
 #### Scenario: Erfolgreich veröffentlichen
 - **WHEN** der Nutzer bei `draft/muetze` „Veröffentlichen“ bestätigt

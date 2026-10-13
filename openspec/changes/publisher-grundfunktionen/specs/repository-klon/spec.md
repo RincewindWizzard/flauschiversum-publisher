@@ -32,16 +32,35 @@ Die App SHALL in den Einstellungen Repository-Adresse, Zielbranch, Name und E-Ma
 - **WHEN** der Nutzer den Commit-Namen ändert und die App neu startet
 - **THEN** verwendet die App weiterhin den geänderten Namen
 
-### Requirement: Aktualisieren
-Die App SHALL den Klon vor dem Anlegen oder Ändern eines Beitrags und auf Wunsch des Nutzers per Fetch aktualisieren. Lokale, noch nicht veröffentlichte Entwürfe SHALL dabei erhalten bleiben.
+### Requirement: Aktualisieren im Hintergrund
+Die App SHALL den Klon möglichst immer aktuell halten, damit Änderungen auf einem aktuellen Stand beginnen und Merge-Konflikte seltener werden: beim Start der App, wenn sie in den Vordergrund kommt, und bevor der Nutzer einen Beitrag öffnet, anlegt oder ein Foto hinzufügt. Das Aktualisieren (Fetch und Nachziehen des Zielbranchs) SHALL im Hintergrund laufen und die Bedienung nie blockieren. Entwürfe bleiben dabei unverändert erhalten.
 
-#### Scenario: Neue Beiträge auf dem Server
-- **WHEN** auf dem Server neue Commits im Zielbranch liegen und der Nutzer aktualisiert
-- **THEN** enthält die Beitragsliste danach auch die neuen Beiträge
+#### Scenario: Beitrag öffnen während der Aktualisierung
+- **WHEN** der Nutzer einen Beitrag öffnet und der Fetch noch läuft
+- **THEN** öffnet sich der Editor sofort mit dem letzten bekannten Stand, und die Aktualisierung läuft im Hintergrund weiter
 
-#### Scenario: Offline
-- **WHEN** keine Verbindung besteht
-- **THEN** arbeitet die App mit dem letzten Stand weiter und zeigt an, wann zuletzt aktualisiert wurde
+#### Scenario: Anzeige
+- **WHEN** im Hintergrund aktualisiert wird
+- **THEN** zeigt die App einen dezenten Fortschrittsindikator und keine Sperre oder Dialoge
+
+#### Scenario: Zielbranch hat sich geändert
+- **WHEN** der Fetch neue Commits im Zielbranch bringt
+- **THEN** zieht die App den lokalen Zielbranch nach, und die Beitragsliste enthält danach auch die neuen Beiträge
+
+#### Scenario: Offline oder Fehler
+- **WHEN** keine Verbindung besteht oder der Fetch scheitert
+- **THEN** arbeitet die App mit dem letzten Stand weiter, zeigt „zuletzt aktualisiert“ an und unterbricht den Nutzer nicht mit einer Fehlermeldung
+
+#### Scenario: Mehrfach auslösen
+- **WHEN** der Nutzer mehrmals kurz hintereinander Beiträge öffnet
+- **THEN** läuft höchstens ein Fetch gleichzeitig, und ein soeben beendeter wird nicht sofort wiederholt
+
+### Requirement: Manuelles Aktualisieren
+Der Nutzer SHALL die Aktualisierung jederzeit von Hand anstoßen können. Dabei zeigt die App das Ergebnis (aktuell, Kein Netz, Fehler mit Grund) an.
+
+#### Scenario: Von Hand aktualisieren
+- **WHEN** der Nutzer die Aktualisierung anstößt und der Server nicht erreichbar ist
+- **THEN** meldet die App „Kein Netz“ bzw. den Grund und lässt den Stand unverändert
 
 ### Requirement: Beitragsliste
 Die App SHALL aus dem Klon alle Beiträge unter `content/posts/` mit Titel, Datum und Verzeichnisname anzeigen, neueste zuerst. Beiträge, die nur auf einem Entwurfs-Branch liegen, SHALL als Entwurf gekennzeichnet werden.
