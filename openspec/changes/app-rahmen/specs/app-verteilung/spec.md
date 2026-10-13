@@ -40,12 +40,12 @@ Bei einem Versions-Tag (`vMAJOR.MINOR.PATCH`) SHALL der Build eine signierte, op
 - **THEN** zeigt die App Version, Build-Kennung und die Lizenzen der verwendeten Bibliotheken
 
 ### Requirement: Installieren und Aktualisieren
-Die App SHALL sich über die APK installieren und mit einer neueren APK derselben Signatur ohne Datenverlust aktualisieren lassen (SSH-Schlüssel, Einstellungen, Klon und Aufträge bleiben erhalten). Mindestversion ist Android 7.0 (API 24).
+Die App SHALL sich über die APK installieren und mit einer neueren APK derselben Signatur ohne Datenverlust aktualisieren lassen (SSH-Schlüssel, Einstellungen, Klon und Aufträge bleiben erhalten). Mindestversion ist Android 8.0 (API 26).
 
 #### Scenario: Aktualisierung
 - **WHEN** der Nutzer eine neuere signierte APK über die vorhandene installiert
 - **THEN** startet die App mit unverändertem Schlüssel, Klon und Einstellungen
 
 #### Scenario: Zu altes Android
-- **WHEN** das Gerät Android 6 oder älter hat
+- **WHEN** das Gerät Android 7 oder älter hat
 - **THEN** lässt sich die APK nicht installieren

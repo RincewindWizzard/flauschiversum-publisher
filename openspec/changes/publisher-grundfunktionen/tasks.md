@@ -2,8 +2,9 @@
 
 ## 1. Grundgerüst und Spike
 
-- [ ] 1.1 Abhängigkeiten für Git über SSH (JGit mit SSH-Transport) und Ed25519 ergänzen; `./gradlew assembleDebug` läuft durch
-- [ ] 1.2 Spike: Schlüssel erzeugen und gegen GitHub und einen eigenen SSH-Server (Bare-Repository, z. B. in einem Container) flach klonen, nachladen (Deepen), mergen und pushen sowie die Schreibrechtprüfung über `git-receive-pack` ohne Push (GitHub und eigener Server) testen (Testrepository, Debug-Bildschirm); Ergebnisse (Ed25519 ja/nein, flacher Klon ja/nein, Fallbacks) in `design.md` unter Risiken festhalten
+- [x] 1.1 Abhängigkeiten für Git über SSH (JGit mit SSH-Transport) und Ed25519 ergänzen; `./gradlew assembleDebug` läuft durch (JGit 6.10, JSch-Fork mit BouncyCastle, minSdk 26 mit Core-Library-Desugaring)
+- [x] 1.2 Spike auf der JVM gegen einen eingebetteten SSH-Server (siehe `GitSpikeTest`, `SshAccessTest`): Ed25519-Schlüssel, flacher Klon, Holen, Nachladen (Deepen), Merge im Speicher, Push, Schreibrechtprüfung über `git-receive-pack`; Ergebnisse in `design.md` festgehalten
+- [ ] 1.4 Spike-Nachweis auf einem Android-Gerät und gegen echtes GitHub (Schlüssel erzeugen, flach klonen, `draft` pushen, Deploy Key ohne Schreibrecht); wegen fehlendem Emulator/Zugangsdaten in dieser Umgebung nicht geprüft
 - [ ] 1.3 Paketstruktur `git`, `posts`, `images`, `ui` mit Navigation (Compose) anlegen und App startet im Emulator mit leerem Hauptbildschirm
 
 ## 2. SSH-Zugang (`ssh-zugang`)
