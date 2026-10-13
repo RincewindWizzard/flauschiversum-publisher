@@ -33,7 +33,7 @@ Nach jedem Commit auf `draft` SHALL die App den Branch per SSH nach `origin` pus
 - **THEN** bleibt der Commit lokal, der Entwurf trägt die Kennzeichnung „Noch nicht hochgeladen“, und die App versucht es auf Wunsch erneut
 
 ### Requirement: Entwürfe je Beitrag erkennen
-Die App SHALL die offenen Entwürfe aus dem Unterschied zwischen `draft` und dem Zielbranch ableiten: Jeder Beitrag, dessen Verzeichnis unter `content/posts/` auf `draft` neu oder geändert ist, gilt als Entwurf („Neu“ oder „Geändert“). Weitere Branches dafür gibt es nicht.
+Die App SHALL die offenen Entwürfe aus dem Unterschied zwischen `draft` und dem Zielbranch ableiten: Jeder Beitrag, dessen Verzeichnis unter `content/posts/` auf `draft` neu, geändert oder gelöscht ist, gilt als Entwurf („Neu“, „Geändert“ oder „Gelöscht“). Weitere Branches dafür gibt es nicht.
 
 #### Scenario: Neuer Beitrag
 - **WHEN** `content/posts/muetze/` auf `draft`, aber nicht auf `main` existiert
@@ -42,6 +42,10 @@ Die App SHALL die offenen Entwürfe aus dem Unterschied zwischen `draft` und dem
 #### Scenario: Geänderter Beitrag
 - **WHEN** nur `content/posts/alraune/index.md` auf `draft` von `main` abweicht
 - **THEN** führt die App „Alraune“ als Entwurf „Geändert“ und keinen anderen Beitrag
+
+#### Scenario: Gelöschter Beitrag
+- **WHEN** `content/posts/alraune/` auf `draft` fehlt, auf `main` aber existiert
+- **THEN** führt die App „Alraune“ als Entwurf „Gelöscht“
 
 #### Scenario: Nichts offen
 - **WHEN** `draft` und `main` denselben Inhalt haben
@@ -71,7 +75,7 @@ Die App SHALL einen Button „Veröffentlichen“ anbieten. Nach einer Sicherhei
 
 #### Scenario: Liste in der Abfrage
 - **WHEN** der Nutzer „Veröffentlichen“ wählt
-- **THEN** nennt die Sicherheitsabfrage jeden betroffenen Beitrag mit „Neu“ oder „Geändert“
+- **THEN** nennt die Sicherheitsabfrage jeden betroffenen Beitrag mit „Neu“, „Geändert“ oder „Gelöscht“
 
 #### Scenario: Zielbranch ist weitergelaufen
 - **WHEN** `main` auf dem Server seit dem Anlegen des Entwurfs neue Commits hat, die den Entwurf nicht berühren

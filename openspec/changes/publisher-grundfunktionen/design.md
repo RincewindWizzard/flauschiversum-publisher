@@ -77,6 +77,8 @@ Rechtetext sind in den Einstellungen änderbar, mit sinnvollen Vorgaben.
 
 **Hintergrund-Synchronisation gegen Konflikte.** Ein Synchronisationsdienst führt Fetch und Nachziehen des Zielbranchs (Fast-Forward; die App committet nie direkt auf den Zielbranch, außer beim Veröffentlichen) bei App-Start, Rückkehr in den Vordergrund und beim Öffnen eines Beitrags aus. Er läuft in einer Coroutine außerhalb des Hauptthreads, höchstens ein Lauf gleichzeitig, mit Mindestabstand (z. B. 60 s) zwischen automatischen Läufen. Die Netzwerkphase des Fetch hält keine Sperre auf dem Repository; nur das kurze Nachziehen der Referenzen läuft in der gemeinsamen Git-Warteschlange, damit Commits des Nutzers nicht blockieren und sich nicht mit dem Nachziehen überschneiden. Ein `draft` ohne eigene Änderungen wird im Hintergrund auf den Zielbranch vorgesetzt (Fast-Forward); ein `draft` mit Änderungen bleibt unverändert (kein stilles Zusammenführen); Konflikte zeigen sich erst beim Veröffentlichen und führen zum Abbruch. Alternative: Zielbranch in `draft` mit Änderungen einmischen – verworfen (unerwartete Commits, zusätzliche Konfliktfälle).
 
+**Hintergrundausführung:** Verkleinern, Commit und Push der Teilen-Aufträge laufen in der Fassung dieses Changes zunächst in der App; der Change `hintergrund-upload` verlegt sie in zuverlässige Hintergrundaufträge mit Warteschlange und Wiederholung.
+
 **Aufbau:** Compose-Oberfläche mit ViewModels; Schichten `git` (JGit-Kapsel), `posts` (Frontmatter,
 Verzeichnisnamen, Schlagworte lesen), `images` (Skalieren) und `ui`. Die Schichten ohne
 Android-Abhängigkeit (`posts`, Teile von `git`) sind mit reinen JVM-Tests prüfbar.

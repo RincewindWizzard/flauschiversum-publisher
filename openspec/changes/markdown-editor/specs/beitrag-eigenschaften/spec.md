@@ -52,7 +52,7 @@ Der Permalink SHALL für neue Beiträge automatisch aus Datum und Verzeichnisnam
 - **THEN** bleibt der Permalink unverändert (Cool URIs don't change)
 
 ### Requirement: Schlagworte auswählen
-Schlagworte SHALL als auswählbare Chips aus der Liste von `content/tags.yaml` angeboten werden, mit Suchfeld zum Filtern und Mehrfachauswahl. Es können nur vorhandene Schlagworte gewählt werden.
+Schlagworte SHALL als auswählbare Chips aus der Liste von `content/tags.yaml` angeboten werden, mit Suchfeld zum Filtern und Mehrfachauswahl. Es können nur Schlagworte aus dieser Liste gewählt werden; neue entstehen über die Aktion „Neues Schlagwort“ (Change `schlagworte-verwalten`).
 
 #### Scenario: Schlagwort wählen
 - **WHEN** der Nutzer „Hü“ ins Suchfeld tippt und den Chip „Hüte“ antippt

@@ -85,4 +85,4 @@ Die App SHALL die erlaubten Schlagworte aus `content/tags.yaml` des Klons lesen 
 
 #### Scenario: Neues Schlagwort gewünscht
 - **WHEN** der Nutzer ein Thema braucht, das nicht in der Liste steht
-- **THEN** weist die App darauf hin, dass es zuerst in `content/tags.yaml` ergänzt werden muss
+- **THEN** bietet die App „Neues Schlagwort“ an, das es in `content/tags.yaml` einträgt (Change `schlagworte-verwalten`)

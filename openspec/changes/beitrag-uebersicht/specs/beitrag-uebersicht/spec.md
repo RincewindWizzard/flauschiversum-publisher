@@ -71,7 +71,7 @@ Die Übersicht SHALL die Liste nach einem oder mehreren Schlagworten (Beitrag ha
 - **THEN** sind die Beiträge alphabetisch nach Titel sortiert, wobei Umlaute wie „Ä“ unter „A“ einsortiert werden
 
 ### Requirement: Beitrag auswählen und Aktionen
-Ein Tipp auf einen Beitrag SHALL ihn im Markdown-Editor zum Bearbeiten öffnen. Ein Menü am Eintrag (langer Druck oder Mehr-Symbol) SHALL die Aktionen „Bearbeiten“, „Eigenschaften“ und „Foto hinzufügen“ anbieten, bei Entwürfen zusätzlich „Verwerfen“; „Veröffentlichen“ steht für alle Entwürfe gemeinsam in der Kopfzeile des Abschnitts „Entwürfe“. Die Aktionen verwenden die Abläufe der Specs `beitrag-bearbeiten`, `beitrag-eigenschaften`, `foto-teilen` und `entwurf-veroeffentlichen`.
+Ein Tipp auf einen Beitrag SHALL ihn im Markdown-Editor zum Bearbeiten öffnen. Ein Menü am Eintrag (langer Druck oder Mehr-Symbol) SHALL die Aktionen „Bearbeiten“, „Eigenschaften“ und „Foto hinzufügen“ anbieten und Raum für weitere Aktionen aus späteren Changes lassen („Fotos“ aus `foto-verwaltung`, „Vorschau“ aus `beitrag-vorschau`, „Löschen“ aus `beitrag-loeschen`), bei Entwürfen zusätzlich „Verwerfen“; „Veröffentlichen“ steht für alle Entwürfe gemeinsam in der Kopfzeile des Abschnitts „Entwürfe“. Die Aktionen verwenden die Abläufe der Specs `beitrag-bearbeiten`, `beitrag-eigenschaften`, `foto-teilen` und `entwurf-veroeffentlichen`.
 
 #### Scenario: Beitrag bearbeiten
 - **WHEN** der Nutzer „Alraune“ antippt
