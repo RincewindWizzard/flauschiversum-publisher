@@ -143,6 +143,29 @@ class HomeEditorUiTest {
         assertNotNull(server.readText("refs/heads/main", "content/posts/schal/index.md"))
     }
 
+    @Test fun veroeffentlichenWarntVorMarkdownFehlernUndLaesstFortfahren() {
+        val h = harness(); val vm = home(h); waitFor { !vm.ui.value.loading }
+        h.container.session.workflow()!!.commit(listOf(TreeChange.Put("content/posts/kaputt/index.md", "---\ntitle: \"Kaputt\"\ndate: 2026-10-13\n---\nDas ist **sehr schön\n".toByteArray())), "Beitrag: Kaputt")
+        h.container.draftChanges.value++
+        waitFor { exists("drafts-header") }
+        compose.onNodeWithTag("publish").performClick()
+        waitFor { exists("publish-errors") }
+        compose.onNodeWithTag("publish-errors").assertIsDisplayed()
+        compose.onNodeWithTag("publish-confirm").performClick()
+        waitFor(60_000) { vm.ui.value.drafts.isEmpty() && !vm.ui.value.publishing }
+        assertNotNull(de.flauschiversum.publisher.git.GitStore(h.blog.bare).readText("refs/heads/main", "content/posts/kaputt/index.md"))
+    }
+
+    @Test fun veroeffentlichenOhneFehlerZeigtKeineWarnung() {
+        val h = harness(); val vm = home(h); waitFor { !vm.ui.value.loading }
+        makeDraft(h, "gut", "Gut")
+        waitFor { exists("drafts-header") }
+        compose.onNodeWithTag("publish").performClick()
+        waitFor { exists("publish-confirm") }
+        Thread.sleep(300); ShadowLooper.idleMainLooper(); compose.waitForIdle()
+        assertFalse(exists("publish-errors"))
+    }
+
     @Test fun einzelnenEntwurfVerwerfen() {
         val h = harness(); val vm = home(h); waitFor { !vm.ui.value.loading }
         makeDraft(h, "muetze", "Mütze")
@@ -227,7 +250,7 @@ class HomeEditorUiTest {
         waitFor { h.container.session.store()!!.exists("refs/remotes/origin/main", "content/posts/flauschangriff/IMG_1.jpg") }
         val vm = editor(h, "flauschangriff")
         waitFor { vm.ui.value.loaded && vm.ui.value.imageFiles.contains("IMG_1.jpg") }
-        compose.onNodeWithTag("insert-image").performClick()
+        compose.onNodeWithTag("insert-image").performScrollTo().performClick()
         waitFor { exists("alt-input") }
         compose.onNodeWithTag("alt-input").performTextInput("Fertige Mütze")
         compose.onNodeWithTag("insert-confirm").performClick()

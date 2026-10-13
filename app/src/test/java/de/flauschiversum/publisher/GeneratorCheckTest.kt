@@ -63,4 +63,16 @@ class GeneratorCheckTest {
         assertEquals("Keine neuen Warnungen erwartet:\n${after.output}", base.warnings, after.warnings)
         assertTrue(after.output, after.output.contains("196 Posts"))
     }
+
+    @Test fun bearbeiteterBeitragBestehtDiePruefungDesGenerators() {
+        val base = baseline()
+        val reader = de.flauschiversum.publisher.posts.PostReader(blog.store)
+        val old = reader.document(wf.refs.target, "baumaerkte")!!
+        val body = "Größe & Mütze **fett**, _kursiv_ und eine Tabelle:\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\nNadja Bender<br/>\n"
+        val props = PostEditing.read(old)
+        wf.commit(listOf(TreeChange.Put("content/posts/baumaerkte/index.md", PostEditing.apply(old, props, props, body).text.toByteArray())), "Beitrag geändert")
+        val after = GeneratorCheck.check(GeneratorCheck.prepare(tmp.newFolder("after"), wf))
+        assertEquals(after.output, 0, after.exitCode)
+        assertEquals(base.warnings, after.warnings)
+    }
 }

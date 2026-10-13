@@ -34,6 +34,8 @@ data class HomeUi(
     val publishing: Boolean = false,
     val message: String? = null,
     val confirmPublish: Boolean = false,
+    /** Beiträge mit offenen Markdown-Fehlern unter den Entwürfen: Titel → Zahl der Fehler. */
+    val publishErrors: Map<String, Int> = emptyMap(),
 )
 
 /** Beitragsübersicht mit Entwürfen und „Veröffentlichen“ (Specs `repository-klon`, `entwurf-veroeffentlichen`). */
@@ -76,7 +78,26 @@ class HomeViewModel(private val c: AppContainer) : ViewModel() {
 
     fun refreshNow() { c.sync.request(SyncReason.MANUAL) }
 
-    fun askPublish() { local.update { it.copy(confirmPublish = true) } }
+    fun askPublish() {
+        local.update { it.copy(confirmPublish = true, publishErrors = emptyMap()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            val errors = runCatching { c.session.locked { markdownErrors() } }.getOrDefault(emptyMap())
+            local.update { it.copy(publishErrors = errors) }
+        }
+    }
+
+    private fun markdownErrors(): Map<String, Int> {
+        val wf = c.session.workflow() ?: return emptyMap()
+        val reader = PostReader(wf.store)
+        val result = linkedMapOf<String, Int>()
+        for (d in wf.overview().posts) {
+            if (d.kind == DraftKind.DELETED) continue
+            val doc = reader.document(wf.refs.draft, d.dir) ?: continue
+            val n = de.flauschiversum.publisher.editor.MarkdownLint.check(doc.body).count { it.severity == de.flauschiversum.publisher.editor.Severity.ERROR }
+            if (n > 0) result[reader.summary(wf.refs.draft, d.dir)?.title ?: d.dir] = n
+        }
+        return result
+    }
     fun cancelPublish() { local.update { it.copy(confirmPublish = false) } }
 
     fun publish() {

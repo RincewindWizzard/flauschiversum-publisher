@@ -31,6 +31,21 @@ Mit *Einstellungen → Einrichtung wiederholen* lässt sich jeder Schritt erneut
   Im Hintergrund holt die App regelmäßig den Stand des Servers, damit Konflikte selten werden.
 - **Beitrag schreiben/bearbeiten**: Der Editor zeigt nur den Text. Titel, Datum, Schlagworte, Autor, Titelbild und
   Kurzbeschreibung stehen im Menü *Eigenschaften*. Eingaben gehen bei Unterbrechung nicht verloren.
+- **Editor**: Werkzeugleiste für Fett, Kursiv, Überschrift, Aufzählung, Link und Zitat (mit oder ohne Markierung),
+  Rückgängig/Wiederholen und Bild einfügen. Markdown-Elemente werden farblich hervorgehoben. Beim Verlassen mit
+  ungespeicherten Änderungen fragt die App nach.
+- **Prüfungen** (offline, nach kurzer Pause): Markdown-Fehler (z. B. `**fett` nie geschlossen, Codeblock ohne Ende,
+  Tabellenzeile mit falscher Spaltenzahl) und Warnungen (übersprungene Überschriftenebene, leere Links, mehrere
+  Leerzeilen) sind im Text markiert; „Prüfung: …“ unter dem Editor öffnet die Liste, ein Tipp springt zur Stelle.
+  Vor dem Speichern und Veröffentlichen warnt die App bei Fehlern; Weitermachen ist möglich.
+- **Rechtschreibung** (Deutsch, eingebautes Wörterbuch): Falsche Wörter sind unterstrichen. Steht der Cursor im Wort,
+  erscheinen bis zu fünf Vorschläge sowie „Ins Wörterbuch“ und „Ignorieren“. Das persönliche Wörterbuch lässt sich in
+  den Einstellungen bearbeiten. Schlagworte aus `tags.yaml` gelten als richtig.
+- **Eigenschaften** (Menü im Editor): Titel, Datum mit Kalender und optionaler Uhrzeit, Permalink (Vorschlag aus Datum
+  und Titel), Schlagworte mit Suche, Autor (bekannte Autoren zum Antippen), Titelbild als Vorschau-Raster und
+  Kurzbeschreibung mit Zähler und „Aus Text übernehmen“.
+- **Beitrag bearbeiten**: Antippen in der Übersicht. Die App zeigt den Entwurf, sonst den Stand des Zielbranches, und
+  übernimmt neuere Fassungen vom Server, solange noch nichts getippt wurde; sonst erscheint ein Hinweis.
 - **Speichern** legt einen Commit auf `draft` an und lädt ihn im Hintergrund hoch („Noch nicht hochgeladen“ erscheint,
   wenn das nicht klappt).
 - **Fotos teilen**: In der Galerie ein oder mehrere Fotos wählen → *Teilen* → *Flauschiversum*. Dann einen

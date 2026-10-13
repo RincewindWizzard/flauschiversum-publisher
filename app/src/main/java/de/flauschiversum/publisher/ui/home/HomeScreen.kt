@@ -128,6 +128,13 @@ private fun PublishDialog(ui: HomeUi, vm: HomeViewModel) {
                 Text("Diese Änderungen gehen live:")
                 posts.forEach { Text("• ${it.dir} (${draftLabel(it.kind)})", modifier = Modifier.testTag("publish-item")) }
                 ui.overview?.otherChanges?.forEach { Text("• ${it.path}") }
+                if (ui.publishErrors.isNotEmpty()) {
+                    val n = ui.publishErrors.values.sum()
+                    Text(
+                        (if (n == 1) "Achtung: 1 Markdown-Fehler" else "Achtung: $n Markdown-Fehler") + " in " + ui.publishErrors.keys.joinToString { "„$it“" } + ". Die Beiträge werden trotzdem veröffentlicht, wenn du fortfährst.",
+                        color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("publish-errors"),
+                    )
+                }
             }
         },
         confirmButton = { TextButton(onClick = vm::publish, modifier = Modifier.testTag("publish-confirm")) { Text("Veröffentlichen") } },

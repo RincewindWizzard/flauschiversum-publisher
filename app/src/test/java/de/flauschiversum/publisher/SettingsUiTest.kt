@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import de.flauschiversum.publisher.testsupport.AppTestHarness
 import de.flauschiversum.publisher.ui.settings.SettingsScreen
 import de.flauschiversum.publisher.ui.settings.SettingsViewModel
@@ -52,6 +53,17 @@ class SettingsUiTest {
         return h
     }
 
+    @Test fun persoenlichesWoerterbuchWortHinzufuegenUndEntfernen() {
+        val h = screen()
+        compose.onNodeWithTag("dict-new").performScrollTo().performTextInput("Zzyxwolle")
+        compose.onNodeWithTag("dict-add").performScrollTo().performClick()
+        waitFor { exists("dict-Zzyxwolle") }
+        assertEquals(listOf("Zzyxwolle"), h.container.spell.personal.all())
+        compose.onNodeWithTag("dict-remove-Zzyxwolle").performScrollTo().performClick()
+        waitFor { !exists("dict-Zzyxwolle") }
+        assertTrue(h.container.spell.personal.all().isEmpty())
+    }
+
     @Test fun vorgabenWerdenAngezeigt() {
         val h = screen()
         compose.onNodeWithTag("settings-address").assertIsDisplayed()
@@ -61,10 +73,8 @@ class SettingsUiTest {
 
     @Test fun aenderungenWerdenGespeichertUndBleibenErhalten() {
         val h = screen()
-        compose.onNodeWithTag("settings-commit-name").performScrollTo().performTextClearance()
-        compose.onNodeWithTag("settings-commit-name").performTextInput("Ermeline Wollknoll")
-        compose.onNodeWithTag("settings-rights").performScrollTo().performTextClearance()
-        compose.onNodeWithTag("settings-rights").performTextInput("Mein Blog")
+        compose.onNodeWithTag("settings-commit-name").performScrollTo().performTextReplacement("Ermeline Wollknoll")
+        compose.onNodeWithTag("settings-rights").performScrollTo().performTextReplacement("Mein Blog")
         waitFor { h.container.settingsSnapshot.commitName == "Ermeline Wollknoll" && h.container.settingsSnapshot.rightsText == "Mein Blog" }
         val persisted = runBlocking { h.container.settings.current() }
         assertEquals("Ermeline Wollknoll", persisted.commitName); assertEquals("Mein Blog", persisted.rightsText)

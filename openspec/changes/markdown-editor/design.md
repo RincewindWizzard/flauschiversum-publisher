@@ -47,6 +47,17 @@ Der Editor baut auf `publisher-grundfunktionen` auf (noch nicht umgesetzt): Repo
 - [Lange Texte machen das Textfeld träge] → Hervorhebung nur im sichtbaren Bereich neu berechnen; Prüfung im Hintergrund; Test mit einem Beitrag von über 20 000 Zeichen.
 - [App wird größer] → Wörterbuch nur de_DE; Größe in der Spike-Messung festhalten.
 
+## Ergebnisse des Spikes zur Rechtschreibung (Aufgabe 1.2)
+
+Gemessen auf der JVM (nicht auf Android):
+
+- **Bibliothek:** `lucene-analyzers-common` 8.11.4 (`Dictionary`, `Hunspell`, rein Java, Java 8). Lucene 9 verlangt Java 11 und ist für Android riskanter.
+- **Wörterbuch:** `de_DE` (igerman98, Stand 2016-12-07) als `app/src/main/assets/dict/de_DE.{aff,dic}`, rund 1,1 MB; Quelle: github.com/wooorm/dictionaries (`dictionaries/de`).
+- **Laden:** etwa 0,8 s, rund 16 MB Heap (JVM). 4 000 Prüfungen in 47 ms.
+- **Qualität:** „wundershön“ → Vorschlag „wunderschön“; „Strickanleitung“, „Kuschelkissen“, „Wollknäuel“, „Baumärkte“ richtig. Nicht erkannt: „Häkelmütze“, „Amigurumi“, „Flauschiversum“, „Ermeline“. Deshalb gibt es `assets/dict/extra-words.txt` (Zusatzwörter), die Schlagworte aus `tags.yaml` und das persönliche Wörterbuch.
+- **Lizenz:** igerman98 steht unter **GPL v2 oder v3** (Datei `LICENSE-de_DE.txt` liegt bei). Wird die App weitergegeben, muss sie damit vereinbar sein; für die private Nutzung ist das unkritisch. **Offene Entscheidung** für das Projekt: GPL für die App wählen oder ein anderes Wörterbuch (z. B. LibreOffice-`de_DE_frami`, ebenfalls GPL/LGPL) bzw. ein Download-Wörterbuch nehmen.
+- **Offen:** Ob Lucene 8 unter ART (Android) ohne Anpassung läuft und wie Startzeit und Speicher dort aussehen, ist **nicht geprüft** (kein Gerät/Emulator).
+
 ## Open Questions
 
 - **Lizenz des Wörterbuchs:** Welches `de_DE`-Wörterbuch (z. B. Hunspell-DE von j3e.de oder aus LibreOffice) passt lizenzrechtlich? Klärung vor der Aufnahme in die App (Aufgabe 1.2), ändert nichts an Specs oder Aufgaben.

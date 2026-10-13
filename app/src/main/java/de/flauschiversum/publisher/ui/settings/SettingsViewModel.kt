@@ -19,6 +19,7 @@ data class SettingsUi(
     val publicKey: String? = null,
     val hostKeys: List<StoredHostKey> = emptyList(),
     val pinned: Map<String, Set<String>> = emptyMap(),
+    val dictionary: List<String> = emptyList(),
 )
 
 class SettingsViewModel(private val c: AppContainer) : ViewModel() {
@@ -32,7 +33,7 @@ class SettingsViewModel(private val c: AppContainer) : ViewModel() {
 
     private fun load(): SettingsUi {
         val key = c.keyStore.load()
-        return SettingsUi(keyFingerprint = key?.fingerprint, publicKey = key?.publicLine, hostKeys = c.hostKeys.list(), pinned = de.flauschiversum.publisher.ssh.HostKeyStore.PINNED_FINGERPRINTS)
+        return SettingsUi(keyFingerprint = key?.fingerprint, publicKey = key?.publicLine, dictionary = c.spell.personal.all(), hostKeys = c.hostKeys.list(), pinned = de.flauschiversum.publisher.ssh.HostKeyStore.PINNED_FINGERPRINTS)
     }
 
     private fun SettingsUi.merge(o: SettingsUi) = copy(keyFingerprint = o.keyFingerprint, publicKey = o.publicKey, hostKeys = o.hostKeys, pinned = o.pinned)
@@ -42,6 +43,9 @@ class SettingsViewModel(private val c: AppContainer) : ViewModel() {
     fun update(transform: (AppSettings) -> AppSettings) { viewModelScope.launch { c.settings.update(transform) } }
 
     fun setTheme(mode: ThemeMode) = update { it.copy(themeMode = mode) }
+
+    fun addDictionaryWord(word: String) { c.spell.personal.add(word.trim()); _ui.update { it.copy(dictionary = c.spell.personal.all()) } }
+    fun removeDictionaryWord(word: String) { c.spell.personal.remove(word); _ui.update { it.copy(dictionary = c.spell.personal.all()) } }
 
     fun removeHostKey(hostId: String) {
         val (host, port) = if (hostId.startsWith("[")) hostId.substring(1, hostId.indexOf(']')) to hostId.substringAfterLast(':').toInt() else hostId to 22

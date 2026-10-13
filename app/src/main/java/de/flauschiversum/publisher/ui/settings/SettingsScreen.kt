@@ -3,6 +3,7 @@ package de.flauschiversum.publisher.ui.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -107,6 +108,21 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
                 confirmButton = { TextButton(onClick = { vm.removeHostKey(id); toRemove = null }) { Text("Zurücksetzen") } },
                 dismissButton = { TextButton(onClick = { toRemove = null }) { Text("Abbrechen") } },
             ) }
+            HorizontalDivider()
+
+            Section("Persönliches Wörterbuch")
+            var newWord by remember { mutableStateOf("") }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(newWord, { newWord = it }, label = { Text("Neues Wort") }, singleLine = true, modifier = Modifier.weight(1f).testTag("dict-new"))
+                OutlinedButton(onClick = { vm.addDictionaryWord(newWord); newWord = "" }, enabled = newWord.isNotBlank(), modifier = Modifier.testTag("dict-add")) { Text("Hinzufügen") }
+            }
+            if (ui.dictionary.isEmpty()) Text("Noch keine eigenen Wörter. Unbekannte Wörter lassen sich im Editor aufnehmen.", style = MaterialTheme.typography.bodySmall)
+            ui.dictionary.forEach { w ->
+                Row(Modifier.fillMaxWidth().testTag("dict-$w"), verticalAlignment = Alignment.CenterVertically) {
+                    Text(w, Modifier.weight(1f))
+                    TextButton(onClick = { vm.removeDictionaryWord(w) }, modifier = Modifier.testTag("dict-remove-$w")) { Text("Entfernen") }
+                }
+            }
             HorizontalDivider()
 
             Section("Über")
