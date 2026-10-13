@@ -176,28 +176,38 @@ class DraftWorkflow(
         return o.push(mapOf(Refs.DRAFT to local), force = force)
     }
 
-    /** Holt Zielbranch und `draft` und führt `draft` nach, wenn er keine eigenen Änderungen hat. */
-    fun sync(): SyncResult {
-        val o = ops() ?: return SyncResult(false, false, upload())
-        val targetBefore = targetId()
-        o.fetch(refs.branches)
-        val targetAfter = targetId()
+    /** Holt Zielbranch und `draft` (reine Netzwerkphase, braucht keine Sperre auf dem Repository). */
+    fun fetch() {
+        ops()?.fetch(refs.branches)
+    }
+
+    /**
+     * Gleicht `draft` nach dem Holen ab: Übernimmt einen neueren Server-Stand und setzt einen Entwurf ohne eigene
+     * Änderungen auf den Zielbranch vor. Gibt zurück, ob `draft` bewegt wurde.
+     */
+    fun reconcile(): Boolean {
         var advanced = false
         val local = draftId(); val remote = store.refId(refs.draftRemote)
         if (local == null && remote != null) {
             store.updateRef(refs.draft, remote, force = true); advanced = true
-        } else if (remote != null && local != null && remote != null && local != remote && store.isAncestor(local, remote)) {
+        } else if (remote != null && local != null && local != remote && store.isAncestor(local, remote)) {
             store.updateRef(refs.draft, remote, force = true); advanced = true
         }
-        // Entwurf ohne eigene Änderungen: auf den Zielbranch vorsetzen
-        val d = draftId()
-        if (d != null && targetAfter != null && d != targetAfter) {
-            if (!hasChanges()) {
-                store.updateRef(refs.draft, targetAfter, force = true); advanced = true
-                if (store.refId(refs.draftRemote) != targetAfter) runCatching { pushDraft() }
-            }
+        val d = draftId(); val target = targetId()
+        if (d != null && target != null && d != target && !hasChanges() && store.isAncestor(d, target)) {
+            store.updateRef(refs.draft, target, force = true); advanced = true
+            if (store.refId(refs.draftRemote) != target) runCatching { pushDraft() }
         }
-        return SyncResult(targetBefore != targetAfter, advanced, upload())
+        return advanced
+    }
+
+    /** Holt Zielbranch und `draft` und führt `draft` nach, wenn er keine eigenen Änderungen hat. */
+    fun sync(): SyncResult {
+        if (ops() == null) return SyncResult(false, false, upload())
+        val targetBefore = targetId()
+        fetch()
+        val advanced = reconcile()
+        return SyncResult(targetBefore != targetId(), advanced, upload())
     }
 
     // ---------- Veröffentlichen
