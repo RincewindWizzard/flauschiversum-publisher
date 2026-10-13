@@ -1,0 +1,27 @@
+schema: spec-driven
+
+context: |
+  Language: German
+  All artifacts must be written in German.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Projekt: Flauschiversum Publisher – eine Android-App, mit der man vom Handy aus
+  neue Beiträge für den Blog Flauschiversum (https://flauschiversum.de/) per
+  git über SSH veröffentlichen kann.
+
+  Tech-Stack (Ausgangslage, Stand Projektanlage):
+  - Android-App in Kotlin mit Jetpack Compose und Material 3
+    (Paket de.flauschiversum.publisher, minSdk 24), Gradle mit Kotlin-DSL
+  - Veröffentlichung: Beiträge werden als Dateien in ein Git-Repository
+    geschrieben, committet und per SSH gepusht
+
+  Zielrepository (nur lesend als Referenz, Änderungen dort sind nicht Teil dieses Projekts):
+  - RincewindWizzard/flauschiversum – statischer Site-Generator in Rust
+  - Anforderungen des Blogs: openspec/specs/ im Repository flauschiversum
+    (u.a. content-format, post-images, image-processing)
+  - Inhalte als Markdown mit Frontmatter: content/posts/<verzeichnis>/ (Beitrag
+    inkl. Medien, URL über `permalink`), Schlagworte aus content/tags.yaml
+  - Push auf `dev` und `claude/**` baut Staging (GitHub Actions)
+
+  Grundsatz: Das Beitragsformat bestimmt der Blog (content-format); die App muss
+  Beiträge erzeugen, die der Generator ohne Nacharbeit akzeptiert.
