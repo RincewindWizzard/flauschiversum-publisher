@@ -164,7 +164,7 @@ class EditorViewModel(private val c: AppContainer, private val handle: SavedStat
         val tags = PostEditing.canonicalTags(u.tags, allowed)
         val props = u.props.copy(tags = tags)
         val errors = PostEditing.validate(props, allowed, otherPermalinks, if (u.isNew) null else u.imageFiles)
-        if (errors.isNotEmpty()) { _ui.update { it.copy(errors = errors, showProperties = errors.any { e -> e.field != Fields.TITLE } || it.showProperties, message = errors.first().message) }; return }
+        if (errors.isNotEmpty()) { _ui.update { it.copy(errors = errors, showProperties = true, message = errors.first().message) }; return }
         _ui.update { it.copy(saving = true) }
         viewModelScope.launch(Dispatchers.IO) {
             val wf = c.session.workflow()

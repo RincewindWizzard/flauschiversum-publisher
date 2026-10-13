@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -49,6 +50,7 @@ fun formatSync(millis: Long): String =
 fun HomeScreen(vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () -> Unit, onFixAccess: () -> Unit) {
     val ui by vm.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
     LaunchedEffect(ui.message) { ui.message?.let { snackbar.showSnackbar(it); vm.messageShown() } }
     Scaffold(
         topBar = { TopAppBar(title = { Text("Flauschiversum", style = MaterialTheme.typography.headlineSmall) }, actions = {
@@ -60,14 +62,19 @@ fun HomeScreen(vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () 
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             if (ui.syncing || ui.publishing) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("sync-indicator"))
-            Text(formatSync(ui.lastSyncMillis), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).testTag("last-sync"))
-            if (ui.accessProblem) Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer), modifier = Modifier.padding(16.dp).fillMaxWidth().testTag("access-problem")) {
-                Column(Modifier.padding(12.dp)) {
-                    Text("Zugriff verweigert. Ist der Schlüssel noch auf dem Server eingetragen?")
-                    TextButton(onClick = onFixAccess) { Text("Prüfen und erneut eintragen") }
+            LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp), modifier = Modifier.fillMaxSize()) {
+                // Das erste Element bleibt immer an seinem Platz: So rutschen neue Beiträge und Entwürfe darunter ins Bild.
+                item(key = "kopf") {
+                    Column {
+                Text(formatSync(ui.lastSyncMillis), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).testTag("last-sync"))
+                if (ui.accessProblem) Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer), modifier = Modifier.padding(16.dp).fillMaxWidth().testTag("access-problem")) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text("Zugriff verweigert. Ist der Schlüssel noch auf dem Server eingetragen?")
+                        TextButton(onClick = { vm.fixAccess(onFixAccess) }, modifier = Modifier.testTag("fix-access")) { Text("Prüfen und erneut eintragen") }
+                    }
                 }
-            }
-            LazyColumn(contentPadding = PaddingValues(bottom = 96.dp), modifier = Modifier.fillMaxSize()) {
+                    }
+                }
                 if (ui.drafts.isNotEmpty() || (ui.overview?.otherChanges?.isNotEmpty() == true)) {
                     item { DraftsHeader(ui, vm) }
                     items(ui.drafts, key = { "d-" + it.summary.dir }) { row -> PostItem(row, onClick = { onOpenPost(row.summary.dir) }, onDiscard = { vm.discard(row.summary.dir) }) }

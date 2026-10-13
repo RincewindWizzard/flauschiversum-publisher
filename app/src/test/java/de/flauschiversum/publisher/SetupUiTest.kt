@@ -177,3 +177,26 @@ fun AppTestHarness.completeSetupUntilClone() = kotlinx.coroutines.runBlocking {
     val id = "${blog.key.fingerprint}@$address"
     c.setupState.update { it.copy(confirmedAddress = address, registeredFor = id, accessVerifiedFor = id) }
 }
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
+class AccessProblemUiTest {
+    @get:Rule val compose = createComposeRule()
+    @get:Rule val tmp = TemporaryFolder()
+    private var h: AppTestHarness? = null
+    @After fun tearDown() { h?.close() }
+
+    @Test fun zugangsproblemFuehrtZuSchrittDreiMitSchluesselAnzeige() {
+        val h = AppTestHarness(tmp.newFolder()).also { it.completeSetup(); this.h = it }
+        var navigated = false
+        val vm = de.flauschiversum.publisher.ui.home.HomeViewModel(h.container)
+        vm.fixAccess { navigated = true }
+        val end = System.currentTimeMillis() + 10_000
+        while (!navigated && System.currentTimeMillis() < end) { org.robolectric.shadows.ShadowLooper.idleMainLooper(); Thread.sleep(20) }
+        assertTrue(navigated)
+        val setup = SetupViewModel(h.container)
+        compose.setContent { FlauschiversumPublisherTheme { SetupScreen(setup, onFinished = {}) } }
+        compose.onNodeWithText("Schritt 3 von 5: Schlüssel eintragen").assertIsDisplayed()
+        compose.onNodeWithTag("public-key").assertIsDisplayed()
+    }
+}

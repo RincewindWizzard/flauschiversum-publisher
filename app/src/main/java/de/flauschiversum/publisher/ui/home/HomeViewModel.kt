@@ -52,8 +52,12 @@ class HomeViewModel(private val c: AppContainer) : ViewModel() {
 
     fun reload() {
         viewModelScope.launch(Dispatchers.IO) {
-            val loaded = c.session.locked { load() } ?: return@launch
-            local.update { it.copy(loading = false, drafts = loaded.first, posts = loaded.second, overview = loaded.third) }
+            try {
+                val loaded = c.session.locked { load() } ?: return@launch
+                local.update { it.copy(loading = false, drafts = loaded.first, posts = loaded.second, overview = loaded.third) }
+            } catch (e: Throwable) {
+                local.update { it.copy(loading = false, message = "Beiträge konnten nicht gelesen werden: ${e.message ?: e.javaClass.simpleName}") }
+            }
         }
     }
 
@@ -117,6 +121,11 @@ class HomeViewModel(private val c: AppContainer) : ViewModel() {
             local.update { it.copy(message = if (r.isSuccess) null else c.session.classify(r.exceptionOrNull()!!).message) }
             reload()
         }
+    }
+
+    /** Setzt „eingetragen/geprüft“ zurück, damit die Einrichtung bei Schritt 3 fortsetzt (Zugang wurde verweigert). */
+    fun fixAccess(onDone: () -> Unit) {
+        viewModelScope.launch { c.setupState.update { it.copy(registeredFor = null, accessVerifiedFor = null) }; onDone() }
     }
 
     fun messageShown() { local.update { it.copy(message = null) } }

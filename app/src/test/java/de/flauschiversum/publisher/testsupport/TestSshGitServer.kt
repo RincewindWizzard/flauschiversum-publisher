@@ -65,6 +65,9 @@ class TestSshGitServer(val root: File) : AutoCloseable {
         sshd.start()
     }
 
+    /** Entfernt alle zugelassenen Schlüssel (simuliert einen bei GitHub gelöschten Deploy Key). */
+    fun revokeAll() { writeKeys.clear(); readKeys.clear() }
+
     fun allowWrite(openSshPublicLine: String) { writeKeys += parse(openSshPublicLine) }
     fun allowReadOnly(openSshPublicLine: String) { readKeys += parse(openSshPublicLine) }
 
