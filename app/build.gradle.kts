@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "de.flauschiversum.publisher"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
@@ -30,6 +30,20 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
+    }
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/AL2.0", "META-INF/LGPL2.1", "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE*", "META-INF/NOTICE*", "META-INF/INDEX.LIST",
+                "META-INF/versions/**", "META-INF/*.kotlin_module", "**/module-info.class",
+                "META-INF/eclipse.inf", "about.html", "plugin.properties",
+            )
+        }
+    }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
     buildFeatures {
         compose = true
@@ -37,6 +51,24 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    implementation(libs.jgit) { exclude(group = "org.slf4j") }
+    implementation(libs.jgit.ssh.jsch) {
+        exclude(group = "com.jcraft", module = "jsch")
+        exclude(group = "org.slf4j")
+    }
+    implementation(libs.jsch)
+    implementation(libs.bouncycastle.prov)
+    implementation(libs.slf4j.api)
+    runtimeOnly(libs.slf4j.nop)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.biometric)
+    implementation(libs.androidx.exifinterface)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
@@ -46,6 +78,10 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.sshd.core)
+    testImplementation(libs.sshd.git) { exclude(group = "org.eclipse.jgit") }
+    testRuntimeOnly(libs.slf4j.simple)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
