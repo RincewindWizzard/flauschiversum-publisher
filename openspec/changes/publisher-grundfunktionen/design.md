@@ -50,8 +50,26 @@ Nutzer nicht einrichten will.
 
 **Bildverarbeitung auf dem Gerät mit Android-Bordmitteln** (Bitmap-Decoder mit Zielgröße,
 EXIF-Drehung anwenden, neu codieren, Qualität schrittweise senken bis ≤ 1 MB). Beim Neu-Codieren
-fallen Metadaten ohnehin weg; Urheber-/Rechte-Angaben bleiben dadurch nicht erhalten (siehe Offene
-Fragen). Die Verarbeitung läuft im Hintergrund, nicht auf dem Hauptthread.
+fallen Metadaten weg; die App schreibt danach die Rechteangaben (Urheber, Copyright, Lizenzhinweis
+wie in `image-processing` des Blogs, Text in den Einstellungen änderbar) wieder hinein und lässt
+Standortdaten weg. Skaliert wird so, dass die **längere** Kante höchstens 1000 Pixel misst (nicht
+nur die Breite). Die Verarbeitung läuft im Hintergrund, nicht auf dem Hauptthread.
+
+**Zielbranch `main`, kein Staging für Entwürfe.** „Veröffentlichen“ führt in `main` zusammen
+(einstellbar). Die Staging-Pipeline des Blogs wird nicht um `draft/**` erweitert; Entwürfe haben
+keine Online-Vorschau.
+
+**Branch-Name = Verzeichnisname.** `draft/<verzeichnisname>` ohne Datum, derselbe Name wie das
+Beitragsverzeichnis unter `content/posts/`.
+
+**Konflikte: Abbruch.** Gibt es beim Zusammenführen einen Konflikt, bricht die App mit Meldung ab;
+eine Konfliktlösung in der App gibt es nicht (zu aufwendig, am Rechner lösbar).
+
+**Alt-Text gehört an das Bild.** Beim Teilen wird er pro Bild eingegeben und als Beschreibung in
+`![Alt-Text](Datei)` übernommen.
+
+**Identität aus den Einstellungen.** Autorname, E-Mail (Commit-Autor), Autor für neue Beiträge und
+Rechtetext sind in den Einstellungen änderbar, mit sinnvollen Vorgaben.
 
 **Aufbau:** Compose-Oberfläche mit ViewModels; Schichten `git` (JGit-Kapsel), `posts` (Frontmatter,
 Verzeichnisnamen, Schlagworte lesen), `images` (Skalieren) und `ui`. Die Schichten ohne
@@ -73,22 +91,3 @@ Tests gegen Beispiel-Beiträge aus `content/posts/` des Blogs (gelesen, nicht ve
   bei Geräteverlust Key bei GitHub löschen.
 - [Handy-Akku/Netz bricht während Push ab] → Commit bleibt lokal, erneuter Push möglich, Status
   sichtbar.
-
-## Open Questions
-
-- **Merge-Ziel:** Standard `main` (konfigurierbar). Soll „Veröffentlichen“ künftig auf `dev`
-  (Staging) und erst danach auf `main` führen? -> main
-- **Vorschau/Staging:** Die Staging-Pipeline des Blogs läuft nicht auf `draft/*`, Entwürfe sind also
-  nicht online einsehbar. Soll der Workflow im Blog-Repository um `draft/**` erweitert werden
-  (eigener Change dort, nicht in diesem Repo)? -> nein
-- **Branch-Namen:** `draft/<verzeichnisname>` – ist ein Datum im Namen (`draft/2026-10-13-muetze`)
-  gewünscht? -> nein, so wie der Ordnername im Verzeichnis
-- **Bildgröße:** „1000x“ ist als Breite verstanden; Hochformatfotos werden also auf 1000 Pixel
-  Breite begrenzt (Höhe bis 1333). Soll die längere Kante gelten? -> ja die höhere Kante
-- **Alt-Text beim Teilen:** Pflicht, optional oder nachträglich im Editor? -> Alt Text gehört an das Bild
-- **Konfliktbehandlung:** Reicht Abbruch mit Meldung, oder soll die App einen Konfliktlösungsweg
-  anbieten? -> erstmal Abbruch das ist sonst viel zu kompliziert
-- **Rechte-Metadaten:** Der Blog führt Rechte-Metadaten an Bildern (siehe `image-processing`). Soll
-  die App Urheber-/Copyright-Angaben in die verkleinerten Bilder schreiben? -> ja
-- **Autor/Commit-Identität:** Name und E-Mail aus den Einstellungen – sind feste Vorgaben (z. B.
-  „Ermeline“) gewünscht? -> ja. Bzw das sollte man in den EInstellungen konfiguriren können

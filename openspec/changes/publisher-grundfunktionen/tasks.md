@@ -15,7 +15,7 @@
 
 ## 3. Repository-Klon (`repository-klon`)
 
-- [ ] 3.1 Einstellungen für Repository-Adresse, Zielbranch (Standard `main`), Autorname und E-Mail mit Speicherung; Test der Standardwerte
+- [ ] 3.1 Einstellungen für Repository-Adresse, Zielbranch (Standard `main`), Commit-Name und -E-Mail, Autor für neue Beiträge und Rechtetext (Vorgabe „Flauschiversum / Ermeline Wollknoll“) mit Speicherung; Tests der Vorgaben und der Persistenz
 - [ ] 3.2 Klonen mit Fortschritt, Aufräumen bei Abbruch und Speicherplatzprüfung; Test mit lokalem Testrepository, Abbruch hinterlässt keinen Klon
 - [ ] 3.3 Aktualisieren (Fetch) ohne Verlust lokaler Entwürfe und Anzeige „zuletzt aktualisiert“; Test: neue Commits erscheinen, `draft/*` bleibt
 - [ ] 3.4 Beitragsliste aus `content/posts/*/index.md` (Titel, Datum, Verzeichnis, Kennzeichnung Entwurf); Test gegen Beispielbeiträge aus dem Blog (inkl. Datum mit Uhrzeit)
@@ -40,11 +40,11 @@
 ## 6. Fotos teilen (`foto-teilen`)
 
 - [ ] 6.1 Intent-Filter für `ACTION_SEND`/`ACTION_SEND_MULTIPLE` mit `image/*` im Manifest; Instrumented-Test: Teilen-Intent öffnet die Zuordnung, Text-Teilen nicht
-- [ ] 6.2 Verkleinern auf 1000 Pixel Breite mit EXIF-Drehung, Formattreue, ≤ 1 MB und ohne Vergrößern; Tests mit Beispielbildern (4000×3000, EXIF 6, 562×750)
-- [ ] 6.3 Entfernen der GPS-/Standortmetadaten; Test: Ergebnisbild enthält keine GPS-Tags
+- [ ] 6.2 Verkleinern, sodass die längere Kante ≤ 1000 Pixel misst, mit EXIF-Drehung, Formattreue, ≤ 1 MB und ohne Vergrößern; Tests mit Beispielbildern (4000×3000, 3000×4000, EXIF 6, 562×750)
+- [ ] 6.3 Entfernen der GPS-/Standortmetadaten und Schreiben der Rechteangaben (EXIF Artist/Copyright, XMP, Text aus den Einstellungen); Test: Ergebnisbild enthält keine GPS-Tags, aber die Rechteangaben
 - [ ] 6.4 Zuordnungsbildschirm: vorhandenen Beitrag wählen, neuen anlegen oder abbrechen; UI-Test für Abbruch ändert nichts
 - [ ] 6.5 Ablegen im Beitragsverzeichnis mit Namenskollision (`IMG_1-2.jpg`), Commit auf `draft/<name>` und Push; Test inkl. Foto zu veröffentlichtem Beitrag
-- [ ] 6.6 Option „Im Text einfügen“ bzw. „Nur ablegen“; Test: Bildzeilen ohne Leerzeile am Textende
+- [ ] 6.6 Alt-Text-Feld je Bild und Option „Im Text einfügen“ bzw. „Nur ablegen“; Test: Bildzeilen mit jeweiligem Alt-Text ohne Leerzeile am Textende
 
 ## 7. Integration und Dokumentation
 
@@ -54,5 +54,4 @@
 
 ## Workflow follow-up
 
-- Offene Fragen aus `design.md` mit dem Nutzer klären, vor allem Merge-Ziel, Vorschau über Staging und Bildgröße (Breite oder längere Kante).
 - Change nach Review archivieren (`/opsx:archive`).

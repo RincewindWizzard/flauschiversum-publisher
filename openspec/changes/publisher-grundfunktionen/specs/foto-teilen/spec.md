@@ -18,11 +18,15 @@ Die App SHALL in der Android-Teilen-Auswahl als Ziel für einzelne und mehrere B
 - **THEN** zeigt die App alle fünf in der Vorschau und ordnet sie gemeinsam einem Beitrag zu
 
 ### Requirement: Auf Blog-Größe verkleinern
-Die App SHALL jedes geteilte Bild vor dem Ablegen auf höchstens 1000 Pixel Breite verkleinern (die Größe `1000x` des Blogs), dabei das Seitenverhältnis erhalten, die EXIF-Drehung anwenden und kleinere Bilder nicht vergrößern. Das Dateiformat bleibt erhalten (JPEG bleibt JPEG, PNG bleibt PNG, WebP bleibt WebP). Das Ergebnis SHALL höchstens 1 MB groß sein, verlustbehaftete Formate werden dafür entsprechend komprimiert.
+Die App SHALL jedes geteilte Bild vor dem Ablegen so verkleinern, dass seine längere Kante höchstens 1000 Pixel misst, dabei das Seitenverhältnis erhalten, die EXIF-Drehung anwenden und kleinere Bilder nicht vergrößern. Das Dateiformat bleibt erhalten (JPEG bleibt JPEG, PNG bleibt PNG, WebP bleibt WebP). Das Ergebnis SHALL höchstens 1 MB groß sein, verlustbehaftete Formate werden dafür entsprechend komprimiert.
 
 #### Scenario: Großes Handyfoto
 - **WHEN** ein JPEG mit 4000×3000 Pixeln und 6 MB geteilt wird
 - **THEN** wird ein JPEG mit 1000×750 Pixeln und höchstens 1 MB abgelegt
+
+#### Scenario: Hochformatfoto
+- **WHEN** ein JPEG mit 3000×4000 Pixeln geteilt wird
+- **THEN** wird ein JPEG mit 750×1000 Pixeln abgelegt
 
 #### Scenario: Gedrehtes Foto
 - **WHEN** ein Foto quer gespeichert ist und EXIF-Orientation 6 trägt
@@ -38,6 +42,17 @@ Die App SHALL aus den abgelegten Bildern den GPS-Standort und andere ortsbezogen
 #### Scenario: Foto mit Standort
 - **WHEN** ein Foto mit GPS-Koordinaten geteilt wird
 - **THEN** enthält das abgelegte Bild keine GPS-Metadaten
+
+### Requirement: Rechteangaben
+Die App SHALL in jedes abgelegte Bild Rechteangaben schreiben: als Urheber und Rechteinhaber den Rechtetext aus den Einstellungen (Vorgabe „Flauschiversum / Ermeline Wollknoll“) und als Lizenzhinweis `https://flauschiversum.de/impressum/`, in den Metadatenfeldern, die das Dateiformat des Bildes dafür vorsieht (bei JPEG EXIF Artist/Copyright und XMP).
+
+#### Scenario: Rechte im JPEG
+- **WHEN** ein Foto geteilt und abgelegt wurde
+- **THEN** zeigt ein Metadaten-Betrachter als Urheber „Flauschiversum / Ermeline Wollknoll“ und den Lizenzhinweis an
+
+#### Scenario: Geänderter Rechtetext
+- **WHEN** der Nutzer in den Einstellungen einen anderen Rechtetext eingestellt hat
+- **THEN** trägt das nächste abgelegte Bild diesen Text
 
 ### Requirement: Zielbeitrag wählen
 Die App SHALL den Nutzer vor dem Ablegen einen vorhandenen Beitrag aus der Beitragsliste wählen oder einen neuen Beitrag anlegen lassen (mit mindestens Titel). Ohne Auswahl SHALL nichts abgelegt werden.
@@ -69,8 +84,15 @@ Die App SHALL die verkleinerten Bilder im Verzeichnis des Zielbeitrags ablegen, 
 - **WHEN** ein geteiltes Bild `Schwacher Moment.jpg` heißt
 - **THEN** bleibt der Name erhalten, da der Blog Umlaute und Leerzeichen unterstützt
 
+### Requirement: Alt-Text je Bild
+Die App SHALL beim Teilen für jedes Bild ein eigenes Feld für den Alt-Text (die Bildbeschreibung) anbieten. Der Alt-Text SHALL als Beschreibung in der Markdown-Zeile des Bildes stehen. Er ist optional; ohne Eingabe bleibt die Beschreibung leer.
+
+#### Scenario: Alt-Text je Bild
+- **WHEN** der Nutzer zwei Fotos teilt und für das erste „Fertige Mütze“ eingibt, für das zweite nichts
+- **THEN** erhält das erste `![Fertige Mütze](…)` und das zweite `![](…)`
+
 ### Requirement: Bilder dem Text zuordnen
-Nach dem Ablegen SHALL die App anbieten, die Bilder im Text des Beitrags einzufügen (`![Beschreibung](Dateiname)`), jeweils mit optionaler Beschreibung. Werden mehrere Bilder zusammen eingefügt, stehen sie ohne Leerzeile untereinander (Bildgruppe).
+Nach dem Ablegen SHALL die App anbieten, die Bilder im Text des Beitrags einzufügen (`![Alt-Text](Dateiname)`). Werden mehrere Bilder zusammen eingefügt, stehen sie ohne Leerzeile untereinander (Bildgruppe).
 
 #### Scenario: Mehrere Bilder einfügen
 - **WHEN** der Nutzer drei Fotos ablegt und „Im Text einfügen“ wählt
@@ -78,4 +100,4 @@ Nach dem Ablegen SHALL die App anbieten, die Bilder im Text des Beitrags einzuf�
 
 #### Scenario: Nicht einfügen
 - **WHEN** der Nutzer „Nur ablegen“ wählt
-- **THEN** liegen die Bilder im Verzeichnis, der Text bleibt unverändert
+- **THEN** liegen die Bilder im Verzeichnis, der Text bleibt unverändert, und die eingegebenen Alt-Texte werden nicht gespeichert

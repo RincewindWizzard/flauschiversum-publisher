@@ -21,7 +21,7 @@ damit nichts ungeprüft live geht.
   dorthin. Ein „Veröffentlichen“-Button in der App führt den Entwurf in den Zielbranch zusammen und
   pusht diesen.
 - Die App nimmt Fotos über die Android-Teilen-Funktion entgegen (`ACTION_SEND` /
-  `ACTION_SEND_MULTIPLE`, `image/*`), skaliert sie auf höchstens 1000 Pixel Breite, lässt den Nutzer
+  `ACTION_SEND_MULTIPLE`, `image/*`), skaliert sie so, dass die längere Kante höchstens 1000 Pixel misst, versieht sie mit Alt-Text und Rechteangaben, lässt den Nutzer
   einen vorhandenen oder neuen Beitrag wählen, legt die Bilder im Beitragsverzeichnis ab, committet
   und pusht.
 
@@ -51,5 +51,5 @@ nur Referenz)
   mit SSH-Transport) und Bildverarbeitung.
 - Manifest: Internet-Berechtigung, Intent-Filter für `image/*` (SEND, SEND_MULTIPLE).
 - Netzwerk: Zugriff auf `github.com` per SSH (Port 22 bzw. `ssh.github.com:443`).
-- Das Repository `flauschiversum` wird weder verändert noch gebaut; neue Pushes auf `draft/*` lösen
-  dort höchstens das Staging aus (siehe offene Fragen im Design).
+- Das Repository `flauschiversum` wird weder verändert noch gebaut; Pushes auf `draft/*` lösen dort kein
+  Staging aus (der Workflow läuft nur auf `dev` und `claude/**`).

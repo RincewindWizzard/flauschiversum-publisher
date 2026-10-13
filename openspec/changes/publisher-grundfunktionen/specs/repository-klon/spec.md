@@ -21,6 +21,17 @@ Die App SHALL das Repository `RincewindWizzard/flauschiversum` per SSH in den pr
 - **WHEN** der freie Speicher für den Klon nicht reicht
 - **THEN** meldet die App den Platzmangel, bevor oder sobald das Klonen scheitert, und lässt keinen halben Klon zurück
 
+### Requirement: Einstellungen
+Die App SHALL in den Einstellungen Repository-Adresse, Zielbranch, Name und E-Mail für Commits, den Autor für neue Beiträge und den Rechtetext für Bilder ändern lassen und dauerhaft speichern. Vorgaben: Repository `RincewindWizzard/flauschiversum`, Zielbranch `main`, Rechtetext „Flauschiversum / Ermeline Wollknoll“.
+
+#### Scenario: Vorgaben
+- **WHEN** die App zum ersten Mal gestartet wird
+- **THEN** zeigen die Einstellungen die Vorgaben für Repository, Zielbranch und Rechtetext
+
+#### Scenario: Änderung bleibt erhalten
+- **WHEN** der Nutzer den Commit-Namen ändert und die App neu startet
+- **THEN** verwendet die App weiterhin den geänderten Namen
+
 ### Requirement: Aktualisieren
 Die App SHALL den Klon vor dem Anlegen oder Ändern eines Beitrags und auf Wunsch des Nutzers per Fetch aktualisieren. Lokale, noch nicht veröffentlichte Entwürfe SHALL dabei erhalten bleiben.
 
