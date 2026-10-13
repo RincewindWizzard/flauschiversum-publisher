@@ -8,7 +8,7 @@ Die App ist ein leeres Android-Projekt (Kotlin, Jetpack Compose, Material 3, min
 Schlagworte stehen in `content/tags.yaml`. Der Generator erzeugt `200x`/`700x`/`1000x`-Varianten
 selbst (Spec `image-processing` im Blog) und vergrößert nie; ein bereits auf 1000 Pixel
 verkleinertes Original ist daher für ihn gültig. Die Staging-Pipeline des Blogs läuft bei Push auf
-`dev` und `claude/**`, nicht auf `draft/*`. Motivation und Umfang: siehe `proposal.md`,
+`dev` und `claude/**`, nicht auf `draft`. Motivation und Umfang: siehe `proposal.md`,
 Anforderungen: siehe `specs/`.
 
 ## Goals / Non-Goals
@@ -42,11 +42,7 @@ eine mögliche Härtung.
 **Host-Schlüssel von github.com fest hinterlegt** (statt „beim ersten Mal vertrauen“), mit
 Aktualisierung über eine App-Version. Verhindert Man-in-the-Middle im öffentlichen WLAN.
 
-**Ein Klon, ein Branch je Entwurf.** Entwurfs-Branches `draft/<verzeichnisname>` werden vom
-Zielbranch aus angelegt, committet und gepusht. „Veröffentlichen“ führt in den Zielbranch zusammen
-(Merge ohne Konfliktlösung in der App; bei Konflikt Abbruch) und löscht den Entwurfs-Branch.
-Alternative: Pull Requests über die GitHub-API – verworfen, weil dafür ein Token nötig wäre, das der
-Nutzer nicht einrichten will.
+**Ein Klon, ein gemeinsamer Branch `draft`.** Alle Änderungen der App werden auf `draft` committet und gepusht. „Veröffentlichen“ führt `draft` in den Zielbranch zusammen (Merge ohne Konfliktlösung in der App; bei Konflikt Abbruch) und setzt `draft` danach auf den Stand des Zielbranchs. Offene Entwürfe sind keine eigenen Branches, sondern ergeben sich aus dem Unterschied der Beitragsverzeichnisse zwischen `draft` und Zielbranch. Weniger Branches, einfacheres Git, keine Namenskonflikte. Folge: Es werden immer alle Entwürfe gemeinsam veröffentlicht; Einzelverwerfen geschieht durch einen Zurücksetzen-Commit des Beitragsverzeichnisses, „Alle verwerfen“ setzt `draft` auf den Zielbranch zurück (dafür ist ein Force-Push nötig; `draft` gehört allein der App). Alternative: ein Branch je Beitrag (`draft/<name>`) – verworfen als zu kompliziert. Alternative: Pull Requests über die GitHub-API – verworfen, weil dafür ein Token nötig wäre, das der Nutzer nicht einrichten will.
 
 **Bildverarbeitung auf dem Gerät mit Android-Bordmitteln** (Bitmap-Decoder mit Zielgröße,
 EXIF-Drehung anwenden, neu codieren, Qualität schrittweise senken bis ≤ 1 MB). Beim Neu-Codieren
@@ -56,11 +52,10 @@ Standortdaten weg. Skaliert wird so, dass die **längere** Kante höchstens 1000
 nur die Breite). Die Verarbeitung läuft im Hintergrund, nicht auf dem Hauptthread.
 
 **Zielbranch `main`, kein Staging für Entwürfe.** „Veröffentlichen“ führt in `main` zusammen
-(einstellbar). Die Staging-Pipeline des Blogs wird nicht um `draft/**` erweitert; Entwürfe haben
+(einstellbar). Die Staging-Pipeline des Blogs wird nicht um `draft` erweitert; Entwürfe haben
 keine Online-Vorschau.
 
-**Branch-Name = Verzeichnisname.** `draft/<verzeichnisname>` ohne Datum, derselbe Name wie das
-Beitragsverzeichnis unter `content/posts/`.
+**Branch-Name `draft`.** Ein fester Name ohne Datum und Verzeichnisnamen.
 
 **Konflikte: Abbruch.** Gibt es beim Zusammenführen einen Konflikt, bricht die App mit Meldung ab;
 eine Konfliktlösung in der App gibt es nicht (zu aufwendig, am Rechner lösbar).
@@ -73,7 +68,7 @@ Bildzeilen); den Text darüber fasst die App nicht an.
 **Identität aus den Einstellungen.** Autorname, E-Mail (Commit-Autor), Autor für neue Beiträge und
 Rechtetext sind in den Einstellungen änderbar, mit sinnvollen Vorgaben.
 
-**Hintergrund-Synchronisation gegen Konflikte.** Ein Synchronisationsdienst führt Fetch und Nachziehen des Zielbranchs (Fast-Forward; die App committet nie direkt auf den Zielbranch, außer beim Veröffentlichen) bei App-Start, Rückkehr in den Vordergrund und beim Öffnen eines Beitrags aus. Er läuft in einer Coroutine außerhalb des Hauptthreads, höchstens ein Lauf gleichzeitig, mit Mindestabstand (z. B. 60 s) zwischen automatischen Läufen. Die Netzwerkphase des Fetch hält keine Sperre auf dem Repository; nur das kurze Nachziehen der Referenzen läuft in der gemeinsamen Git-Warteschlange, damit Commits des Nutzers nicht blockieren und sich nicht mit dem Nachziehen überschneiden. Neue Entwürfe starten vom zuletzt bekannten Zielbranch. Entwürfe selbst werden im Hintergrund nicht verändert (kein stilles Zusammenführen); Konflikte zeigen sich erst beim Veröffentlichen und führen zum Abbruch. Alternative: Zielbranch in laufende Entwürfe einmischen – verworfen (unerwartete Commits, zusätzliche Konfliktfälle).
+**Hintergrund-Synchronisation gegen Konflikte.** Ein Synchronisationsdienst führt Fetch und Nachziehen des Zielbranchs (Fast-Forward; die App committet nie direkt auf den Zielbranch, außer beim Veröffentlichen) bei App-Start, Rückkehr in den Vordergrund und beim Öffnen eines Beitrags aus. Er läuft in einer Coroutine außerhalb des Hauptthreads, höchstens ein Lauf gleichzeitig, mit Mindestabstand (z. B. 60 s) zwischen automatischen Läufen. Die Netzwerkphase des Fetch hält keine Sperre auf dem Repository; nur das kurze Nachziehen der Referenzen läuft in der gemeinsamen Git-Warteschlange, damit Commits des Nutzers nicht blockieren und sich nicht mit dem Nachziehen überschneiden. Ein `draft` ohne eigene Änderungen wird im Hintergrund auf den Zielbranch vorgesetzt (Fast-Forward); ein `draft` mit Änderungen bleibt unverändert (kein stilles Zusammenführen); Konflikte zeigen sich erst beim Veröffentlichen und führen zum Abbruch. Alternative: Zielbranch in `draft` mit Änderungen einmischen – verworfen (unerwartete Commits, zusätzliche Konfliktfälle).
 
 **Aufbau:** Compose-Oberfläche mit ViewModels; Schichten `git` (JGit-Kapsel), `posts` (Frontmatter,
 Verzeichnisnamen, Schlagworte lesen), `images` (Skalieren) und `ui`. Die Schichten ohne

@@ -70,11 +70,11 @@ Die App SHALL den Nutzer vor dem Ablegen einen vorhandenen Beitrag aus der Beitr
 - **THEN** wird nichts im Repository geändert
 
 ### Requirement: Ablegen, Committen, Pushen
-Die App SHALL die verkleinerten Bilder im Verzeichnis des Zielbeitrags ablegen, zusammen mit der geänderten `index.md` auf dem Entwurfs-Branch des Beitrags committen und pushen (Spec `entwurf-veroeffentlichen`). Gehört der Beitrag schon zum Zielbranch, legt die App dafür einen Entwurfs-Branch an. Ein vorhandenes Bild mit gleichem Dateinamen SHALL nie stillschweigend überschrieben werden.
+Die App SHALL die verkleinerten Bilder im Verzeichnis des Zielbeitrags ablegen, zusammen mit der geänderten `index.md` auf `draft` committen und pushen (Spec `entwurf-veroeffentlichen`). Gehört der Beitrag schon zum Zielbranch, ist das ein Entwurf. Ein vorhandenes Bild mit gleichem Dateinamen SHALL nie stillschweigend überschrieben werden.
 
 #### Scenario: Foto zu veröffentlichtem Beitrag
 - **WHEN** ein Foto zum bereits veröffentlichten Beitrag „Alraune“ hinzugefügt wird
-- **THEN** entsteht der Branch `draft/alraune` mit dem Bild als Commit, gepusht, und `main` bleibt unverändert
+- **THEN** liegt das Bild als Commit auf `draft`, gepusht, und `main` bleibt unverändert
 
 #### Scenario: Gleicher Dateiname
 - **WHEN** im Beitragsverzeichnis schon `IMG_1.jpg` liegt und ein anderes Foto ebenfalls `IMG_1.jpg` heißt

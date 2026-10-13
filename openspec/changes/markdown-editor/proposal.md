@@ -10,7 +10,7 @@ Beiträge bestehen aus Markdown. Mit dem normalen Textfeld des Handys sind Tippf
 - Ein Syntax-Checker markiert Fehler und Warnungen im Markdown, passend zum Markdown-Dialekt des Blogs (CommonMark mit Tabellen, Durchstreichen und Fußnoten, eingebettetes HTML erlaubt).
 - Der Editor zeigt nur den Text ohne Frontmatter. Alle Frontmatter-Felder (Titel, Datum, Permalink, Schlagworte, Autor, Titelbild, Kurzbeschreibung) stehen in einem eigenen Menü „Eigenschaften“ mit passenden Eingabemethoden (Kalender, Zeitwähler, Chips, Bildauswahl).
 - Eine Rechtschreibprüfung für Deutsch (eingebautes Hunspell-Wörterbuch, offline) unterstreicht unbekannte Wörter, schlägt Korrekturen vor und erlaubt, Wörter in ein persönliches Wörterbuch aufzunehmen.
-- Bestehende Beiträge lassen sich aus der Beitragsliste öffnen und bearbeiten; Änderungen laufen über den Entwurfs-Branch `draft/<name>` und „Veröffentlichen“.
+- Bestehende Beiträge lassen sich aus der Beitragsliste öffnen und bearbeiten; Änderungen laufen über den Entwurfs-Branch `draft` und „Veröffentlichen“.
 
 ## Capabilities
 

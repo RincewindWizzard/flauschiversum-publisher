@@ -6,7 +6,7 @@
 - [ ] 1.2 Beiträge mit ungültigem oder fehlendem Frontmatter trotzdem aufnehmen (Verzeichnisname als Titel, Warnhinweis); Unit-Test
 - [ ] 1.3 Index auf Platte zwischenspeichern, mit Commit-Hash versehen und nach Fetch nur geänderte Beiträge neu lesen; Test mit lokalem Testrepository: zweiter Start liest nichts neu, geänderter Beitrag wird aktualisiert
 - [ ] 1.4 Titelbild-Ermittlung (`image` → erstes Bild → Platzhalter); Unit-Tests für die drei Fälle der Spec
-- [ ] 1.5 Entwürfe über JGit direkt aus `draft/*`-Branches lesen (lokal vor Remote), ohne Arbeitsbaum zu wechseln; Test: Entwurf erscheint im Index, Arbeitsbaum unverändert
+- [ ] 1.5 Entwürfe über JGit aus dem Unterschied zwischen `draft` und Zielbranch ableiten („Neu“/„Geändert“) und aus `draft` lesen, ohne Arbeitsbaum zu wechseln; Test: Entwurf erscheint im Index, Arbeitsbaum unverändert
 
 ## 2. Suche, Filter, Sortierung
 
@@ -25,7 +25,7 @@
 
 ## 4. Aktionen und Auswahlmodus
 
-- [ ] 4.1 Tipp öffnet Editor; Menü am Eintrag mit Bearbeiten, Eigenschaften, Foto hinzufügen, bei Entwürfen Veröffentlichen/Verwerfen; UI-Test je Aktion ruft den richtigen Ablauf auf
+- [ ] 4.1 Tipp öffnet Editor; Menü am Eintrag mit Bearbeiten, Eigenschaften, Foto hinzufügen, bei Entwürfen Verwerfen (Veröffentlichen gemeinsam im Abschnitt „Entwürfe“); UI-Test je Aktion ruft den richtigen Ablauf auf
 - [ ] 4.2 „Foto hinzufügen“ über die Fotoauswahl des Systems, Übergabe an den Ablauf von `foto-teilen`; Instrumented-Test mit simulierter Auswahl
 - [ ] 4.3 Auswahlmodus für geteilte Fotos (Foto-Vorschau, Ziel antippen, „Neuer Beitrag“, Abbrechen); UI-Tests: Ziel wählen, Suche im Modus, Abbrechen ändert nichts
 - [ ] 4.4 Schaltfläche „Neuer Beitrag“ öffnet leeren Editor mit Vorgaben; UI-Test

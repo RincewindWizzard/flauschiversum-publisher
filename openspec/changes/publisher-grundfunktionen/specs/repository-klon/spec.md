@@ -70,7 +70,7 @@ Die App SHALL aus dem Klon alle Beiträge unter `content/posts/` mit Titel, Datu
 - **THEN** listet die App alle 194 mit Titel und Datum, den neuesten zuerst
 
 #### Scenario: Entwurf in der Liste
-- **WHEN** ein Beitrag nur auf `draft/alraune` existiert
+- **WHEN** ein Beitrag nur auf `draft` existiert
 - **THEN** erscheint er in der Liste mit der Kennzeichnung „Entwurf“
 
 ### Requirement: Erlaubte Schlagworte

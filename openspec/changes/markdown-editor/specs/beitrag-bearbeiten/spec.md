@@ -19,33 +19,37 @@ Die App SHALL aus der Beitragsliste einen vorhandenen Beitrag im Markdown-Editor
 
 #### Scenario: Eigenschaften zusammen mit Text speichern
 - **WHEN** der Nutzer den Text und den Titel ändert und speichert
-- **THEN** enthält ein Commit auf `draft/alraune` beide Änderungen in `content/posts/alraune/index.md`
+- **THEN** enthält ein Commit auf `draft` beide Änderungen in `content/posts/alraune/index.md`
 
 #### Scenario: Beitrag ohne Frontmatter-Ende
 - **WHEN** eine `index.md` kein abschließendes `---` hat und sich nicht sicher teilen lässt
 - **THEN** öffnet die App den Beitrag nicht zum Bearbeiten und meldet den Grund
 
 ### Requirement: Änderung über Entwurfs-Branch
-Beim Speichern einer Änderung SHALL die App einen Entwurfs-Branch `draft/<verzeichnisname>` vom Zielbranch anlegen (oder den vorhandenen verwenden), die Änderung (Text und Eigenschaften) dort committen und pushen. Der Zielbranch ändert sich erst durch „Veröffentlichen“.
+Beim Speichern einer Änderung SHALL die App den Branch `draft` vom Zielbranch anlegen (falls er fehlt), die Änderung (Text und Eigenschaften) dort committen und pushen. Der Zielbranch ändert sich erst durch „Veröffentlichen“.
 
 #### Scenario: Erste Änderung
 - **WHEN** der Nutzer einen veröffentlichten Beitrag ändert und speichert
-- **THEN** existiert `draft/alraune` mit einem Commit, der nur `content/posts/alraune/index.md` ändert, und `main` ist unverändert
+- **THEN** liegt auf `draft` ein Commit, der nur `content/posts/alraune/index.md` ändert, und `main` ist unverändert
 
 #### Scenario: Weitere Änderung
-- **WHEN** `draft/alraune` schon existiert und der Nutzer erneut speichert
-- **THEN** kommt ein weiterer Commit auf `draft/alraune`
+- **WHEN** „Alraune“ schon auf `draft` geändert ist und der Nutzer erneut speichert
+- **THEN** kommt ein weiterer Commit auf `draft`
 
 #### Scenario: Keine Änderung
 - **WHEN** der Nutzer speichert, ohne den Text geändert zu haben
 - **THEN** wird kein Commit angelegt
 
 ### Requirement: Aktueller Stand beim Bearbeiten
-Beim Öffnen eines Beitrags SHALL die App sofort den letzten bekannten Stand zeigen und parallel im Hintergrund aktualisieren (Spec `repository-klon`), ohne zu warten. Gibt es für den Beitrag einen Entwurfs-Branch, SHALL die App den Text aus diesem Branch öffnen, nicht aus dem Zielbranch. Bringt die Aktualisierung eine neuere Fassung des Beitrags, die Eingabe aber noch unverändert ist, SHALL der Editor die neue Fassung ohne Rückfrage übernehmen.
+Beim Öffnen eines Beitrags SHALL die App sofort den letzten bekannten Stand zeigen und parallel im Hintergrund aktualisieren (Spec `repository-klon`), ohne zu warten. Ist der Beitrag auf `draft` gegenüber dem Zielbranch neu oder geändert, SHALL die App den Text von `draft` öffnen, sonst den Text des Zielbranchs. Bringt die Aktualisierung eine neuere Fassung des Beitrags, die Eingabe aber noch unverändert ist, SHALL der Editor die neue Fassung ohne Rückfrage übernehmen.
 
 #### Scenario: Offener Entwurf
-- **WHEN** `draft/alraune` ungeveröffentlichte Änderungen enthält und der Nutzer „Alraune“ bearbeitet
-- **THEN** zeigt der Editor den Text aus `draft/alraune`
+- **WHEN** „Alraune“ auf `draft` ungeveröffentlichte Änderungen hat und der Nutzer „Alraune“ bearbeitet
+- **THEN** zeigt der Editor den Text von `draft`
+
+#### Scenario: Beitrag ohne Entwurf
+- **WHEN** „Alraune“ auf `draft` unverändert ist, `main` aber eine neuere Fassung hat
+- **THEN** zeigt der Editor die neuere Fassung von `main`
 
 #### Scenario: Neuere Fassung, noch nichts getippt
 - **WHEN** der Nutzer „Alraune“ öffnet, noch nichts geändert hat und die Hintergrundaktualisierung eine neuere Fassung der Datei bringt

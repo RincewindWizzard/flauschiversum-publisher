@@ -17,7 +17,7 @@ damit nichts ungeprüft live geht.
 - Man kann einen neuen Beitrag schreiben (Titel, Datum, Markdown-Text, Schlagworte aus
   `content/tags.yaml`, Permalink) und als Verzeichnis `content/posts/<name>/index.md` im Format des
   Blogs speichern.
-- Jede Veröffentlichung läuft über einen Entwurfs-Branch `draft/*`: Die App committet und pusht
+- Jede Veröffentlichung läuft über den Entwurfs-Branch `draft`: Die App committet und pusht
   dorthin. Ein „Veröffentlichen“-Button in der App führt den Entwurf in den Zielbranch zusammen und
   pusht diesen.
 - Die App nimmt Fotos über die Android-Teilen-Funktion entgegen (`ACTION_SEND` /
@@ -35,7 +35,7 @@ damit nichts ungeprüft live geht.
   Beitragsliste und der erlaubten Schlagworte.
 - `beitrag-erstellen`: Eingabe eines neuen Beitrags und Erzeugen von `index.md` mit Frontmatter nach
   der Spec `content-format` des Blogs.
-- `entwurf-veroeffentlichen`: Entwurfs-Branches `draft/*`, Commit und Push sowie Zusammenführen in
+- `entwurf-veroeffentlichen`: Entwurfs-Branch `draft`, Commit und Push sowie Zusammenführen in
   den Zielbranch („Veröffentlichen“).
 - `foto-teilen`: Teilen-Ziel für Fotos, Skalieren, Zuordnen zu einem Beitrag und Ablegen im
   Beitragsverzeichnis.
@@ -51,5 +51,5 @@ nur Referenz)
   mit SSH-Transport) und Bildverarbeitung.
 - Manifest: Internet-Berechtigung, Intent-Filter für `image/*` (SEND, SEND_MULTIPLE).
 - Netzwerk: Zugriff auf `github.com` per SSH (Port 22 bzw. `ssh.github.com:443`).
-- Das Repository `flauschiversum` wird weder verändert noch gebaut; Pushes auf `draft/*` lösen dort kein
+- Das Repository `flauschiversum` wird weder verändert noch gebaut; Pushes auf `draft` lösen dort kein
   Staging aus (der Workflow läuft nur auf `dev` und `claude/**`).

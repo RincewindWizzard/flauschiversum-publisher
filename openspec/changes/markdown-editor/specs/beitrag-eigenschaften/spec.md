@@ -119,4 +119,4 @@ Die App SHALL Änderungen an den Eigenschaften zusammen mit dem Text im selben C
 
 #### Scenario: Änderung der Schlagworte
 - **WHEN** der Nutzer bei einem veröffentlichten Beitrag ein Schlagwort hinzufügt und speichert
-- **THEN** entsteht ein Commit auf `draft/<name>`, der nur die Zeile `tags:` ändert
+- **THEN** entsteht ein Commit auf `draft`, der nur die Zeile `tags:` ändert

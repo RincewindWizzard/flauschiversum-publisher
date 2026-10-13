@@ -2,7 +2,7 @@
 
 ## Context
 
-Der Editor baut auf `publisher-grundfunktionen` auf (noch nicht umgesetzt): Repository-Klon, Beitragsliste, Entwurfs-Branches `draft/<name>`, Abschnitt `## Anhänge` am Dateiende, Schicht `posts` für Frontmatter. Dieser Change ersetzt das einfache Textfeld des Beitragseditors (`beitrag-erstellen`) durch den neuen Editor und ergänzt das Bearbeiten bestehender Beiträge, das dort als Non-Goal stand. Der Blog rendert mit `pulldown-cmark` (Tabellen, Durchstreichen, Fußnoten); Bildziele mit Leerzeichen (`![x](a b.jpg)`) werden dort vor dem Parsen umgeschrieben und sind deshalb gültig. Motivation und Umfang: siehe `proposal.md`, Anforderungen: siehe `specs/`.
+Der Editor baut auf `publisher-grundfunktionen` auf (noch nicht umgesetzt): Repository-Klon, Beitragsliste, Entwurfs-Branch `draft`, Abschnitt `## Anhänge` am Dateiende, Schicht `posts` für Frontmatter. Dieser Change ersetzt das einfache Textfeld des Beitragseditors (`beitrag-erstellen`) durch den neuen Editor und ergänzt das Bearbeiten bestehender Beiträge, das dort als Non-Goal stand. Der Blog rendert mit `pulldown-cmark` (Tabellen, Durchstreichen, Fußnoten); Bildziele mit Leerzeichen (`![x](a b.jpg)`) werden dort vor dem Parsen umgeschrieben und sind deshalb gültig. Motivation und Umfang: siehe `proposal.md`, Anforderungen: siehe `specs/`.
 
 ## Goals / Non-Goals
 
@@ -36,7 +36,7 @@ Der Editor baut auf `publisher-grundfunktionen` auf (noch nicht umgesetzt): Repo
 
 **Bearbeiten: Frontmatter und Text trennen.** Die Schicht `posts` teilt die Datei in Frontmatter (inklusive Trennzeilen, unverändert) und Text. Gespeichert wird `Frontmatter (ggf. mit geänderten Feldzeilen) + bearbeiteter Text`, damit der Diff nur die tatsächlichen Änderungen betrifft. Zeilenenden werden wie in der Originaldatei beibehalten.
 
-**Speichern über den vorhandenen Entwurfsweg:** Commit auf `draft/<verzeichnisname>` und Push, „Veröffentlichen“ wie in `entwurf-veroeffentlichen`. Kein neuer Git-Code.
+**Speichern über den vorhandenen Entwurfsweg:** Commit auf `draft` und Push, „Veröffentlichen“ wie in `entwurf-veroeffentlichen`. Kein neuer Git-Code.
 
 ## Risks / Trade-offs
 

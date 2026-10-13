@@ -26,18 +26,18 @@ Die App SHALL nach dem Start (mit eingerichtetem Klon) die Übersicht „Beiträ
 - **THEN** zeigt die Übersicht statt der Liste einen Hinweis mit dem Weg zur Einrichtung (Schlüssel, Repository holen)
 
 ### Requirement: Entwürfe zuerst
-Die Übersicht SHALL offene Entwürfe (Branches `draft/*`, lokal oder auf dem Server) in einem eigenen Abschnitt „Entwürfe“ oberhalb der übrigen Beiträge zeigen, mit Kennzeichnung „Entwurf“ und Upload-Status („Hochgeladen“ oder „Noch nicht hochgeladen“). Gibt es keine Entwürfe, entfällt der Abschnitt. Ein Beitrag mit Entwurf erscheint dort mit seinem Entwurfsstand und nicht zusätzlich in der übrigen Liste.
+Die Übersicht SHALL offene Entwürfe (Beiträge, die auf dem Branch `draft` gegenüber dem Zielbranch neu oder geändert sind) in einem eigenen Abschnitt „Entwürfe“ oberhalb der übrigen Beiträge zeigen, mit Kennzeichnung „Entwurf“ und Upload-Status („Hochgeladen“ oder „Noch nicht hochgeladen“). Gibt es keine Entwürfe, entfällt der Abschnitt. Ein Beitrag mit Entwurf erscheint dort mit seinem Entwurfsstand und nicht zusätzlich in der übrigen Liste.
 
 #### Scenario: Entwurf zu veröffentlichtem Beitrag
-- **WHEN** `draft/alraune` Änderungen an einem veröffentlichten Beitrag „Alraune“ enthält
+- **WHEN** `draft` Änderungen an einem veröffentlichten Beitrag „Alraune“ enthält
 - **THEN** steht „Alraune“ im Abschnitt „Entwürfe“ mit dem Titel aus dem Entwurf und erscheint nicht ein zweites Mal in der Liste darunter
 
 #### Scenario: Neuer Beitrag nur als Entwurf
-- **WHEN** der Beitrag „Mütze“ nur auf `draft/muetze` existiert und noch nicht gepusht ist
+- **WHEN** der Beitrag „Mütze“ nur auf `draft` existiert und noch nicht gepusht ist
 - **THEN** steht er im Abschnitt „Entwürfe“ mit „Noch nicht hochgeladen“
 
 #### Scenario: Keine Entwürfe
-- **WHEN** kein Branch `draft/*` existiert
+- **WHEN** `draft` und der Zielbranch denselben Inhalt haben oder `draft` nicht existiert
 - **THEN** zeigt die Übersicht keinen Abschnitt „Entwürfe“
 
 ### Requirement: Suche
@@ -71,7 +71,7 @@ Die Übersicht SHALL die Liste nach einem oder mehreren Schlagworten (Beitrag ha
 - **THEN** sind die Beiträge alphabetisch nach Titel sortiert, wobei Umlaute wie „Ä“ unter „A“ einsortiert werden
 
 ### Requirement: Beitrag auswählen und Aktionen
-Ein Tipp auf einen Beitrag SHALL ihn im Markdown-Editor zum Bearbeiten öffnen. Ein Menü am Eintrag (langer Druck oder Mehr-Symbol) SHALL die Aktionen „Bearbeiten“, „Eigenschaften“ und „Foto hinzufügen“ anbieten, bei Entwürfen zusätzlich „Veröffentlichen“ und „Verwerfen“. Die Aktionen verwenden die Abläufe der Specs `beitrag-bearbeiten`, `beitrag-eigenschaften`, `foto-teilen` und `entwurf-veroeffentlichen`.
+Ein Tipp auf einen Beitrag SHALL ihn im Markdown-Editor zum Bearbeiten öffnen. Ein Menü am Eintrag (langer Druck oder Mehr-Symbol) SHALL die Aktionen „Bearbeiten“, „Eigenschaften“ und „Foto hinzufügen“ anbieten, bei Entwürfen zusätzlich „Verwerfen“; „Veröffentlichen“ steht für alle Entwürfe gemeinsam in der Kopfzeile des Abschnitts „Entwürfe“. Die Aktionen verwenden die Abläufe der Specs `beitrag-bearbeiten`, `beitrag-eigenschaften`, `foto-teilen` und `entwurf-veroeffentlichen`.
 
 #### Scenario: Beitrag bearbeiten
 - **WHEN** der Nutzer „Alraune“ antippt
@@ -82,8 +82,8 @@ Ein Tipp auf einen Beitrag SHALL ihn im Markdown-Editor zum Bearbeiten öffnen. 
 - **THEN** öffnet die App die Fotoauswahl des Geräts, und gewählte Fotos werden wie beim Teilen dem Beitrag „Alraune“ zugeordnet
 
 #### Scenario: Entwurf veröffentlichen
-- **WHEN** der Nutzer im Menü eines Entwurfs „Veröffentlichen“ wählt
-- **THEN** startet die Sicherheitsabfrage aus `entwurf-veroeffentlichen`
+- **WHEN** der Nutzer im Abschnitt „Entwürfe“ „Veröffentlichen“ wählt
+- **THEN** startet die Sicherheitsabfrage aus `entwurf-veroeffentlichen` mit der Liste aller Entwürfe
 
 ### Requirement: Auswahlmodus für geteilte Fotos
 Kommt die App über „Teilen“ mit Fotos, SHALL die Übersicht im Auswahlmodus erscheinen: Oben zeigt sie die Vorschau der Fotos, ein Tipp auf einen Beitrag wählt ihn als Ziel, und ein Knopf „Neuer Beitrag“ legt einen neuen an. Such- und Filterfunktionen stehen zur Verfügung. Abbrechen verlässt den Modus, ohne etwas zu ändern.

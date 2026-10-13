@@ -17,7 +17,7 @@
 
 - [ ] 3.1 Einstellungen für Repository-Adresse, Zielbranch (Standard `main`), Commit-Name und -E-Mail, Autor für neue Beiträge und Rechtetext (Vorgabe „Flauschiversum / Ermeline Wollknoll“) mit Speicherung; Tests der Vorgaben und der Persistenz
 - [ ] 3.2 Klonen mit Fortschritt, Aufräumen bei Abbruch und Speicherplatzprüfung; Test mit lokalem Testrepository, Abbruch hinterlässt keinen Klon
-- [ ] 3.3 Hintergrund-Synchronisation (Fetch und Nachziehen des Zielbranchs) bei Start, Vordergrund und Öffnen eines Beitrags: höchstens ein Lauf, Mindestabstand, blockiert weder Hauptthread noch Commits des Nutzers, Anzeige „zuletzt aktualisiert“ und dezenter Indikator; Tests mit Testrepository: neue Commits erscheinen, `draft/*` bleibt, Fehler/Offline bleibt still, parallele Auslöser starten nur einen Fetch, Commit während Fetch wartet nicht auf das Netz
+- [ ] 3.3 Hintergrund-Synchronisation (Fetch und Nachziehen des Zielbranchs) bei Start, Vordergrund und Öffnen eines Beitrags: höchstens ein Lauf, Mindestabstand, blockiert weder Hauptthread noch Commits des Nutzers, Anzeige „zuletzt aktualisiert“ und dezenter Indikator; Tests mit Testrepository: neue Commits erscheinen, `draft` mit Änderungen bleibt unverändert, `draft` ohne Änderungen wird auf den Zielbranch vorgesetzt, Fehler/Offline bleibt still, parallele Auslöser starten nur einen Fetch, Commit während Fetch wartet nicht auf das Netz
 - [ ] 3.3a Manuelles Aktualisieren mit Ergebnisanzeige (aktuell, Kein Netz, Fehler mit Grund); UI-Test
 - [ ] 3.4 Beitragsliste aus `content/posts/*/index.md` (Titel, Datum, Verzeichnis, Kennzeichnung Entwurf); Test gegen Beispielbeiträge aus dem Blog (inkl. Datum mit Uhrzeit)
 - [ ] 3.5 Erlaubte Schlagworte aus `content/tags.yaml` einlesen; Test mit dem echten Dateiformat des Blogs
@@ -32,11 +32,12 @@
 
 ## 5. Entwurf und Veröffentlichung (`entwurf-veroeffentlichen`)
 
-- [ ] 5.1 Entwurfs-Branch `draft/<name>` anlegen, Beitrag committen (Commit-Nachricht und Autor nach Spec); Test mit lokalem Testrepository, `main` unverändert
+- [ ] 5.1 Branch `draft` vom Zielbranch anlegen (falls er fehlt), Beitrag darauf committen (Commit-Nachricht und Autor nach Spec); Tests mit lokalem Testrepository: `main` unverändert, zweiter Beitrag wird weiterer Commit auf `draft`
 - [ ] 5.2 Push des Entwurfs mit Status „hochgeladen/noch nicht hochgeladen“ und erneutem Versuch; Test: Push-Fehler lässt Commit lokal bestehen
-- [ ] 5.3 Entwurfsliste (lokal und Server), Weiterbearbeiten und Verwerfen mit Bestätigung; Test: Verwerfen löscht Branch lokal und remote
-- [ ] 5.4 „Veröffentlichen“: Merge in Zielbranch, Push, Entwurf löschen; Tests für Erfolg, weitergelaufenen Zielbranch, Konflikt (Abbruch, Ziel unverändert) und abgelehnten Push (Entwurf bleibt)
-- [ ] 5.5 Bildschirme für Entwurfsliste und Sicherheitsabfrage „Veröffentlichen“; manuell im Emulator geprüft
+- [ ] 5.3 Entwürfe je Beitrag aus dem Unterschied `draft`/Zielbranch ableiten („Neu“/„Geändert“), Verwerfen einzelner Entwürfe (Zurücksetzen-Commit bzw. Entfernen) und „Alle verwerfen“ (Reset von `draft`, Force-Push); Tests: nur der gewählte Beitrag ändert sich, neuer Beitrag verschwindet, `main` unberührt
+- [ ] 5.4 „Veröffentlichen“: Zielbranch aktualisieren, `draft` pushen, Merge in Zielbranch, Push, danach `draft` auf den Zielbranch setzen; Tests für Erfolg (mehrere Beiträge), weitergelaufenen Zielbranch, Konflikt (Abbruch, `main` und `draft` unverändert) und abgelehnten Push (`draft` bleibt)
+- [ ] 5.5 Entwurfsliste und Sicherheitsabfrage „Veröffentlichen“ mit Aufzählung aller betroffenen Beiträge; manuell im Emulator geprüft
+- [ ] 5.6 Entwurf nachführen: `draft` ohne eigene Änderungen per Fast-Forward auf den Zielbranch setzen (im Hintergrund, mit Push), `draft` mit Änderungen unverändert lassen; Tests für beide Fälle
 
 ## 6. Fotos teilen (`foto-teilen`)
 
@@ -44,7 +45,7 @@
 - [ ] 6.2 Verkleinern, sodass die längere Kante ≤ 1000 Pixel misst, mit EXIF-Drehung, Formattreue, ≤ 1 MB und ohne Vergrößern; Tests mit Beispielbildern (4000×3000, 3000×4000, EXIF 6, 562×750)
 - [ ] 6.3 Entfernen der GPS-/Standortmetadaten und Schreiben der Rechteangaben (EXIF Artist/Copyright, XMP, Text aus den Einstellungen); Test: Ergebnisbild enthält keine GPS-Tags, aber die Rechteangaben
 - [ ] 6.4 Zuordnungsbildschirm: vorhandenen Beitrag wählen, neuen anlegen oder abbrechen; UI-Test für Abbruch ändert nichts
-- [ ] 6.5 Ablegen im Beitragsverzeichnis mit Namenskollision (`IMG_1-2.jpg`), Commit auf `draft/<name>` und Push; Test inkl. Foto zu veröffentlichtem Beitrag
+- [ ] 6.5 Ablegen im Beitragsverzeichnis mit Namenskollision (`IMG_1-2.jpg`), Commit auf `draft` und Push; Test inkl. Foto zu veröffentlichtem Beitrag
 - [ ] 6.6 Alt-Text-Feld je Bild; Einbinden unter `## Anhänge` (Überschrift am Dateiende anlegen, Zeilen am Dateiende anfügen, Leerzeile nach der Überschrift, Rest unverändert); Unit-Tests für die drei Szenarien der Spec, Datei im selben Commit wie die Bilder
 
 ## 7. Integration und Dokumentation

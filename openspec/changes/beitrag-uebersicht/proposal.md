@@ -7,7 +7,7 @@ Der Blog hat bereits 194 Beiträge (Stand heute) und wächst. Um einen davon zu 
 ## What Changes
 
 - Neuer Startbildschirm „Beiträge“: scrollbare Übersicht aller Beiträge mit Titelbild-Vorschau, Titel, Datum und Schlagworten, neueste zuerst.
-- Offene Entwürfe (`draft/*`) stehen als eigener Abschnitt oben, mit Upload-Status.
+- Offene Entwürfe (Beiträge, die auf `draft` neu oder geändert sind) stehen als eigener Abschnitt oben, mit Upload-Status.
 - Suche über Titel, Kurzbeschreibung, Schlagworte und Text; Filter nach Schlagwort und Jahr; wählbare Sortierung.
 - Tippen auf einen Beitrag öffnet ihn zum Bearbeiten; ein Menü am Eintrag bietet „Foto hinzufügen“, „Eigenschaften“ und bei Entwürfen „Veröffentlichen“ und „Verwerfen“.
 - Dieselbe Übersicht dient als Auswahl, wenn Fotos über „Teilen“ ankommen: Antippen wählt den Zielbeitrag, „Neuer Beitrag“ legt einen an.
