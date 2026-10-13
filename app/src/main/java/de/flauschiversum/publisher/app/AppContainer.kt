@@ -49,6 +49,13 @@ class AppContainer(val context: Context) {
         onSuccess = { millis -> settings.update { it.copy(lastSyncMillis = millis) } },
     )
 
+    val incoming = de.flauschiversum.publisher.photos.IncomingPhotos(context)
+    val imageProcessor: de.flauschiversum.publisher.images.ImageProcessor = de.flauschiversum.publisher.images.AndroidImageProcessor(File(context.cacheDir, "exif"))
+    /** Legt Fotos in Beiträgen ab; die Rechteangaben kommen aus den Einstellungen. */
+    var photoPlacement = de.flauschiversum.publisher.photos.PhotoPlacement(imageProcessor) {
+        de.flauschiversum.publisher.images.Rights(settingsSnapshot.rightsText, AppSettings.RIGHTS_LICENSE_URL)
+    }
+
     init {
         appScope.launch { settings.settings.collect { settingsSnapshot = it } }
         sync.setLastSuccess(settingsSnapshot.lastSyncMillis)

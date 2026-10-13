@@ -1,6 +1,9 @@
 package de.flauschiversum.publisher.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -18,6 +21,8 @@ import de.flauschiversum.publisher.ui.home.HomeScreen
 import de.flauschiversum.publisher.ui.home.HomeViewModel
 import de.flauschiversum.publisher.ui.settings.SettingsScreen
 import de.flauschiversum.publisher.ui.settings.SettingsViewModel
+import de.flauschiversum.publisher.ui.share.ShareScreen
+import de.flauschiversum.publisher.ui.share.ShareViewModel
 import de.flauschiversum.publisher.ui.setup.SetupScreen
 import de.flauschiversum.publisher.ui.setup.SetupViewModel
 import java.net.URLDecoder
@@ -27,6 +32,7 @@ object Routes {
     const val SETUP = "setup"
     const val HOME = "home"
     const val SETTINGS = "settings"
+    const val SHARE = "share"
     const val EDITOR = "editor/{dir}"
     private const val NEW = "-"
     fun editor(dir: String?) = "editor/" + if (dir == null) NEW else URLEncoder.encode(dir, "UTF-8")
@@ -36,6 +42,11 @@ object Routes {
 @Composable
 fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
     val factory = AppViewModelFactory(container)
+    // Geteilte Fotos öffnen die Zuordnung, sobald die Einrichtung abgeschlossen ist
+    val pending by container.incoming.pending.collectAsState()
+    LaunchedEffect(pending.isNotEmpty(), start) {
+        if (pending.isNotEmpty() && start != Routes.SETUP) nav.navigate(Routes.SHARE) { launchSingleTop = true }
+    }
     NavHost(navController = nav, startDestination = start) {
         composable(Routes.SETUP) {
             val vm: SetupViewModel = viewModel(factory = factory)
@@ -45,6 +56,10 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
             val vm: HomeViewModel = viewModel(factory = factory)
             HomeScreen(vm, onOpenPost = { nav.navigate(Routes.editor(it)) }, onSettings = { nav.navigate(Routes.SETTINGS) },
                 onFixAccess = { nav.navigate(Routes.SETUP) })
+        }
+        composable(Routes.SHARE) {
+            val vm: ShareViewModel = viewModel(factory = factory)
+            ShareScreen(vm, onClose = { if (!nav.popBackStack()) nav.navigate(Routes.HOME) })
         }
         composable(Routes.SETTINGS) {
             val vm: SettingsViewModel = viewModel(factory = factory)

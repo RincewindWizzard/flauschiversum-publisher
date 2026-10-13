@@ -53,12 +53,12 @@
 
 ## 6. Fotos teilen (`foto-teilen`)
 
-- [ ] 6.1 Intent-Filter für `ACTION_SEND`/`ACTION_SEND_MULTIPLE` mit `image/*` im Manifest; Instrumented-Test: Teilen-Intent öffnet die Zuordnung, Text-Teilen nicht
-- [ ] 6.2 Verkleinern, sodass die längere Kante ≤ 1000 Pixel misst, mit EXIF-Drehung, Formattreue, ≤ 1 MB und ohne Vergrößern; Tests mit Beispielbildern (4000×3000, 3000×4000, EXIF 6, 562×750)
-- [ ] 6.3 Entfernen der GPS-/Standortmetadaten und Schreiben der Rechteangaben (EXIF Artist/Copyright, XMP, Text aus den Einstellungen); Test: Ergebnisbild enthält keine GPS-Tags, aber die Rechteangaben
-- [ ] 6.4 Zuordnungsbildschirm: vorhandenen Beitrag wählen, neuen anlegen oder abbrechen; UI-Test für Abbruch ändert nichts
-- [ ] 6.5 Ablegen im Beitragsverzeichnis mit Namenskollision (`IMG_1-2.jpg`), Commit auf `draft` und Push; Test inkl. Foto zu veröffentlichtem Beitrag
-- [ ] 6.6 Alt-Text-Feld je Bild; Einbinden unter `## Anhänge` (Überschrift am Dateiende anlegen, Zeilen am Dateiende anfügen, Leerzeile nach der Überschrift, Rest unverändert); Unit-Tests für die drei Szenarien der Spec, Datei im selben Commit wie die Bilder
+- [x] 6.1 Intent-Filter für `ACTION_SEND`/`ACTION_SEND_MULTIPLE` mit `image/*` im Manifest; Robolectric-Test (`ShareUiTest`): Bilder-Intent wird von `MainActivity` aufgelöst, Text-Teilen nicht (echtes Teilen aus einer Galerie-App nicht geprüft, kein Gerät)
+- [x] 6.2 Verkleinern, sodass die längere Kante ≤ 1000 Pixel misst, mit EXIF-Drehung, Formattreue, ≤ 1 MB und ohne Vergrößern; Tests mit Beispielbildern (4000×3000, 3000×4000, EXIF 6, 562×750)
+- [x] 6.3 Entfernen der GPS-/Standortmetadaten und Schreiben der Rechteangaben (EXIF Artist/Copyright, XMP, Text aus den Einstellungen); Test: Ergebnisbild enthält keine GPS-Tags, aber die Rechteangaben
+- [x] 6.4 Zuordnungsbildschirm: vorhandenen Beitrag wählen, neuen anlegen oder abbrechen; UI-Test für Abbruch ändert nichts
+- [x] 6.5 Ablegen im Beitragsverzeichnis mit Namenskollision (`IMG_1-2.jpg`), Commit auf `draft` und Push; Test inkl. Foto zu veröffentlichtem Beitrag
+- [x] 6.6 Alt-Text-Feld je Bild; Einbinden unter `## Anhänge` (Überschrift am Dateiende anlegen, Zeilen am Dateiende anfügen, Leerzeile nach der Überschrift, Rest unverändert); Unit-Tests für die drei Szenarien der Spec, Datei im selben Commit wie die Bilder
 
 ## 7. Integration und Dokumentation
 

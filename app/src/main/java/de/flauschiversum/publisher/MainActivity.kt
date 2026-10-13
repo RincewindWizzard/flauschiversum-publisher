@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        handleShare(intent)
         setContent {
             val settings by container.settings.settings.collectAsState(initial = container.settingsSnapshot)
             var start by remember { mutableStateOf<String?>(null) }
@@ -35,6 +36,20 @@ class MainActivity : ComponentActivity() {
                 start?.let { AppNav(container, rememberNavController(), it) }
             }
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShare(intent)
+    }
+
+    /** Geteilte Bilder in den App-Speicher kopieren; die Navigation zeigt dann die Zuordnung. */
+    private fun handleShare(intent: android.content.Intent?) {
+        if (!container.incoming.isShare(intent) || intent?.getBooleanExtra(HANDLED, false) == true) return
+        intent?.putExtra(HANDLED, true)
+        val shared = intent!!
+        kotlinx.coroutines.runBlocking(Dispatchers.IO) { container.incoming.receive(shared) }
     }
 
     override fun onStart() {
@@ -52,4 +67,6 @@ class MainActivity : ComponentActivity() {
         )
         return if (SetupFlow.currentStep(facts) == null && c.session.isInstalled()) Routes.HOME else Routes.SETUP
     }
+
+    private companion object { const val HANDLED = "de.flauschiversum.publisher.HANDLED" }
 }
