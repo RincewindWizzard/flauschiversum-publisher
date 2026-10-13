@@ -39,6 +39,12 @@ Zugriff über GitHub-Token/HTTPS (vom Nutzer nicht gewünscht). Der Android Keys
 Ed25519 für SSH nicht direkt; Verschlüsselung der Schlüsseldatei mit einem Keystore-Schlüssel ist
 eine mögliche Härtung.
 
+**Geführte Einrichtung als Zustandsautomat.** Die Schritte 1–5 sind ein persistenter Zustand (`DataStore`); die Oberfläche leitet den Schritt aus dem Zustand ab, nicht umgekehrt, damit Abbrüche und Neustarts immer am richtigen Schritt landen. Die Prüfung des Zugangs verbindet sich mit dem Push-Dienst von GitHub (Aushandlung von `git-receive-pack`) ohne Referenzen zu übertragen: GitHub weist Deploy Keys ohne Schreibrecht dort ab; das wird im Spike (Aufgabe 1.2) bestätigt. Alternative: einen Test-Push auf einen Wegwerf-Branch – verworfen (verändert das Repository).
+
+**Flacher Klon (Tiefe 1), Historie bei Bedarf nachladen.** Spart Daten und Platz gegenüber dem vollen Klon; Beitragsdateien (rund 365 MB, überwiegend Originalfotos) bleiben aber vollständig im Arbeitsbaum, ein flacher Klon braucht daher weiterhin grob 0,7–0,8 GB. Die App verlangt 1,5 GB Freiraum und fragt bei Mobilfunk nach. Merge-Basen fehlen im flachen Klon; beim Veröffentlichen vertieft die App die Historie (Deepen/Unshallow), bis sie gefunden ist. Alternative: Partial Clone ohne Blobs – verworfen, da JGit das nicht zuverlässig unterstützt und Vorschaubilder die Dateien brauchen.
+
+**Nur Port 22, nur `github.com`.** Kein Umweg über `ssh.github.com:443`; blockierte Netze werden erkannt und erklärt. Die Adresse ist als SSH-Adresse zu erfassen, HTTPS wird erkannt und umgeschrieben vorgeschlagen.
+
 **Host-Schlüssel von github.com fest hinterlegt** (statt „beim ersten Mal vertrauen“), mit
 Aktualisierung über eine App-Version. Verhindert Man-in-the-Middle im öffentlichen WLAN.
 
@@ -82,8 +88,9 @@ Tests gegen Beispiel-Beiträge aus `content/posts/` des Blogs (gelesen, nicht ve
 - [Ed25519 über JGit-SSH auf Android ist nicht sicher lauffähig] → Früh einen Spike bauen (Clone und
   Push gegen GitHub aus der App). Fallback: andere SSH-Bibliothek hinter derselben Git-Kapsel oder
   RSA-4096 als Schlüsseltyp (Spec `ssh-zugang` müsste dann angepasst werden).
-- [Repository wächst durch Bilder, Klon wird groß] → Speicherplatzprüfung vor dem Klonen; flacher
-  Klon (`depth`) als spätere Option, solange Merge und Push funktionieren.
+- [Repository wächst durch Bilder, Klon wird groß] → Flacher Klon, Speicherplatzprüfung (1,5 GB) vor dem Klonen, Hinweis bei Mobilfunk.
+- [JGit kann flache Klone nicht zuverlässig vertiefen oder damit mergen] → Im Spike (Aufgabe 1.2) prüfen; Fallback: voller Klon (Spec `repository-klon` anpassen).
+- [Port 22 in manchen Netzen gesperrt] → Erkennen und erklären; kein Fallback vorgesehen.
 - [Merge-Konflikt am Zielbranch] → Abbruch ohne Änderung, klare Meldung; Auflösung am Rechner.
 - [Push auf Zielbranch durch Branch-Schutz abgelehnt] → Meldung; Entwurf bleibt erhalten.
 - [Deploy Key hat Schreibrecht auf das ganze Repository] → Schlüssel nur im geschützten Speicher;

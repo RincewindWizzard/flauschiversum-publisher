@@ -3,24 +3,35 @@
 ## 1. Grundgerüst und Spike
 
 - [ ] 1.1 Abhängigkeiten für Git über SSH (JGit mit SSH-Transport) und Ed25519 ergänzen; `./gradlew assembleDebug` läuft durch
-- [ ] 1.2 Spike: Schlüssel erzeugen und gegen GitHub klonen/pushen (Testrepository, Debug-Bildschirm); Ergebnis (Ed25519 ja/nein, Fallback) in `design.md` unter Risiken festhalten
+- [ ] 1.2 Spike: Schlüssel erzeugen und gegen GitHub flach klonen, nachladen (Deepen), mergen und pushen sowie die Schreibrechtprüfung über `git-receive-pack` ohne Push testen (Testrepository, Debug-Bildschirm); Ergebnisse (Ed25519 ja/nein, flacher Klon ja/nein, Fallbacks) in `design.md` unter Risiken festhalten
 - [ ] 1.3 Paketstruktur `git`, `posts`, `images`, `ui` mit Navigation (Compose) anlegen und App startet im Emulator mit leerem Hauptbildschirm
 
 ## 2. SSH-Zugang (`ssh-zugang`)
 
 - [ ] 2.1 Schlüsselerzeugung und -speicherung im privaten App-Speicher, von Backups ausgenommen (`backup_rules.xml`, `data_extraction_rules.xml`); Unit-Test: Schlüssel wird gespeichert, wieder geladen und ist im OpenSSH-Format ausgebbar
 - [ ] 2.2 Bildschirm „Schlüssel“: erzeugen/ersetzen mit Warnung, öffentlichen Schlüssel kopieren und teilen; manuell im Emulator geprüft
-- [ ] 2.3 Fester Host-Schlüssel von `github.com`; Test: abweichender Host-Schlüssel führt zum Verbindungsabbruch
-- [ ] 2.4 „Verbindung testen“ mit unterscheidbaren Meldungen (ok, Schlüssel fehlt, kein Schreibrecht, kein Netz); Unit-Tests für die Fehlerzuordnung
+- [ ] 2.3 Fester Host-Schlüssel von `github.com` (Ed25519, ECDSA, RSA) mit Anzeige der SHA256-Fingerabdrücke in den Einstellungen; Tests: abweichender Host-Schlüssel führt zum Verbindungsabbruch, Fingerabdrücke werden berechnet und angezeigt
+- [ ] 2.4 „Verbindung testen“ ohne Repository-Änderung mit unterscheidbaren Meldungen (ok, Schlüssel nicht eingetragen, nur Leserecht, Repository nicht gefunden, kein Netz, Port 22 nicht erreichbar); Unit-Tests für die Fehlerzuordnung, Test: Repository nach dem Test unverändert
 
 ## 3. Repository-Klon (`repository-klon`)
 
 - [ ] 3.1 Einstellungen für Repository-Adresse, Zielbranch (Standard `main`), Commit-Name und -E-Mail, Autor für neue Beiträge und Rechtetext (Vorgabe „Flauschiversum / Ermeline Wollknoll“) mit Speicherung; Tests der Vorgaben und der Persistenz
-- [ ] 3.2 Klonen mit Fortschritt, Aufräumen bei Abbruch und Speicherplatzprüfung; Test mit lokalem Testrepository, Abbruch hinterlässt keinen Klon
+- [ ] 3.2 Flacher Klon (Tiefe 1, nur Zielbranch) mit Fortschritt, Aufräumen bei Abbruch und Speicherprüfung (≥ 1,5 GB); Test mit lokalem Testrepository, Abbruch hinterlässt keinen Klon
+- [ ] 3.2a Historie bei Bedarf nachladen (Deepen) für die Merge-Basis; Test: `main` ist weit vorausgelaufen, Merge gelingt ohne Nutzerentscheidung
 - [ ] 3.3 Hintergrund-Synchronisation (Fetch und Nachziehen des Zielbranchs) bei Start, Vordergrund und Öffnen eines Beitrags: höchstens ein Lauf, Mindestabstand, blockiert weder Hauptthread noch Commits des Nutzers, Anzeige „zuletzt aktualisiert“ und dezenter Indikator; Tests mit Testrepository: neue Commits erscheinen, `draft` mit Änderungen bleibt unverändert, `draft` ohne Änderungen wird auf den Zielbranch vorgesetzt, Fehler/Offline bleibt still, parallele Auslöser starten nur einen Fetch, Commit während Fetch wartet nicht auf das Netz
 - [ ] 3.3a Manuelles Aktualisieren mit Ergebnisanzeige (aktuell, Kein Netz, Fehler mit Grund); UI-Test
 - [ ] 3.4 Beitragsliste aus `content/posts/*/index.md` (Titel, Datum, Verzeichnis, Kennzeichnung Entwurf); Test gegen Beispielbeiträge aus dem Blog (inkl. Datum mit Uhrzeit)
 - [ ] 3.5 Erlaubte Schlagworte aus `content/tags.yaml` einlesen; Test mit dem echten Dateiformat des Blogs
+
+## 3b. Einrichtungsablauf (`einrichtung`)
+
+- [ ] 3b.1 Zustandsautomat mit gespeichertem Fortschritt (Schritt 1–5) und Wiederaufnahme beim ersten offenen Schritt; Unit-Tests: Neustart nach Schritt 3 startet bei Schritt 3, Sperre vorwärts ohne erfüllten Schritt, unterbrochener Klon wird entfernt
+- [ ] 3b.2 Schritt 1: Repository-Adresse prüfen (SSH-Formen, HTTPS erkennen und umschreiben, fremde Hosts ablehnen, Vorgabe); Unit-Tests je Szenario der Spec
+- [ ] 3b.3 Schritt 3: Anleitung zum Deploy Key (Schlüssel anzeigen/kopieren, „GitHub-Seite öffnen“ mit richtiger Adresse, Titelvorschlag, Hinweis auf „Allow write access“); Test der URL-Bildung, UI-Test des Ablaufs
+- [ ] 3b.4 Schritt 4: Prüfung mit den Ursachenmeldungen aus Aufgabe 2.4 im Ablauf, Weiterführung nur bei Erfolg; UI-Tests für Erfolg, nur Leserecht, Port 22 blockiert
+- [ ] 3b.5 Schritt 5: Hinweise zu Datenmenge, Mobilfunkabfrage und Speicherprüfung, danach Klon (Aufgabe 3.2); UI-Tests für Mobilfunk, zu wenig Speicher und Abbruch
+- [ ] 3b.6 Prüfung des Klons (Zielbranch, `content/posts/`, `tags.yaml`) mit Auswahl eines anderen Zielbranchs bzw. neuem Klon bei Fehler; Tests mit Testrepositories (ohne `main`, ohne `content/posts/`)
+- [ ] 3b.7 Zugangsprobleme später: Hinweis bei dauerhaft verweigertem Zugriff (zweimal in Folge) ohne Dialog, Sprung zu Schritt 3/4; „Repository neu holen“ und „Schlüssel ersetzen“ in den Einstellungen; Tests: Netzfehler löst nichts aus, gelöschter Key löst Hinweis aus
 
 ## 4. Beitrag erstellen (`beitrag-erstellen`)
 

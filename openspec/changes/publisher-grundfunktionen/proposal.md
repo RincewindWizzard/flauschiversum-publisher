@@ -12,8 +12,11 @@ damit nichts ungeprüft live geht.
 
 - Die App erzeugt ein SSH-Schlüsselpaar (Ed25519) und zeigt den öffentlichen Schlüssel zum Eintragen
   als Deploy Key mit Schreibrecht bei GitHub an. Der private Schlüssel verlässt das Gerät nicht.
-- Die App hält einen lokalen Klon des Repositorys `RincewindWizzard/flauschiversum` im App-Speicher
-  und kann ihn per SSH aktualisieren.
+- Ein geführter Einrichtungsablauf in fünf Schritten (Repository, Schlüssel, Eintrag bei GitHub,
+  Verbindung prüfen, Repository holen) führt den Nutzer von der ersten Öffnung bis zur
+  Beitragsübersicht.
+- Die App hält einen flachen lokalen Klon des Repositorys `RincewindWizzard/flauschiversum` im
+  App-Speicher und kann ihn per SSH aktualisieren.
 - Man kann einen neuen Beitrag schreiben (Titel, Datum, Markdown-Text, Schlagworte aus
   `content/tags.yaml`, Permalink) und als Verzeichnis `content/posts/<name>/index.md` im Format des
   Blogs speichern.
@@ -29,6 +32,7 @@ damit nichts ungeprüft live geht.
 
 ### New Capabilities
 
+- `einrichtung`: Geführter Ersteinrichtungsablauf (Adresse, Schlüssel, Eintrag bei GitHub, Verbindungs- und Schreibrechtsprüfung, flacher Klon, Prüfung), Wiederaufnahme und Zugangsprobleme.
 - `ssh-zugang`: Erzeugen und Verwahren des SSH-Schlüssels, Anzeige des öffentlichen Schlüssels,
   Prüfung des Server-Host-Schlüssels, Verbindungstest.
 - `repository-klon`: Lokaler Klon von `flauschiversum`, Aktualisieren (fetch), Einlesen der
@@ -50,6 +54,6 @@ nur Referenz)
 - Neuer Code in `app/` (Kotlin, Jetpack Compose); neue Abhängigkeiten für Git über SSH (z. B. JGit
   mit SSH-Transport) und Bildverarbeitung.
 - Manifest: Internet-Berechtigung, Intent-Filter für `image/*` (SEND, SEND_MULTIPLE).
-- Netzwerk: Zugriff auf `github.com` per SSH (Port 22 bzw. `ssh.github.com:443`).
+- Netzwerk: Zugriff auf `github.com` per SSH über Port 22 (Netze, die Port 22 blockieren, werden von der App erkannt und erklärt, aber nicht umgangen).
 - Das Repository `flauschiversum` wird weder verändert noch gebaut; Pushes auf `draft` lösen dort kein
   Staging aus (der Workflow läuft nur auf `dev` und `claude/**`).

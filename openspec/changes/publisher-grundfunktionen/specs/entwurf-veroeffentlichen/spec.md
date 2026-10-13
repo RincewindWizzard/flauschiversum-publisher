@@ -77,6 +77,10 @@ Die App SHALL einen Button „Veröffentlichen“ anbieten. Nach einer Sicherhei
 - **WHEN** `main` auf dem Server seit dem Anlegen des Entwurfs neue Commits hat, die den Entwurf nicht berühren
 - **THEN** führt die App den Entwurf trotzdem zusammen und veröffentlicht ihn
 
+#### Scenario: Flacher Klon
+- **WHEN** der Klon flach ist und `main` auf dem Server weitergelaufen ist
+- **THEN** lädt die App die dafür nötige Historie nach (Spec `repository-klon`) und veröffentlicht ohne Rückfrage
+
 #### Scenario: Konflikt
 - **WHEN** das Zusammenführen Dateien betrifft, die auch im Zielbranch geändert wurden, sodass ein Konflikt entsteht
 - **THEN** bricht die App das Zusammenführen ab, lässt den Zielbranch und `draft` unverändert und meldet, welche Dateien betroffen sind

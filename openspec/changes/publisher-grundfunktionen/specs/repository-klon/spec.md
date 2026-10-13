@@ -7,19 +7,22 @@ Beschreibt den lokalen Klon des Blog-Repositorys auf dem Handy und die daraus ge
 ## ADDED Requirements
 
 ### Requirement: Lokaler Klon
-Die App SHALL das Repository `RincewindWizzard/flauschiversum` per SSH in den privaten App-Speicher klonen, sobald ein funktionierender Schlüssel vorliegt. Repository-Adresse und Zielbranch SHALL in den Einstellungen änderbar sein; der Zielbranch ist standardmäßig `main`.
+Die App SHALL das Repository per SSH als flachen Klon (nur der Zielbranch, Tiefe 1) in den privaten App-Speicher legen, sobald der Zugang eingerichtet ist (Ablauf: Spec `einrichtung`). Repository-Adresse und Zielbranch SHALL in den Einstellungen änderbar sein; der Zielbranch ist standardmäßig `main`.
 
 #### Scenario: Erster Klon
-- **WHEN** der Schlüssel bei GitHub eingetragen ist und der Nutzer „Repository holen“ wählt
-- **THEN** zeigt die App den Fortschritt, klont das Repository und meldet danach den Stand des Zielbranchs
+- **WHEN** der Zugang eingerichtet ist und der Nutzer „Repository holen“ wählt
+- **THEN** zeigt die App den Fortschritt, klont flach und meldet danach den Stand des Zielbranchs
 
 #### Scenario: Klon bricht ab
 - **WHEN** die Verbindung während des Klonens abreißt
 - **THEN** meldet die App den Fehler, löscht den unvollständigen Klon und erlaubt einen neuen Versuch
 
-#### Scenario: Zu wenig Speicherplatz
-- **WHEN** der freie Speicher für den Klon nicht reicht
-- **THEN** meldet die App den Platzmangel, bevor oder sobald das Klonen scheitert, und lässt keinen halben Klon zurück
+### Requirement: Historie bei Bedarf nachladen
+Braucht ein Vorgang mehr Historie als der flache Klon enthält (z. B. gemeinsamer Vorfahre beim Veröffentlichen), SHALL die App die Historie schrittweise nachladen, bis der Vorgang möglich ist. Der Nutzer wird dafür nicht um eine Entscheidung gebeten.
+
+#### Scenario: Zielbranch weit vorausgelaufen
+- **WHEN** `main` auf dem Server um viele Commits weitergelaufen ist und `draft` darauf aufbaut
+- **THEN** lädt die App bei „Veröffentlichen“ so viel Historie nach, bis das Zusammenführen möglich ist, und führt es dann aus
 
 ### Requirement: Einstellungen
 Die App SHALL in den Einstellungen Repository-Adresse, Zielbranch, Name und E-Mail für Commits, den Autor für neue Beiträge und den Rechtetext für Bilder ändern lassen und dauerhaft speichern. Vorgaben: Repository `RincewindWizzard/flauschiversum`, Zielbranch `main`, Rechtetext „Flauschiversum / Ermeline Wollknoll“.

@@ -11,7 +11,7 @@ Die App SHALL auf Wunsch des Nutzers ein SSH-Schlüsselpaar vom Typ Ed25519 erze
 
 #### Scenario: Erster Start ohne Schlüssel
 - **WHEN** die App gestartet wird und noch kein Schlüssel existiert
-- **THEN** bietet sie das Erzeugen eines Schlüsselpaars an und lässt ohne Schlüssel keine Git-Aktion zu
+- **THEN** führt der Einrichtungsablauf (Spec `einrichtung`) zum Erzeugen des Schlüsselpaars, und ohne Schlüssel ist keine Git-Aktion möglich
 
 #### Scenario: Schlüssel existiert bereits
 - **WHEN** bereits ein Schlüssel vorhanden ist und der Nutzer „Neu erzeugen“ wählt
@@ -29,14 +29,18 @@ Die App SHALL den öffentlichen Schlüssel im OpenSSH-Format (`ssh-ed25519 …`)
 - **THEN** liegt die einzeilige Schlüsselzeile in der Zwischenablage und die App bestätigt das Kopieren
 
 ### Requirement: Host-Schlüssel des Servers prüfen
-Die App SHALL Verbindungen nur zu Servern aufbauen, deren Host-Schlüssel dem hinterlegten Schlüssel von `github.com` entspricht. Bei Abweichung SHALL die Verbindung abgebrochen und eine Fehlermeldung angezeigt werden.
+Die App SHALL die veröffentlichten Host-Schlüssel von `github.com` (Ed25519, ECDSA, RSA) fest hinterlegt haben und nur Verbindungen zu Servern aufbauen, deren Host-Schlüssel einem davon entspricht. Die SHA256-Fingerabdrücke SHALL in der App einsehbar sein, damit der Nutzer sie mit der Dokumentation von GitHub vergleichen kann. Bei Abweichung SHALL die Verbindung abgebrochen und eine Fehlermeldung angezeigt werden.
+
+#### Scenario: Fingerabdruck einsehen
+- **WHEN** der Nutzer in den Einstellungen „Host-Schlüssel“ öffnet
+- **THEN** zeigt die App die hinterlegten Fingerabdrücke (SHA256) von `github.com`
 
 #### Scenario: Unbekannter oder geänderter Host-Schlüssel
 - **WHEN** der Server einen anderen Host-Schlüssel als den hinterlegten vorweist
 - **THEN** bricht die App die Verbindung ab und meldet, dass dem Server nicht vertraut wird
 
 ### Requirement: Verbindung testen
-Die App SHALL eine Funktion „Verbindung testen“ anbieten, die mit dem Schlüssel den Zugriff auf das Repository prüft und das Ergebnis verständlich meldet (erfolgreich, Schlüssel nicht eingetragen, kein Schreibrecht, kein Netz).
+Die App SHALL eine Funktion „Verbindung testen“ anbieten, die ohne Änderung am Repository die Anmeldung und das Schreibrecht des Schlüssels prüft und das Ergebnis verständlich meldet (erfolgreich, Schlüssel nicht eingetragen, nur Leserecht, Repository nicht gefunden, kein Netz, Port 22 nicht erreichbar). Der Ablauf der Einrichtung steht in der Spec `einrichtung`.
 
 #### Scenario: Schlüssel noch nicht bei GitHub eingetragen
 - **WHEN** der Nutzer die Verbindung testet und GitHub den Schlüssel nicht akzeptiert
