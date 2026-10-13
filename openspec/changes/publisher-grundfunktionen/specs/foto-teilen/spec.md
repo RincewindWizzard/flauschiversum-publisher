@@ -70,7 +70,7 @@ Die App SHALL den Nutzer vor dem Ablegen einen vorhandenen Beitrag aus der Beitr
 - **THEN** wird nichts im Repository geändert
 
 ### Requirement: Ablegen, Committen, Pushen
-Die App SHALL die verkleinerten Bilder im Verzeichnis des Zielbeitrags ablegen, auf dem Entwurfs-Branch des Beitrags committen und pushen (Spec `entwurf-veroeffentlichen`). Gehört der Beitrag schon zum Zielbranch, legt die App dafür einen Entwurfs-Branch an. Ein vorhandenes Bild mit gleichem Dateinamen SHALL nie stillschweigend überschrieben werden.
+Die App SHALL die verkleinerten Bilder im Verzeichnis des Zielbeitrags ablegen, zusammen mit der geänderten `index.md` auf dem Entwurfs-Branch des Beitrags committen und pushen (Spec `entwurf-veroeffentlichen`). Gehört der Beitrag schon zum Zielbranch, legt die App dafür einen Entwurfs-Branch an. Ein vorhandenes Bild mit gleichem Dateinamen SHALL nie stillschweigend überschrieben werden.
 
 #### Scenario: Foto zu veröffentlichtem Beitrag
 - **WHEN** ein Foto zum bereits veröffentlichten Beitrag „Alraune“ hinzugefügt wird
@@ -85,19 +85,27 @@ Die App SHALL die verkleinerten Bilder im Verzeichnis des Zielbeitrags ablegen, 
 - **THEN** bleibt der Name erhalten, da der Blog Umlaute und Leerzeichen unterstützt
 
 ### Requirement: Alt-Text je Bild
-Die App SHALL beim Teilen für jedes Bild ein eigenes Feld für den Alt-Text (die Bildbeschreibung) anbieten. Der Alt-Text SHALL als Beschreibung in der Markdown-Zeile des Bildes stehen. Er ist optional; ohne Eingabe bleibt die Beschreibung leer.
+Die App SHALL beim Teilen für jedes Bild ein eigenes Feld für den Alt-Text (die Bildbeschreibung) anbieten. Der Alt-Text SHALL als Beschreibung in der Markdown-Zeile des Bildes unter „Anhänge“ stehen. Er ist optional; ohne Eingabe bleibt die Beschreibung leer.
 
 #### Scenario: Alt-Text je Bild
 - **WHEN** der Nutzer zwei Fotos teilt und für das erste „Fertige Mütze“ eingibt, für das zweite nichts
 - **THEN** erhält das erste `![Fertige Mütze](…)` und das zweite `![](…)`
 
-### Requirement: Bilder dem Text zuordnen
-Nach dem Ablegen SHALL die App anbieten, die Bilder im Text des Beitrags einzufügen (`![Alt-Text](Dateiname)`). Werden mehrere Bilder zusammen eingefügt, stehen sie ohne Leerzeile untereinander (Bildgruppe).
+### Requirement: Bild im Abschnitt „Anhänge“ einbinden
+Beim Hinzufügen eines Bildes SHALL die App es sofort in der `index.md` des Beitrags unter der Überschrift `## Anhänge` mit `![Alt-Text](Dateiname)` einbinden. Fehlt die Überschrift, legt die App sie am Ende der Datei an. Neue Bildzeilen werden am Ende des Abschnitts angefügt, ohne Leerzeile zwischen den Bildzeilen (eine Bildgruppe); zwischen Überschrift und erster Bildzeile steht eine Leerzeile. Text und andere Abschnitte der Datei bleiben unverändert. Datei und Bild kommen in denselben Commit.
 
-#### Scenario: Mehrere Bilder einfügen
-- **WHEN** der Nutzer drei Fotos ablegt und „Im Text einfügen“ wählt
-- **THEN** werden drei aufeinanderfolgende Zeilen `![…](…)` ohne Leerzeile am Ende des Textes ergänzt
+#### Scenario: Erstes Bild in einem Beitrag
+- **WHEN** zu einem Beitrag ohne Abschnitt „Anhänge“ das Foto `IMG_1.jpg` mit dem Alt-Text „Fertige Mütze“ hinzugefügt wird
+- **THEN** endet die `index.md` mit einer Leerzeile, `## Anhänge`, einer Leerzeile und der Zeile `![Fertige Mütze](IMG_1.jpg)`
 
-#### Scenario: Nicht einfügen
-- **WHEN** der Nutzer „Nur ablegen“ wählt
-- **THEN** liegen die Bilder im Verzeichnis, der Text bleibt unverändert, und die eingegebenen Alt-Texte werden nicht gespeichert
+#### Scenario: Weiteres Bild
+- **WHEN** der Abschnitt „Anhänge“ schon `![Fertige Mütze](IMG_1.jpg)` enthält und `IMG_2.jpg` ohne Alt-Text hinzukommt
+- **THEN** steht darunter direkt `![](IMG_2.jpg)`, ohne Leerzeile dazwischen
+
+#### Scenario: Mehrere Bilder auf einmal
+- **WHEN** drei Fotos gleichzeitig geteilt werden
+- **THEN** stehen drei aufeinanderfolgende Bildzeilen unter „Anhänge“
+
+#### Scenario: Abschnitt steht nicht am Ende
+- **WHEN** der Abschnitt „Anhänge“ von weiteren Überschriften gefolgt wird
+- **THEN** wird die neue Zeile am Ende des Abschnitts „Anhänge“ eingefügt und die folgenden Abschnitte bleiben unverändert
