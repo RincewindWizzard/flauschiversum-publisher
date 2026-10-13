@@ -44,7 +44,7 @@
 - [ ] 6.3 Entfernen der GPS-/Standortmetadaten und Schreiben der Rechteangaben (EXIF Artist/Copyright, XMP, Text aus den Einstellungen); Test: Ergebnisbild enthält keine GPS-Tags, aber die Rechteangaben
 - [ ] 6.4 Zuordnungsbildschirm: vorhandenen Beitrag wählen, neuen anlegen oder abbrechen; UI-Test für Abbruch ändert nichts
 - [ ] 6.5 Ablegen im Beitragsverzeichnis mit Namenskollision (`IMG_1-2.jpg`), Commit auf `draft/<name>` und Push; Test inkl. Foto zu veröffentlichtem Beitrag
-- [ ] 6.6 Alt-Text-Feld je Bild; Einbinden unter `## Anhänge` (Überschrift anlegen, am Abschnittsende anfügen, Leerzeile nach der Überschrift, Rest unverändert); Unit-Tests für die vier Szenarien der Spec, Datei im selben Commit wie die Bilder
+- [ ] 6.6 Alt-Text-Feld je Bild; Einbinden unter `## Anhänge` (Überschrift am Dateiende anlegen, Zeilen am Dateiende anfügen, Leerzeile nach der Überschrift, Rest unverändert); Unit-Tests für die drei Szenarien der Spec, Datei im selben Commit wie die Bilder
 
 ## 7. Integration und Dokumentation
 

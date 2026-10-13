@@ -92,7 +92,7 @@ Die App SHALL beim Teilen für jedes Bild ein eigenes Feld für den Alt-Text (di
 - **THEN** erhält das erste `![Fertige Mütze](…)` und das zweite `![](…)`
 
 ### Requirement: Bild im Abschnitt „Anhänge“ einbinden
-Beim Hinzufügen eines Bildes SHALL die App es sofort in der `index.md` des Beitrags unter der Überschrift `## Anhänge` mit `![Alt-Text](Dateiname)` einbinden. Fehlt die Überschrift, legt die App sie am Ende der Datei an. Neue Bildzeilen werden am Ende des Abschnitts angefügt, ohne Leerzeile zwischen den Bildzeilen (eine Bildgruppe); zwischen Überschrift und erster Bildzeile steht eine Leerzeile. Text und andere Abschnitte der Datei bleiben unverändert. Datei und Bild kommen in denselben Commit.
+Beim Hinzufügen eines Bildes SHALL die App es sofort in der `index.md` unter `## Anhänge` mit `![Alt-Text](Dateiname)` einbinden. „Anhänge“ ist immer der letzte Abschnitt des Beitrags und reicht bis zum Dateiende; fehlt die Überschrift, legt die App sie am Dateiende an. Alles oberhalb bleibt unverändert, `index.md` und Bild kommen in denselben Commit.
 
 #### Scenario: Erstes Bild in einem Beitrag
 - **WHEN** zu einem Beitrag ohne Abschnitt „Anhänge“ das Foto `IMG_1.jpg` mit dem Alt-Text „Fertige Mütze“ hinzugefügt wird
@@ -100,12 +100,8 @@ Beim Hinzufügen eines Bildes SHALL die App es sofort in der `index.md` des Beit
 
 #### Scenario: Weiteres Bild
 - **WHEN** der Abschnitt „Anhänge“ schon `![Fertige Mütze](IMG_1.jpg)` enthält und `IMG_2.jpg` ohne Alt-Text hinzukommt
-- **THEN** steht darunter direkt `![](IMG_2.jpg)`, ohne Leerzeile dazwischen
+- **THEN** steht darunter direkt `![](IMG_2.jpg)`, ohne Leerzeile dazwischen, sodass beide Bilder eine Bildgruppe bilden
 
 #### Scenario: Mehrere Bilder auf einmal
 - **WHEN** drei Fotos gleichzeitig geteilt werden
 - **THEN** stehen drei aufeinanderfolgende Bildzeilen unter „Anhänge“
-
-#### Scenario: Abschnitt steht nicht am Ende
-- **WHEN** der Abschnitt „Anhänge“ von weiteren Überschriften gefolgt wird
-- **THEN** wird die neue Zeile am Ende des Abschnitts „Anhänge“ eingefügt und die folgenden Abschnitte bleiben unverändert

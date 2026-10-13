@@ -67,7 +67,8 @@ eine Konfliktlösung in der App gibt es nicht (zu aufwendig, am Rechner lösbar)
 
 **Alt-Text gehört an das Bild.** Beim Teilen wird er pro Bild eingegeben und als Beschreibung in
 `![Alt-Text](Datei)` übernommen. Die Zeile wird sofort in der `index.md` unter `## Anhänge` am
-Ende des Abschnitts angefügt (ohne Leerzeilen zwischen den Bildzeilen); den Text darüber fasst die App nicht an.
+Dateiende angefügt – „Anhänge“ ist immer der letzte Abschnitt (ohne Leerzeilen zwischen den
+Bildzeilen); den Text darüber fasst die App nicht an.
 
 **Identität aus den Einstellungen.** Autorname, E-Mail (Commit-Autor), Autor für neue Beiträge und
 Rechtetext sind in den Einstellungen änderbar, mit sinnvollen Vorgaben.
