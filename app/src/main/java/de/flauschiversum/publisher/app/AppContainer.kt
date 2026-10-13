@@ -49,6 +49,7 @@ class AppContainer(val context: Context) {
         onSuccess = { millis -> settings.update { it.copy(lastSyncMillis = millis) } },
     )
 
+    val spell = de.flauschiversum.publisher.editor.SpellService(context, appScope, File(filesDir, "dictionary/personal.txt"))
     val incoming = de.flauschiversum.publisher.photos.IncomingPhotos(context)
     val imageProcessor: de.flauschiversum.publisher.images.ImageProcessor = de.flauschiversum.publisher.images.AndroidImageProcessor(File(context.cacheDir, "exif"))
     /** Legt Fotos in Beiträgen ab; die Rechteangaben kommen aus den Einstellungen. */

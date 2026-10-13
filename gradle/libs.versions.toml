@@ -23,6 +23,8 @@ desugar = "2.1.5"
 sshd = "2.15.0"
 robolectric = "4.16"
 snakeyaml = "3.2"
+lucene = "8.11.4"
+commonmark = "0.24.0"
 testCore = "1.6.1"
 
 [libraries]
@@ -60,6 +62,12 @@ androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterfa
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugar" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-test-core = { group = "androidx.test", name = "core-ktx", version.ref = "testCore" }
+lucene-core = { group = "org.apache.lucene", name = "lucene-core", version.ref = "lucene" }
+lucene-analyzers = { group = "org.apache.lucene", name = "lucene-analyzers-common", version.ref = "lucene" }
+commonmark = { group = "org.commonmark", name = "commonmark", version.ref = "commonmark" }
+commonmark-tables = { group = "org.commonmark", name = "commonmark-ext-gfm-tables", version.ref = "commonmark" }
+commonmark-strike = { group = "org.commonmark", name = "commonmark-ext-gfm-strikethrough", version.ref = "commonmark" }
+commonmark-footnotes = { group = "org.commonmark", name = "commonmark-ext-footnotes", version.ref = "commonmark" }
 snakeyaml-engine = { group = "org.snakeyaml", name = "snakeyaml-engine", version.ref = "snakeyaml" }
 sshd-core = { group = "org.apache.sshd", name = "sshd-core", version.ref = "sshd" }
 sshd-git = { group = "org.apache.sshd", name = "sshd-git", version.ref = "sshd" }
