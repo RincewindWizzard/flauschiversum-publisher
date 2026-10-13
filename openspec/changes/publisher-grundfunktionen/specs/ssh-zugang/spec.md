@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Beschreibt, wie sich die App gegenüber dem Git-Server per SSH ausweist: Erzeugen und Verwahren des Schlüssels, Weitergabe des öffentlichen Schlüssels und Absicherung gegen falsche Server.
+Beschreibt, wie sich die App gegenüber einem beliebigen Git-Server per SSH ausweist: Erzeugen und Verwahren des Schlüssels, Weitergabe des öffentlichen Schlüssels und Absicherung gegen falsche Server.
 
 ## ADDED Requirements
 
@@ -22,30 +22,49 @@ Die App SHALL auf Wunsch des Nutzers ein SSH-Schlüsselpaar vom Typ Ed25519 erze
 - **THEN** ist der private Schlüssel darin nicht enthalten
 
 ### Requirement: Öffentlichen Schlüssel weitergeben
-Die App SHALL den öffentlichen Schlüssel im OpenSSH-Format (`ssh-ed25519 …`) anzeigen und in die Zwischenablage kopieren oder über die Teilen-Funktion weitergeben können, damit der Nutzer ihn bei GitHub als Deploy Key mit Schreibrecht für `RincewindWizzard/flauschiversum` eintragen kann.
+Die App SHALL den öffentlichen Schlüssel im OpenSSH-Format (`ssh-ed25519 …`) anzeigen und in die Zwischenablage kopieren oder über die Teilen-Funktion weitergeben können, damit der Nutzer ihn auf dem Server oder bei seinem Git-Hoster mit Schreibrecht für das Repository eintragen kann.
 
 #### Scenario: Schlüssel kopieren
 - **WHEN** der Nutzer „Öffentlichen Schlüssel kopieren“ wählt
 - **THEN** liegt die einzeilige Schlüsselzeile in der Zwischenablage und die App bestätigt das Kopieren
 
 ### Requirement: Host-Schlüssel des Servers prüfen
-Die App SHALL die veröffentlichten Host-Schlüssel von `github.com` (Ed25519, ECDSA, RSA) fest hinterlegt haben und nur Verbindungen zu Servern aufbauen, deren Host-Schlüssel einem davon entspricht. Die SHA256-Fingerabdrücke SHALL in der App einsehbar sein, damit der Nutzer sie mit der Dokumentation von GitHub vergleichen kann. Bei Abweichung SHALL die Verbindung abgebrochen und eine Fehlermeldung angezeigt werden.
+Die App SHALL die Host-Schlüssel (Ed25519, ECDSA, RSA) der Server, mit denen sie spricht, nach dem Prinzip „beim ersten Mal bestätigen“ verwalten: Beim ersten Kontakt zeigt sie Schlüsseltyp und SHA256-Fingerabdruck und verbindet erst nach Bestätigung des Nutzers; der Schlüssel wird danach gespeichert. Für `github.com` ist der veröffentlichte Schlüssel fest hinterlegt und gilt ohne Rückfrage. Weicht der Schlüssel später ab, SHALL die App die Verbindung abbrechen und warnen.
 
-#### Scenario: Fingerabdruck einsehen
-- **WHEN** der Nutzer in den Einstellungen „Host-Schlüssel“ öffnet
-- **THEN** zeigt die App die hinterlegten Fingerabdrücke (SHA256) von `github.com`
+#### Scenario: Erster Kontakt mit eigenem Server
+- **WHEN** die App zum ersten Mal mit `vps.beispiel.de` spricht
+- **THEN** zeigt sie Schlüsseltyp und Fingerabdruck zur Bestätigung und verbindet erst nach „Vertrauen“
 
-#### Scenario: Unbekannter oder geänderter Host-Schlüssel
-- **WHEN** der Server einen anderen Host-Schlüssel als den hinterlegten vorweist
-- **THEN** bricht die App die Verbindung ab und meldet, dass dem Server nicht vertraut wird
+#### Scenario: Bekannter Server
+- **WHEN** der Server einen bereits bestätigten Schlüssel vorweist
+- **THEN** verbindet die App ohne Rückfrage
+
+#### Scenario: Geänderter Host-Schlüssel
+- **WHEN** ein bekannter Server einen anderen Host-Schlüssel vorweist
+- **THEN** bricht die App ab, warnt vor einem möglichen Angriff oder einer Neuinstallation und nennt beide Fingerabdrücke
+
+#### Scenario: GitHub
+- **WHEN** die App mit `github.com` spricht und der Server den veröffentlichten Schlüssel vorweist
+- **THEN** verbindet die App ohne Rückfrage
+
+### Requirement: Bekannte Server verwalten
+Die App SHALL die bestätigten Host-Schlüssel in den Einstellungen mit Server, Typ und Fingerabdruck anzeigen und einzelne Einträge nach ausdrücklicher Warnung löschen lassen, damit ein gewollt neu installierter Server wieder bestätigt werden kann.
+
+#### Scenario: Eintrag zurücksetzen
+- **WHEN** der Nutzer den Eintrag von `vps.beispiel.de` löscht und bestätigt
+- **THEN** fragt die App beim nächsten Kontakt wieder nach der Bestätigung des Schlüssels
 
 ### Requirement: Verbindung testen
-Die App SHALL eine Funktion „Verbindung testen“ anbieten, die ohne Änderung am Repository die Anmeldung und das Schreibrecht des Schlüssels prüft und das Ergebnis verständlich meldet (erfolgreich, Schlüssel nicht eingetragen, nur Leserecht, Repository nicht gefunden, kein Netz, Port 22 nicht erreichbar). Der Ablauf der Einrichtung steht in der Spec `einrichtung`.
+Die App SHALL eine Funktion „Verbindung testen“ anbieten, die ohne Änderung am Repository die Anmeldung und, soweit der Server es erkennen lässt, das Schreibrecht des Schlüssels prüft und das Ergebnis verständlich meldet (erfolgreich, Schlüssel nicht akzeptiert, Schreibrecht fehlt, Repository nicht gefunden, kein Netz, Server auf Host und Port nicht erreichbar). Der Ablauf der Einrichtung steht in der Spec `einrichtung`.
 
-#### Scenario: Schlüssel noch nicht bei GitHub eingetragen
-- **WHEN** der Nutzer die Verbindung testet und GitHub den Schlüssel nicht akzeptiert
-- **THEN** meldet die App, dass der Schlüssel bei GitHub nicht eingetragen ist, und verweist auf die Anzeige des öffentlichen Schlüssels
+#### Scenario: Schlüssel noch nicht eingetragen
+- **WHEN** der Nutzer die Verbindung testet und der Server den Schlüssel nicht akzeptiert
+- **THEN** meldet die App, dass der Schlüssel nicht eingetragen ist, und verweist auf die Anzeige des öffentlichen Schlüssels
 
 #### Scenario: Kein Netz
 - **WHEN** das Handy keine Internetverbindung hat
 - **THEN** meldet die App „Kein Netz“ statt eines Authentifizierungsfehlers
+
+#### Scenario: Server nicht erreichbar
+- **WHEN** der Server auf dem angegebenen Host und Port keine Verbindung annimmt
+- **THEN** meldet die App „Server nicht erreichbar“ mit Host und Port

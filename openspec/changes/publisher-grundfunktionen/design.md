@@ -24,7 +24,7 @@ Anforderungen: siehe `specs/`.
 - Änderungen am Blog-Repository (Generator, Workflows, Specs).
 - Bearbeiten bestehender Beiträge im Text, Löschen von Beiträgen, Verwalten von Seiten oder
   `tags.yaml` (spätere Changes).
-- Vorschau des gerenderten Beitrags, Login mit GitHub-Konto, andere Git-Hoster, Videos.
+- Vorschau des gerenderten Beitrags, Login mit GitHub-Konto, Videos.
 
 ## Decisions
 
@@ -35,7 +35,7 @@ ABI). Risiko Ed25519/SSH-Transport auf Android: siehe Risiken; früh per Spike p
 **SSH-Schlüssel: Ed25519, privat im App-internen Speicher, von Backups ausgenommen.** Ein Deploy Key
 ist auf ein Repository und Schreibrecht begrenzt – kleinerer Schaden bei Verlust als ein
 persönlicher Schlüssel. Alternativen: Schlüssel importieren (zusätzlicher Aufwand, riskanter),
-Zugriff über GitHub-Token/HTTPS (vom Nutzer nicht gewünscht). Der Android Keystore unterstützt
+Zugriff über Token/HTTPS (vom Nutzer nicht gewünscht). Der Android Keystore unterstützt
 Ed25519 für SSH nicht direkt; Verschlüsselung der Schlüsseldatei mit einem Keystore-Schlüssel ist
 eine mögliche Härtung.
 
@@ -43,10 +43,11 @@ eine mögliche Härtung.
 
 **Flacher Klon (Tiefe 1), Historie bei Bedarf nachladen.** Spart Daten und Platz gegenüber dem vollen Klon; Beitragsdateien (rund 365 MB, überwiegend Originalfotos) bleiben aber vollständig im Arbeitsbaum, ein flacher Klon braucht daher weiterhin grob 0,7–0,8 GB. Die App verlangt 1,5 GB Freiraum und fragt bei Mobilfunk nach. Merge-Basen fehlen im flachen Klon; beim Veröffentlichen vertieft die App die Historie (Deepen/Unshallow), bis sie gefunden ist. Alternative: Partial Clone ohne Blobs – verworfen, da JGit das nicht zuverlässig unterstützt und Vorschaubilder die Dateien brauchen.
 
-**Nur Port 22, nur `github.com`.** Kein Umweg über `ssh.github.com:443`; blockierte Netze werden erkannt und erklärt. Die Adresse ist als SSH-Adresse zu erfassen, HTTPS wird erkannt und umgeschrieben vorgeschlagen.
+**Beliebiger SSH-Server, Port aus der Adresse.** Die Repository-Adresse ist eine SSH-Adresse (`benutzer@host:pfad` oder `ssh://benutzer@host[:port]/pfad`), Standardport 22. Es gibt keinen automatischen Port-Fallback (z. B. `ssh.github.com:443`); unerreichbare Server oder gesperrte Ports werden erkannt und erklärt. Die App setzt nur voraus, dass der Server `git-upload-pack` und `git-receive-pack` über SSH anbietet (reines `git`-über-SSH, z. B. ein Bare-Repository auf einem VPS, GitHub, GitLab, Gitea/Forgejo). HTTPS wird erkannt und eine SSH-Adresse vorgeschlagen.
 
-**Host-Schlüssel von github.com fest hinterlegt** (statt „beim ersten Mal vertrauen“), mit
-Aktualisierung über eine App-Version. Verhindert Man-in-the-Middle im öffentlichen WLAN.
+**Host-Schlüssel: „beim ersten Mal bestätigen“, GitHub vorbelegt.** Da der Server beliebig ist, kann der Host-Schlüssel nicht fest eingebaut sein. Beim ersten Kontakt zeigt die App Typ und SHA256-Fingerabdruck und speichert den bestätigten Schlüssel (eigene known-hosts-Datei im App-Speicher, mit Host und Port als Schlüssel). Weicht der Schlüssel später ab, bricht die App ab; Zurücksetzen nur ausdrücklich in den Einstellungen. Für `github.com` sind die veröffentlichten Schlüssel mitgeliefert (Aktualisierung über eine App-Version), damit die Vorgabe ohne Rückfrage läuft. Alternative: Host-Schlüssel nicht prüfen – verworfen (Man-in-the-Middle im öffentlichen WLAN).
+
+**Eintragen des Schlüssels je nach Server.** Für `github.com` führt die App zur Deploy-Key-Seite des Repositorys; für andere Server zeigt sie einen kopierbaren `authorized_keys`-Befehl und den allgemeinen Hinweis auf Deploy Keys bei Git-Hostern. Die Schreibrechtprüfung ist serverabhängig: GitHub weist einen Deploy Key ohne Schreibrecht schon beim Aufbau der `git-receive-pack`-Sitzung ab; andere Server entscheiden oft erst beim Push. Die App meldet dort ehrlich „Schreibrecht wird beim ersten Veröffentlichen bestätigt“.
 
 **Ein Klon, ein gemeinsamer Branch `draft`.** Alle Änderungen der App werden auf `draft` committet und gepusht. „Veröffentlichen“ führt `draft` in den Zielbranch zusammen (Merge ohne Konfliktlösung in der App; bei Konflikt Abbruch) und setzt `draft` danach auf den Stand des Zielbranchs. Offene Entwürfe sind keine eigenen Branches, sondern ergeben sich aus dem Unterschied der Beitragsverzeichnisse zwischen `draft` und Zielbranch. Weniger Branches, einfacheres Git, keine Namenskonflikte. Folge: Es werden immer alle Entwürfe gemeinsam veröffentlicht; Einzelverwerfen geschieht durch einen Zurücksetzen-Commit des Beitragsverzeichnisses, „Alle verwerfen“ setzt `draft` auf den Zielbranch zurück (dafür ist ein Force-Push nötig; `draft` gehört allein der App). Alternative: ein Branch je Beitrag (`draft/<name>`) – verworfen als zu kompliziert. Alternative: Pull Requests über die GitHub-API – verworfen, weil dafür ein Token nötig wäre, das der Nutzer nicht einrichten will.
 
@@ -86,14 +87,16 @@ Tests gegen Beispiel-Beiträge aus `content/posts/` des Blogs (gelesen, nicht ve
 ## Risks / Trade-offs
 
 - [Ed25519 über JGit-SSH auf Android ist nicht sicher lauffähig] → Früh einen Spike bauen (Clone und
-  Push gegen GitHub aus der App). Fallback: andere SSH-Bibliothek hinter derselben Git-Kapsel oder
+  Push gegen GitHub und einen eigenen SSH-Server aus der App). Fallback: andere SSH-Bibliothek hinter derselben Git-Kapsel oder
   RSA-4096 als Schlüsseltyp (Spec `ssh-zugang` müsste dann angepasst werden).
 - [Repository wächst durch Bilder, Klon wird groß] → Flacher Klon, Speicherplatzprüfung (1,5 GB) vor dem Klonen, Hinweis bei Mobilfunk.
 - [JGit kann flache Klone nicht zuverlässig vertiefen oder damit mergen] → Im Spike (Aufgabe 1.2) prüfen; Fallback: voller Klon (Spec `repository-klon` anpassen).
-- [Port 22 in manchen Netzen gesperrt] → Erkennen und erklären; kein Fallback vorgesehen.
+- [Port des Servers im aktuellen Netz gesperrt] → Erkennen und erklären; kein Fallback vorgesehen.
+- [Schreibrecht auf Nicht-GitHub-Servern vorab nicht prüfbar] → Ehrliche Meldung im Ablauf; klare Fehlermeldung beim ersten abgelehnten Push.
+- [Eigener Server mit abweichender Git-Konfiguration (z. B. ohne Unterstützung für flache Klone)] → Im Spike gegen einen Bare-Repository-Server prüfen; Fallback voller Klon.
 - [Merge-Konflikt am Zielbranch] → Abbruch ohne Änderung, klare Meldung; Auflösung am Rechner.
 - [Push auf Zielbranch durch Branch-Schutz abgelehnt] → Meldung; Entwurf bleibt erhalten.
-- [Deploy Key hat Schreibrecht auf das ganze Repository] → Schlüssel nur im geschützten Speicher;
-  bei Geräteverlust Key bei GitHub löschen.
+- [Der Schlüssel hat Schreibrecht auf das ganze Repository] → Schlüssel nur im geschützten Speicher;
+  bei Geräteverlust den Schlüssel auf dem Server bzw. bei GitHub entfernen.
 - [Handy-Akku/Netz bricht während Push ab] → Commit bleibt lokal, erneuter Push möglich, Status
   sichtbar.

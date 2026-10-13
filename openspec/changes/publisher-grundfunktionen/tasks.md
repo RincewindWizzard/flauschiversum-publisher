@@ -3,15 +3,15 @@
 ## 1. Grundgerüst und Spike
 
 - [ ] 1.1 Abhängigkeiten für Git über SSH (JGit mit SSH-Transport) und Ed25519 ergänzen; `./gradlew assembleDebug` läuft durch
-- [ ] 1.2 Spike: Schlüssel erzeugen und gegen GitHub flach klonen, nachladen (Deepen), mergen und pushen sowie die Schreibrechtprüfung über `git-receive-pack` ohne Push testen (Testrepository, Debug-Bildschirm); Ergebnisse (Ed25519 ja/nein, flacher Klon ja/nein, Fallbacks) in `design.md` unter Risiken festhalten
+- [ ] 1.2 Spike: Schlüssel erzeugen und gegen GitHub und einen eigenen SSH-Server (Bare-Repository, z. B. in einem Container) flach klonen, nachladen (Deepen), mergen und pushen sowie die Schreibrechtprüfung über `git-receive-pack` ohne Push (GitHub und eigener Server) testen (Testrepository, Debug-Bildschirm); Ergebnisse (Ed25519 ja/nein, flacher Klon ja/nein, Fallbacks) in `design.md` unter Risiken festhalten
 - [ ] 1.3 Paketstruktur `git`, `posts`, `images`, `ui` mit Navigation (Compose) anlegen und App startet im Emulator mit leerem Hauptbildschirm
 
 ## 2. SSH-Zugang (`ssh-zugang`)
 
 - [ ] 2.1 Schlüsselerzeugung und -speicherung im privaten App-Speicher, von Backups ausgenommen (`backup_rules.xml`, `data_extraction_rules.xml`); Unit-Test: Schlüssel wird gespeichert, wieder geladen und ist im OpenSSH-Format ausgebbar
 - [ ] 2.2 Bildschirm „Schlüssel“: erzeugen/ersetzen mit Warnung, öffentlichen Schlüssel kopieren und teilen; manuell im Emulator geprüft
-- [ ] 2.3 Fester Host-Schlüssel von `github.com` (Ed25519, ECDSA, RSA) mit Anzeige der SHA256-Fingerabdrücke in den Einstellungen; Tests: abweichender Host-Schlüssel führt zum Verbindungsabbruch, Fingerabdrücke werden berechnet und angezeigt
-- [ ] 2.4 „Verbindung testen“ ohne Repository-Änderung mit unterscheidbaren Meldungen (ok, Schlüssel nicht eingetragen, nur Leserecht, Repository nicht gefunden, kein Netz, Port 22 nicht erreichbar); Unit-Tests für die Fehlerzuordnung, Test: Repository nach dem Test unverändert
+- [ ] 2.3 Host-Schlüssel-Verwaltung: Bestätigung beim ersten Kontakt (Typ, SHA256-Fingerabdruck), Speicherung je Host und Port, mitgelieferte GitHub-Schlüssel, Abbruch bei Abweichung, Liste und Löschen in den Einstellungen; Tests: Erstkontakt fragt, bekannter Server nicht, geänderter Schlüssel bricht ab, GitHub ohne Rückfrage, Löschen erzwingt neue Bestätigung
+- [ ] 2.4 „Verbindung testen“ ohne Repository-Änderung mit unterscheidbaren Meldungen (ok, Schlüssel nicht akzeptiert, Schreibrecht fehlt, Schreibrecht nicht prüfbar, Repository nicht gefunden, kein Netz, Server auf Host und Port nicht erreichbar); Unit-Tests für die Fehlerzuordnung, Test: Repository nach dem Test unverändert
 
 ## 3. Repository-Klon (`repository-klon`)
 
@@ -26,12 +26,12 @@
 ## 3b. Einrichtungsablauf (`einrichtung`)
 
 - [ ] 3b.1 Zustandsautomat mit gespeichertem Fortschritt (Schritt 1–5) und Wiederaufnahme beim ersten offenen Schritt; Unit-Tests: Neustart nach Schritt 3 startet bei Schritt 3, Sperre vorwärts ohne erfüllten Schritt, unterbrochener Klon wird entfernt
-- [ ] 3b.2 Schritt 1: Repository-Adresse prüfen (SSH-Formen, HTTPS erkennen und umschreiben, fremde Hosts ablehnen, Vorgabe); Unit-Tests je Szenario der Spec
-- [ ] 3b.3 Schritt 3: Anleitung zum Deploy Key (Schlüssel anzeigen/kopieren, „GitHub-Seite öffnen“ mit richtiger Adresse, Titelvorschlag, Hinweis auf „Allow write access“); Test der URL-Bildung, UI-Test des Ablaufs
-- [ ] 3b.4 Schritt 4: Prüfung mit den Ursachenmeldungen aus Aufgabe 2.4 im Ablauf, Weiterführung nur bei Erfolg; UI-Tests für Erfolg, nur Leserecht, Port 22 blockiert
+- [ ] 3b.2 Schritt 1: Repository-Adresse prüfen (`benutzer@host:pfad`, `ssh://benutzer@host[:port]/pfad`, HTTP(S) erkennen und SSH-Adresse vorschlagen, ungültige Eingaben ablehnen, Vorgabe); Unit-Tests je Szenario der Spec inkl. Port und Pfad
+- [ ] 3b.3 Schritt 3: Anleitung zum Eintragen des Schlüssels (Anzeige/Kopieren; bei `github.com` „GitHub-Seite öffnen“ mit Titelvorschlag und Hinweis „Allow write access“; sonst kopierbarer `authorized_keys`-Befehl und Deploy-Key-Hinweis); Tests der URL-/Befehlsbildung, UI-Test beider Varianten
+- [ ] 3b.4 Schritt 4: Prüfung mit den Ursachenmeldungen aus Aufgabe 2.4 und Bestätigung des Host-Schlüssels im Ablauf, Weiterführung nur bei Erfolg (auch bei „Schreibrecht nicht prüfbar“ mit Hinweis); UI-Tests für Erfolg, nur Leserecht, Server nicht erreichbar, Erstkontakt
 - [ ] 3b.5 Schritt 5: Hinweise zu Datenmenge, Mobilfunkabfrage und Speicherprüfung, danach Klon (Aufgabe 3.2); UI-Tests für Mobilfunk, zu wenig Speicher und Abbruch
 - [ ] 3b.6 Prüfung des Klons (Zielbranch, `content/posts/`, `tags.yaml`) mit Auswahl eines anderen Zielbranchs bzw. neuem Klon bei Fehler; Tests mit Testrepositories (ohne `main`, ohne `content/posts/`)
-- [ ] 3b.7 Zugangsprobleme später: Hinweis bei dauerhaft verweigertem Zugriff (zweimal in Folge) ohne Dialog, Sprung zu Schritt 3/4; „Repository neu holen“ und „Schlüssel ersetzen“ in den Einstellungen; Tests: Netzfehler löst nichts aus, gelöschter Key löst Hinweis aus
+- [ ] 3b.7 Zugangsprobleme später: Hinweis bei dauerhaft verweigertem Zugriff (zweimal in Folge) ohne Dialog, Sprung zu Schritt 3/4; „Repository neu holen“, „Schlüssel ersetzen“ und Ändern der Repository-Adresse (erneut Schritte 3–5) in den Einstellungen; Tests: Netzfehler löst nichts aus, entfernter Schlüssel löst Hinweis aus
 
 ## 4. Beitrag erstellen (`beitrag-erstellen`)
 
@@ -63,7 +63,7 @@
 
 - [ ] 7.1 End-to-End im Emulator gegen ein Testrepository: Schlüssel, Klon, Beitrag mit geteilten Fotos, Veröffentlichen; Ablauf in `README.md` dokumentiert und nachvollziehbar
 - [ ] 7.2 Erzeugten Beitrag mit dem Generator des Blogs prüfen (`cargo run --release -- check` in einer Kopie des Blogs); Ergebnis ohne Fehler
-- [ ] 7.3 `README.md` mit Einrichtung (Deploy Key bei GitHub eintragen) und Bedienung; Schritte funktionieren wie beschrieben
+- [ ] 7.3 `README.md` mit Einrichtung (Schlüssel bei GitHub als Deploy Key oder auf einem eigenen Server in `authorized_keys` eintragen) und Bedienung; Schritte funktionieren wie beschrieben
 
 ## Workflow follow-up
 
