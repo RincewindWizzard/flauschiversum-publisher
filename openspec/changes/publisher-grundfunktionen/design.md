@@ -2,7 +2,7 @@
 
 ## Context
 
-Die App ist ein leeres Android-Projekt (Kotlin, Jetpack Compose, Material 3, minSdk 24, Paket
+Die App ist ein leeres Android-Projekt (Kotlin, Jetpack Compose, Material 3, minSdk 26, Paket
 `de.flauschiversum.publisher`). Der Blog liegt im Repository `RincewindWizzard/flauschiversum`
 (Rust-Generator); Beiträge sind Verzeichnisse `content/posts/<name>/` mit `index.md` und Medien,
 Schlagworte stehen in `content/tags.yaml`. Der Generator erzeugt `200x`/`700x`/`1000x`-Varianten
@@ -41,7 +41,7 @@ eine mögliche Härtung.
 
 **Geführte Einrichtung als Zustandsautomat.** Die Schritte 1–5 sind ein persistenter Zustand (`DataStore`); die Oberfläche leitet den Schritt aus dem Zustand ab, nicht umgekehrt, damit Abbrüche und Neustarts immer am richtigen Schritt landen. Die Prüfung des Zugangs verbindet sich mit dem Push-Dienst von GitHub (Aushandlung von `git-receive-pack`) ohne Referenzen zu übertragen: GitHub weist Deploy Keys ohne Schreibrecht dort ab; das wird im Spike (Aufgabe 1.2) bestätigt. Alternative: einen Test-Push auf einen Wegwerf-Branch – verworfen (verändert das Repository).
 
-**Flacher Klon (Tiefe 1), Historie bei Bedarf nachladen.** Spart Daten und Platz gegenüber dem vollen Klon; Beitragsdateien (rund 365 MB, überwiegend Originalfotos) bleiben aber vollständig im Arbeitsbaum, ein flacher Klon braucht daher weiterhin mehrere hundert MB. Die App verlangt 1,5 GB Freiraum und fragt bei Mobilfunk nach (mit dem bares Repository ohne Arbeitsbaum belegt der Klon grob die Hälfte). Merge-Basen fehlen im flachen Klon; beim Veröffentlichen vertieft die App die Historie (Deepen/Unshallow), bis sie gefunden ist. Alternative: Partial Clone ohne Blobs – verworfen, da JGit das nicht zuverlässig unterstützt und Vorschaubilder die Dateien brauchen.
+**Flacher Klon (Tiefe 1), Historie bei Bedarf nachladen.** Spart Daten und Platz gegenüber dem vollen Klon; Beitragsdateien (rund 365 MB, überwiegend Originalfotos) bleiben aber vollständig im Arbeitsbaum, ein flacher Klon braucht daher weiterhin mehrere hundert MB. Die App verlangt 1,5 GB Freiraum und fragt bei Mobilfunk nach (mit dem bare-Repository ohne Arbeitsbaum belegt der Klon grob die Hälfte). Merge-Basen fehlen im flachen Klon; beim Veröffentlichen vertieft die App die Historie (Deepen/Unshallow), bis sie gefunden ist. Alternative: Partial Clone ohne Blobs – verworfen, da JGit das nicht zuverlässig unterstützt und Vorschaubilder die Dateien brauchen.
 
 **Beliebiger SSH-Server, Port aus der Adresse.** Die Repository-Adresse ist eine SSH-Adresse (`benutzer@host:pfad` oder `ssh://benutzer@host[:port]/pfad`), Standardport 22. Es gibt keinen automatischen Port-Fallback (z. B. `ssh.github.com:443`); unerreichbare Server oder gesperrte Ports werden erkannt und erklärt. Die App setzt nur voraus, dass der Server `git-upload-pack` und `git-receive-pack` über SSH anbietet (reines `git`-über-SSH, z. B. ein Bare-Repository auf einem VPS, GitHub, GitLab, Gitea/Forgejo). HTTPS wird erkannt und eine SSH-Adresse vorgeschlagen.
 

@@ -48,6 +48,8 @@ android {
         // Wo Robolectric nicht selbst aus dem Netz laden kann (z. B. hinter einem Proxy), liegen die
         // Android-Jars in einem Verzeichnis, auf das ROBOLECTRIC_DEPS zeigt.
         unitTests.all { test ->
+            // Dateinamen mit Umlauten müssen auch bei Locale POSIX ankommen (Tests schreiben Beiträge mit solchen Namen)
+            test.jvmArgs("-Dsun.jnu.encoding=UTF-8", "-Dfile.encoding=UTF-8")
             System.getenv("ROBOLECTRIC_DEPS")?.let {
                 test.systemProperty("robolectric.offline", "true")
                 test.systemProperty("robolectric.dependency.dir", it)

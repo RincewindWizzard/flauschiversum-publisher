@@ -2,7 +2,7 @@
 
 ## Context
 
-Die App ist ein Compose-Projekt (Kotlin, Material 3, minSdk 24, targetSdk 37) mit einem Standard-Theme aus der Projektvorlage. Das Repository `flauschiversum-publisher` liegt auf GitHub; für den Build ist dort bisher nichts eingerichtet. Farben und Maskottchen des Blogs liegen im Repository `flauschiversum` (`content/style/theme.css`, Favicon-/Maskottchen-Dateien) und werden nur gelesen. Motivation: siehe `proposal.md`, Anforderungen: siehe `specs/`.
+Die App ist ein Compose-Projekt (Kotlin, Material 3, minSdk 26, targetSdk 37) mit einem Standard-Theme aus der Projektvorlage. Das Repository `flauschiversum-publisher` liegt auf GitHub; für den Build ist dort bisher nichts eingerichtet. Farben und Maskottchen des Blogs liegen im Repository `flauschiversum` (`content/style/theme.css`, Favicon-/Maskottchen-Dateien) und werden nur gelesen. Motivation: siehe `proposal.md`, Anforderungen: siehe `specs/`.
 
 ## Goals / Non-Goals
 

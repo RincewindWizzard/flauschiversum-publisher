@@ -62,9 +62,9 @@
 
 ## 7. Integration und Dokumentation
 
-- [ ] 7.1 End-to-End im Emulator gegen ein Testrepository: Schlüssel, Klon, Beitrag mit geteilten Fotos, Veröffentlichen; Ablauf in `README.md` dokumentiert und nachvollziehbar
-- [ ] 7.2 Erzeugten Beitrag mit dem Generator des Blogs prüfen (`cargo run --release -- check` in einer Kopie des Blogs); Ergebnis ohne Fehler
-- [ ] 7.3 `README.md` mit Einrichtung (Schlüssel bei GitHub als Deploy Key oder auf einem eigenen Server in `authorized_keys` eintragen) und Bedienung; Schritte funktionieren wie beschrieben
+- [ ] 7.1 End-to-End im Emulator gegen ein Testrepository: Schlüssel, Klon, Beitrag mit geteilten Fotos, Veröffentlichen; Ablauf in `README.md` dokumentiert. Offen: Emulator/Gerät fehlt hier; die einzelnen Schritte sind per Robolectric gegen einen eingebetteten SSH-Server geprüft (Einrichtung bis Klon, Beitrag, Fotos, Veröffentlichen), aber nicht als durchgehender Lauf auf Android
+- [x] 7.2 Erzeugten Beitrag mit dem Generator des Blogs prüfen (`flauschiversum check` in einer Kopie des Blogs, `GeneratorCheckTest`); Ergebnis ohne Fehler und ohne neue Warnungen
+- [x] 7.3 `README.md` mit Einrichtung (Schlüssel bei GitHub als Deploy Key oder auf einem eigenen Server in `authorized_keys` eintragen) und Bedienung; Schritte gegen die Oberfläche der App abgeglichen (nicht auf einem Gerät durchgespielt)
 
 ## Workflow follow-up
 
