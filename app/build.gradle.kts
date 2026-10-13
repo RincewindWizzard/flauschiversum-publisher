@@ -44,6 +44,15 @@ android {
     }
     testOptions {
         unitTests.isReturnDefaultValues = true
+        unitTests.isIncludeAndroidResources = true
+        // Wo Robolectric nicht selbst aus dem Netz laden kann (z. B. hinter einem Proxy), liegen die
+        // Android-Jars in einem Verzeichnis, auf das ROBOLECTRIC_DEPS zeigt.
+        unitTests.all { test ->
+            System.getenv("ROBOLECTRIC_DEPS")?.let {
+                test.systemProperty("robolectric.offline", "true")
+                test.systemProperty("robolectric.dependency.dir", it)
+            }
+        }
     }
     buildFeatures {
         compose = true
@@ -60,6 +69,7 @@ dependencies {
     implementation(libs.jsch)
     implementation(libs.bouncycastle.prov)
     implementation(libs.slf4j.api)
+    implementation(libs.snakeyaml.engine)
     runtimeOnly(libs.slf4j.nop)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -79,6 +89,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.sshd.core)
     testImplementation(libs.sshd.git) { exclude(group = "org.eclipse.jgit") }
     testRuntimeOnly(libs.slf4j.simple)

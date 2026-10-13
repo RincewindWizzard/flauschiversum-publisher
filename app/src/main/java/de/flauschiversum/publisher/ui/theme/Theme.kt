@@ -1,58 +1,86 @@
 package de.flauschiversum.publisher.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+/** Wahl des Farbmodus in den Einstellungen. */
+enum class ThemeMode { SYSTEM, LIGHT, DARK;
+    fun isDark(systemDark: Boolean): Boolean = when (this) {
+        SYSTEM -> systemDark
+        LIGHT -> false
+        DARK -> true
+    }
+}
+
+val LightColors: ColorScheme = lightColorScheme(
+    primary = Nebel.Light.accent,
+    onPrimary = Nebel.Light.accentInk,
+    primaryContainer = Nebel.Light.accentSoft,
+    onPrimaryContainer = Nebel.Light.text,
+    secondary = Nebel.Light.link,
+    onSecondary = Nebel.Light.accentInk,
+    secondaryContainer = Nebel.Light.accentSoft,
+    onSecondaryContainer = Nebel.Light.text,
+    tertiary = Nebel.Light.gold,
+    onTertiary = Nebel.Light.onGold,
+    background = Nebel.Light.bg,
+    onBackground = Nebel.Light.text,
+    surface = Nebel.Light.card,
+    onSurface = Nebel.Light.text,
+    surfaceVariant = Nebel.Light.accentSoft,
+    onSurfaceVariant = Nebel.Light.muted,
+    surfaceContainerLowest = Nebel.Light.card,
+    surfaceContainerLow = Nebel.Light.card,
+    surfaceContainer = Nebel.Light.card,
+    surfaceContainerHigh = Nebel.Light.accentSoft,
+    surfaceContainerHighest = Nebel.Light.accentSoft,
+    outline = Nebel.Light.borderStrong,
+    outlineVariant = Nebel.Light.border,
+    error = Nebel.Light.error,
+    onError = Nebel.Light.onError,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+val DarkColors: ColorScheme = darkColorScheme(
+    primary = Nebel.Dark.accent,
+    onPrimary = Nebel.Dark.accentInk,
+    primaryContainer = Nebel.Dark.accentSoft,
+    onPrimaryContainer = Nebel.Dark.text,
+    secondary = Nebel.Dark.link,
+    onSecondary = Nebel.Dark.accentInk,
+    secondaryContainer = Nebel.Dark.accentSoft,
+    onSecondaryContainer = Nebel.Dark.text,
+    tertiary = Nebel.Dark.gold,
+    onTertiary = Nebel.Dark.onGold,
+    background = Nebel.Dark.bg,
+    onBackground = Nebel.Dark.text,
+    surface = Nebel.Dark.card,
+    onSurface = Nebel.Dark.text,
+    surfaceVariant = Nebel.Dark.accentSoft,
+    onSurfaceVariant = Nebel.Dark.muted,
+    surfaceContainerLowest = Nebel.Dark.bg,
+    surfaceContainerLow = Nebel.Dark.card,
+    surfaceContainer = Nebel.Dark.card,
+    surfaceContainerHigh = Nebel.Dark.accentSoft,
+    surfaceContainerHighest = Nebel.Dark.accentSoft,
+    outline = Nebel.Dark.borderStrong,
+    outlineVariant = Nebel.Dark.border,
+    error = Nebel.Dark.error,
+    onError = Nebel.Dark.onError,
 )
 
 @Composable
 fun FlauschiversumPublisherTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    mode: ThemeMode = ThemeMode.SYSTEM,
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
+    val dark = mode.isDark(isSystemInDarkTheme())
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+        colorScheme = if (dark) DarkColors else LightColors,
+        typography = AppTypography,
+        content = content,
     )
 }
