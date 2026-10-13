@@ -8,6 +8,7 @@ Beiträge bestehen aus Markdown. Mit dem normalen Textfeld des Handys sind Tippf
 
 - Die App erhält einen eingebauten Markdown-Editor mit Syntaxhervorhebung und einer Werkzeugleiste für häufige Auszeichnungen. Er ersetzt das einfache Textfeld für den Beitragstext im Editor aus `publisher-grundfunktionen`.
 - Ein Syntax-Checker markiert Fehler und Warnungen im Markdown, passend zum Markdown-Dialekt des Blogs (CommonMark mit Tabellen, Durchstreichen und Fußnoten, eingebettetes HTML erlaubt).
+- Der Editor zeigt nur den Text ohne Frontmatter. Alle Frontmatter-Felder (Titel, Datum, Permalink, Schlagworte, Autor, Titelbild, Kurzbeschreibung) stehen in einem eigenen Menü „Eigenschaften“ mit passenden Eingabemethoden (Kalender, Zeitwähler, Chips, Bildauswahl).
 - Eine Rechtschreibprüfung für Deutsch (eingebautes Hunspell-Wörterbuch, offline) unterstreicht unbekannte Wörter, schlägt Korrekturen vor und erlaubt, Wörter in ein persönliches Wörterbuch aufzunehmen.
 - Bestehende Beiträge lassen sich aus der Beitragsliste öffnen und bearbeiten; Änderungen laufen über den Entwurfs-Branch `draft/<name>` und „Veröffentlichen“.
 
@@ -17,11 +18,12 @@ Beiträge bestehen aus Markdown. Mit dem normalen Textfeld des Handys sind Tippf
 - `markdown-editor`: Bearbeitungsoberfläche für den Beitragstext mit Hervorhebung, Werkzeugleiste und Rückgängig/Wiederholen.
 - `markdown-pruefung`: Syntaxprüfung des Markdowns mit Markierung und Liste der Befunde.
 - `rechtschreibpruefung`: Deutsche Rechtschreibprüfung mit Vorschlägen und persönlichem Wörterbuch.
-- `beitrag-bearbeiten`: Öffnen, Ändern und Speichern des Textes eines bestehenden Beitrags über einen Entwurfs-Branch.
+- `beitrag-eigenschaften`: Menü für alle Frontmatter-Felder mit komfortablen Eingabemethoden, Prüfung und verlustfreiem Speichern.
+- `beitrag-bearbeiten`: Öffnen, Ändern und Speichern eines bestehenden Beitrags (Text und Eigenschaften) über einen Entwurfs-Branch.
 
 ### Modified Capabilities
 
-(keine in `openspec/specs/`; der Change ersetzt aber das Textfeld aus `beitrag-erstellen` des noch nicht archivierten Changes `publisher-grundfunktionen`, siehe Design)
+(keine in `openspec/specs/`; der Change ersetzt aber Textfeld und Eingabefelder aus `beitrag-erstellen` des noch nicht archivierten Changes `publisher-grundfunktionen` durch Editor und Eigenschaften-Menü, siehe Design)
 
 ## Impact
 

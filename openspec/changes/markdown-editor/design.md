@@ -12,10 +12,9 @@ Der Editor baut auf `publisher-grundfunktionen` auf (noch nicht umgesetzt): Repo
 - Eingaben gehen nie verloren.
 
 **Non-Goals:**
-- Bearbeiten des Frontmatters (Titel, Datum, Schlagworte) bestehender Beiträge – eigener Change.
 - Grammatik- und Stilprüfung (LanguageTool), Prüfung in anderen Sprachen, automatische Korrektur.
 - Live-Vorschau des gerenderten Beitrags, Löschen oder Umbenennen von Beiträgen.
-- Prüfung von Frontmatter, Bildverweisen auf vorhandene Dateien und Permalinks (vom Nutzer nicht gewünscht; später ergänzbar).
+- Syntaxprüfung des Frontmatters oder von Bildverweisen im Markdown-Prüfer (die Eingabefelder des Menüs prüfen ihre Werte selbst).
 
 ## Decisions
 
@@ -31,7 +30,11 @@ Der Editor baut auf `publisher-grundfunktionen` auf (noch nicht umgesetzt): Repo
 
 **Prüfungen laufen entprellt im Hintergrund** (z. B. 400 ms nach der letzten Eingabe, `Dispatchers.Default`); Ergebnisse werden gegen Textänderungen während der Berechnung verworfen. Befunde sind Zeichenbereiche; bei Änderungen verschieben sich Bereiche bis zum nächsten Lauf nicht mit.
 
-**Bearbeiten: Frontmatter und Text trennen.** Die Schicht `posts` teilt die Datei in Frontmatter (inklusive Trennzeilen, unverändert) und Text. Gespeichert wird `Frontmatter + bearbeiteter Text`, damit der Diff nur den Text betrifft. Zeilenenden werden wie in der Originaldatei beibehalten.
+**Eigenschaften-Menü mit eigenem Bildschirm und Formularzustand.** Pro Feld die passende Eingabe: Titel (Textfeld), Datum (Material-3-DatePicker, Zeit optional per TimePicker), Permalink (Textfeld mit Vorschlag und Format-/Duplikatprüfung), Schlagworte (Filter-Chips mit Suchfeld, Daten aus `tags.yaml`), Autor (Auswahl bekannter Autoren mit freier Eingabe), Titelbild (Vorschau-Raster der Bilder im Beitragsverzeichnis), Kurzbeschreibung (mehrzeilig mit Zähler und Rechtschreibung). Autoren und Permalinks werden beim Einlesen der Beitragsliste gesammelt. Ungültige Felder verhindern das Speichern.
+
+**Frontmatter verlustfrei ändern:** Statt das YAML neu zu erzeugen, ersetzt die Schicht `posts` nur die Zeilen geänderter bekannter Felder (bzw. fügt sie in fester Reihenfolge ein oder entfernt sie), alle anderen Zeilen bleiben unverändert. Ein vollständiger YAML-Parser dient nur zum Lesen und Validieren. Alternative: YAML komplett neu serialisieren – verworfen, weil Formatierung und unbekannte Felder verloren gingen und die Diffs unnötig groß würden.
+
+**Bearbeiten: Frontmatter und Text trennen.** Die Schicht `posts` teilt die Datei in Frontmatter (inklusive Trennzeilen, unverändert) und Text. Gespeichert wird `Frontmatter (ggf. mit geänderten Feldzeilen) + bearbeiteter Text`, damit der Diff nur die tatsächlichen Änderungen betrifft. Zeilenenden werden wie in der Originaldatei beibehalten.
 
 **Speichern über den vorhandenen Entwurfsweg:** Commit auf `draft/<verzeichnisname>` und Push, „Veröffentlichen“ wie in `entwurf-veroeffentlichen`. Kein neuer Git-Code.
 

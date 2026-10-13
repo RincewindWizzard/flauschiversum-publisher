@@ -7,7 +7,7 @@ Beschreibt, wie in der App ein neuer Beitrag eingegeben und als Datei im Format 
 ## ADDED Requirements
 
 ### Requirement: Beitrag eingeben
-Die App SHALL einen Editor für einen neuen Beitrag anbieten mit den Feldern Titel (Pflicht), Datum (Pflicht, vorbelegt mit dem heutigen Tag in der Zeitzone Europe/Berlin), Text (Markdown), Schlagworte (Mehrfachauswahl), Autor (optional, vorbelegt aus den Einstellungen) und Kurzbeschreibung (optional, `excerpt`).
+Die App SHALL einen Editor für einen neuen Beitrag anbieten, der nur den Text zeigt; die Felder (Frontmatter) stehen in einem eigenen Menü „Eigenschaften“ (Eingabemethoden: Change `markdown-editor`, Spec `beitrag-eigenschaften`). Die Felder sind Titel (Pflicht), Datum (Pflicht, vorbelegt mit dem heutigen Tag in der Zeitzone Europe/Berlin), Text (Markdown), Schlagworte (Mehrfachauswahl), Autor (optional, vorbelegt aus den Einstellungen) und Kurzbeschreibung (optional, `excerpt`).
 
 #### Scenario: Pflichtfeld fehlt
 - **WHEN** der Nutzer speichern will, aber keinen Titel eingegeben hat

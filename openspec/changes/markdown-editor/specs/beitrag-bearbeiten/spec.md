@@ -7,7 +7,7 @@ Beschreibt, wie ein bereits vorhandener Beitrag aus der Beitragsliste im Editor 
 ## ADDED Requirements
 
 ### Requirement: Beitrag zum Bearbeiten öffnen
-Die App SHALL aus der Beitragsliste einen vorhandenen Beitrag im Markdown-Editor öffnen können. Der Editor SHALL nur den Text nach dem Frontmatter bearbeiten; das Frontmatter (Titel, Datum, Permalink, Schlagworte und weitere Felder) bleibt Zeichen für Zeichen unverändert.
+Die App SHALL aus der Beitragsliste einen vorhandenen Beitrag im Markdown-Editor öffnen können. Der Texteditor SHALL nur den Text nach dem Frontmatter bearbeiten; das Frontmatter ändert sich ausschließlich über das Menü „Eigenschaften“ (Spec `beitrag-eigenschaften`) und bleibt sonst Zeichen für Zeichen unverändert.
 
 #### Scenario: Beitrag öffnen
 - **WHEN** der Nutzer in der Liste den Beitrag „Alraune“ antippt und „Bearbeiten“ wählt
@@ -17,12 +17,16 @@ Die App SHALL aus der Beitragsliste einen vorhandenen Beitrag im Markdown-Editor
 - **WHEN** der Nutzer einen Satz im Text ändert und speichert
 - **THEN** unterscheidet sich die Datei vom Original nur im geänderten Satz, das Frontmatter ist identisch
 
+#### Scenario: Eigenschaften zusammen mit Text speichern
+- **WHEN** der Nutzer den Text und den Titel ändert und speichert
+- **THEN** enthält ein Commit auf `draft/alraune` beide Änderungen in `content/posts/alraune/index.md`
+
 #### Scenario: Beitrag ohne Frontmatter-Ende
 - **WHEN** eine `index.md` kein abschließendes `---` hat und sich nicht sicher teilen lässt
 - **THEN** öffnet die App den Beitrag nicht zum Bearbeiten und meldet den Grund
 
 ### Requirement: Änderung über Entwurfs-Branch
-Beim Speichern einer Änderung SHALL die App einen Entwurfs-Branch `draft/<verzeichnisname>` vom Zielbranch anlegen (oder den vorhandenen verwenden), die Änderung dort committen und pushen. Der Zielbranch ändert sich erst durch „Veröffentlichen“.
+Beim Speichern einer Änderung SHALL die App einen Entwurfs-Branch `draft/<verzeichnisname>` vom Zielbranch anlegen (oder den vorhandenen verwenden), die Änderung (Text und Eigenschaften) dort committen und pushen. Der Zielbranch ändert sich erst durch „Veröffentlichen“.
 
 #### Scenario: Erste Änderung
 - **WHEN** der Nutzer einen veröffentlichten Beitrag ändert und speichert

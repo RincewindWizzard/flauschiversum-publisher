@@ -25,7 +25,7 @@
 
 - [ ] 4.1 Verzeichnisnamen und Permalink aus Titel und Datum ableiten (Umlaute, Sonderzeichen, Kollisionen); Unit-Tests mit den Beispielen der Spec
 - [ ] 4.2 Frontmatter und `index.md` erzeugen (gültiges YAML auch bei Anführungszeichen/Doppelpunkt); Tests, die erzeugte Dateien wieder parsen und mit Beiträgen des Blogs vergleichen
-- [ ] 4.3 Editor-Bildschirm mit Titel, Datum (Europe/Berlin), Text, Schlagwort-Auswahl, Autor, Kurzbeschreibung und Pflichtfeldprüfung; Compose-UI-Test für fehlenden Titel
+- [ ] 4.3 Editor-Bildschirm mit Text und Zugang zum Menü „Eigenschaften“ (Felder Titel, Datum (Europe/Berlin), Schlagworte, Autor, Kurzbeschreibung; einfache Eingaben, komfortable Eingabemethoden folgen im Change `markdown-editor`) und Pflichtfeldprüfung; Compose-UI-Test für fehlenden Titel
 - [ ] 4.4 Bild-Einfügen im Editor (`![Beschreibung](Datei)`, Bildgruppen); Unit-Test für die erzeugte Markdown-Zeile
 - [ ] 4.5 Eingaben bei Unterbrechung sichern und wiederherstellen; Test: Zustand nach Prozess-Neustart ist identisch
 

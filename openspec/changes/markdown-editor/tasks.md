@@ -14,6 +14,17 @@
 - [ ] 2.4 Rückgängig/Wiederholen im ViewModel; Test: Löschen und Rückgängig stellt den Text her
 - [ ] 2.5 Textsicherung bei Unterbrechung, Drehung und Verlassen mit Rückfrage; Test: Zustand nach Prozess-Neustart und Drehung identisch (Instrumented-Test)
 
+## 2a. Eigenschaften-Menü (`beitrag-eigenschaften`)
+
+- [ ] 2a.1 Verlustfreies Lesen und Ändern der Frontmatter-Zeilen in der Schicht `posts` (bekannte Felder ersetzen/einfügen/entfernen, unbekannte Felder erhalten); Unit-Tests: nur geänderte Zeile im Diff, unbekanntes Feld bleibt, Datum mit Sekunden bleibt, Stichprobe aus dem Blog byte-identisch ohne Änderung
+- [ ] 2a.2 Eigenschaften-Bildschirm mit Titel (Pflicht) und Datum über Kalender- und optionalen Zeitwähler; Tests für `YYYY-MM-DD` und `YYYY-MM-DD HH:MM:SS`, Compose-UI-Test für leeren Titel
+- [ ] 2a.3 Permalink-Feld mit Vorschlag aus Datum und Verzeichnisname, Format- und Duplikatprüfung; bestehende Permalinks bleiben bei Datumsänderung; Unit-Tests je Szenario
+- [ ] 2a.4 Schlagwort-Chips mit Suchfeld aus `tags.yaml`, ungültige Schlagworte markiert; Tests für Wählen, Abwählen (Feld entfällt) und unbekanntes Schlagwort
+- [ ] 2a.5 Autor-Auswahl (aus Beitragsliste gesammelt, freie Eingabe, Vorbelegung aus Einstellungen); Test der Sammlung aus Beispielbeiträgen
+- [ ] 2a.6 Titelbild-Auswahl als Vorschau-Raster inkl. „kein Titelbild“, Fehler bei fehlender Datei; Tests mit Beispielverzeichnis
+- [ ] 2a.7 Kurzbeschreibung mit Zähler, „Aus Text übernehmen“ und Rechtschreibung; Test der Satzermittlung am Beispiel „Wer kann schon sagen …“
+- [ ] 2a.8 Speichern von Text und Eigenschaften in einem Commit; Pflichtfelder und ungültige Werte verhindern das Speichern mit Verweis auf das Feld; End-to-End im Emulator, Commit-Diff geprüft
+
 ## 3. Markdown-Prüfung (`markdown-pruefung`)
 
 - [ ] 3.1 Regeln für Fehler (nicht geschlossene Hervorhebung, Codeblock, Link/Bild-Klammer, Tabellenspalten); Unit-Tests je Szenario der Spec
@@ -32,7 +43,7 @@
 
 ## 5. Beiträge bearbeiten (`beitrag-bearbeiten`)
 
-- [ ] 5.1 „Bearbeiten“ in der Beitragsliste; öffnet nur den Text, Frontmatter unverändert, Meldung bei nicht trennbarer Datei; Tests mit Beispielbeiträgen und Datei ohne Frontmatter-Ende
+- [ ] 5.1 „Bearbeiten“ in der Beitragsliste; Textfeld zeigt nur den Text, Frontmatter nur über das Menü „Eigenschaften“, Meldung bei nicht trennbarer Datei; Tests mit Beispielbeiträgen und Datei ohne Frontmatter-Ende
 - [ ] 5.2 Aktualisieren vor dem Öffnen, Text aus vorhandenem `draft/<name>` bevorzugen, Hinweis ohne Netz; Test mit lokalem Testrepository
 - [ ] 5.3 Speichern als Commit auf `draft/<name>` und Push über den vorhandenen Entwurfsweg; keine Änderung bedeutet kein Commit; Tests: nur `index.md` im Diff, `main` unverändert
 
