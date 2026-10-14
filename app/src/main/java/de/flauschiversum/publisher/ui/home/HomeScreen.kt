@@ -77,7 +77,7 @@ fun formatSync(millis: Long): String =
 @Composable
 fun HomeScreen(
     vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () -> Unit, onFixAccess: () -> Unit,
-    onOpenProperties: (String) -> Unit = { onOpenPost(it) }, onAddPhoto: (String) -> Unit = {},
+    onOpenProperties: (String) -> Unit = { onOpenPost(it) }, onAddPhoto: (String) -> Unit = {}, onOpenPhotos: (String) -> Unit = {},
 ) {
     val ui by vm.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
@@ -114,7 +114,7 @@ fun HomeScreen(
                 }
                 if (ui.drafts.isNotEmpty() || ui.newTags.isNotEmpty() || (ui.overview?.otherChanges?.isNotEmpty() == true)) {
                     item { DraftsHeader(ui, vm) }
-                    items(ui.drafts, key = { "d-" + it.summary.dir }) { row -> PostItem(row, vm.c, onClick = { onOpenPost(row.summary.dir) }, actions = PostActions(onOpenPost, onOpenProperties, onAddPhoto, vm)) }
+                    items(ui.drafts, key = { "d-" + it.summary.dir }) { row -> PostItem(row, vm.c, onClick = { onOpenPost(row.summary.dir) }, actions = PostActions(onOpenPost, onOpenProperties, onAddPhoto, onOpenPhotos, vm)) }
                     item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
                 }
                 item(key = "suche") { SearchBar(ui, vm) }
@@ -131,7 +131,7 @@ fun HomeScreen(
                         TextButton(onClick = { vm.setQuery(PostQuery(sort = ui.query.sort)) }, modifier = Modifier.testTag("reset-filters")) { Text("Zurücksetzen") }
                     }
                 }
-                items(ui.posts, key = { it.summary.dir }) { row -> PostItem(row, vm.c, onClick = { onOpenPost(row.summary.dir) }, actions = PostActions(onOpenPost, onOpenProperties, onAddPhoto, vm)) }
+                items(ui.posts, key = { it.summary.dir }) { row -> PostItem(row, vm.c, onClick = { onOpenPost(row.summary.dir) }, actions = PostActions(onOpenPost, onOpenProperties, onAddPhoto, onOpenPhotos, vm)) }
             }
             }
         }
@@ -157,7 +157,7 @@ private fun DraftsHeader(ui: HomeUi, vm: HomeViewModel) {
 }
 
 class PostActions(
-    val onEdit: (String?) -> Unit, val onProperties: (String) -> Unit, val onPhoto: (String) -> Unit, val vm: HomeViewModel,
+    val onEdit: (String?) -> Unit, val onProperties: (String) -> Unit, val onPhoto: (String) -> Unit, val onPhotos: (String) -> Unit, val vm: HomeViewModel,
 )
 
 @Composable
@@ -181,6 +181,7 @@ private fun PostItem(row: PostRow, c: de.flauschiversum.publisher.app.AppContain
                 if (row.draft != DraftKind.DELETED) {
                     DropdownMenuItem(text = { Text("Bearbeiten") }, onClick = { menu = false; actions.onEdit(dir) }, modifier = Modifier.testTag("action-edit-$dir"))
                     DropdownMenuItem(text = { Text("Eigenschaften") }, onClick = { menu = false; actions.onProperties(dir) }, modifier = Modifier.testTag("action-props-$dir"))
+                    DropdownMenuItem(text = { Text("Fotos") }, onClick = { menu = false; actions.onPhotos(dir) }, modifier = Modifier.testTag("action-photos-$dir"))
                     DropdownMenuItem(text = { Text("Foto hinzufügen") }, onClick = { menu = false; actions.onPhoto(dir) }, modifier = Modifier.testTag("action-photo-$dir"))
                 }
                 if (row.draft != null) DropdownMenuItem(text = { Text("Verwerfen") }, onClick = { menu = false; actions.vm.discard(dir) }, modifier = Modifier.testTag("action-discard-$dir"))

@@ -28,6 +28,8 @@ import de.flauschiversum.publisher.ui.home.HomeScreen
 import de.flauschiversum.publisher.ui.home.HomeViewModel
 import de.flauschiversum.publisher.ui.settings.SettingsScreen
 import de.flauschiversum.publisher.ui.settings.SettingsViewModel
+import de.flauschiversum.publisher.ui.photos.PhotosScreen
+import de.flauschiversum.publisher.ui.photos.PhotosViewModel
 import de.flauschiversum.publisher.ui.share.ShareScreen
 import de.flauschiversum.publisher.ui.share.ShareViewModel
 import de.flauschiversum.publisher.ui.setup.SetupScreen
@@ -40,6 +42,8 @@ object Routes {
     const val HOME = "home"
     const val SETTINGS = "settings"
     const val SHARE = "share"
+    const val PHOTOS = "photos/{dir}"
+    fun photos(dir: String) = "photos/" + URLEncoder.encode(dir, "UTF-8")
     const val EDITOR = "editor/{dir}?props={props}"
     private const val NEW = "-"
     fun editor(dir: String?, properties: Boolean = false) = "editor/" + (if (dir == null) NEW else URLEncoder.encode(dir, "UTF-8")) + "?props=$properties"
@@ -67,12 +71,20 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
                 if (uris.isNotEmpty()) container.appScope.launch(Dispatchers.IO) { container.incoming.receiveUris(uris, dir) }
             }
             HomeScreen(vm, onOpenPost = { nav.navigate(Routes.editor(it)) }, onSettings = { nav.navigate(Routes.SETTINGS) },
-                onFixAccess = { nav.navigate(Routes.SETUP) }, onOpenProperties = { nav.navigate(Routes.editor(it, properties = true)) },
+                onFixAccess = { nav.navigate(Routes.SETUP) }, onOpenProperties = { nav.navigate(Routes.editor(it, properties = true)) }, onOpenPhotos = { nav.navigate(Routes.photos(it)) },
                 onAddPhoto = { photoTarget = it; picker.launch("image/*") })
         }
         composable(Routes.SHARE) {
             val vm: ShareViewModel = viewModel(factory = factory)
             ShareScreen(vm, onClose = { if (!nav.popBackStack()) nav.navigate(Routes.HOME) })
+        }
+        composable(Routes.PHOTOS, arguments = listOf(navArgument("dir") { type = NavType.StringType })) { entry ->
+            val dir = Routes.decodeDir(entry.arguments?.getString("dir")) ?: return@composable
+            val vm: PhotosViewModel = viewModel(key = "photos-$dir", factory = object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T = PhotosViewModel(container, dir) as T
+            })
+            PhotosScreen(vm, onBack = { nav.popBackStack() })
         }
         composable(Routes.SETTINGS) {
             val vm: SettingsViewModel = viewModel(factory = factory)
@@ -85,7 +97,7 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
                 override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T = EditorViewModel(container, SavedStateHandle(), dir, entry.arguments?.getBoolean("props") == true) as T
             })
             val scale = container.settingsSnapshot.editorFontScale
-            EditorScreen(vm, scale, onDone = { nav.popBackStack() })
+            EditorScreen(vm, scale, onDone = { nav.popBackStack() }, onPhotos = { d -> nav.navigate(Routes.photos(d)) })
         }
     }
 }

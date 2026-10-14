@@ -90,7 +90,7 @@ import java.time.ZoneOffset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit) {
+fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit, onPhotos: (String) -> Unit = {}) {
     val ui by vm.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
     var showDelete by remember { mutableStateOf(false) }
@@ -102,6 +102,7 @@ fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit) {
             title = { Text(if (ui.showProperties) "Eigenschaften" else ui.title.ifBlank { if (ui.isNew) "Neuer Beitrag" else ui.dir.orEmpty() }, maxLines = 1) },
             navigationIcon = { TextButton(onClick = { if (ui.showProperties) vm.showProperties(false) else vm.requestLeave(onDone) }, modifier = Modifier.testTag("editor-back")) { Text("Zurück") } },
             actions = {
+                if (!ui.showProperties && !ui.isNew) TextButton(onClick = { ui.dir?.let(onPhotos) }, modifier = Modifier.testTag("editor-photos")) { Text("Fotos") }
                 if (!ui.showProperties && !ui.isNew) TextButton(onClick = { showDelete = true }, modifier = Modifier.testTag("editor-delete")) { Text("Löschen") }
                 if (!ui.showProperties) TextButton(onClick = { vm.showProperties(true) }, modifier = Modifier.testTag("open-properties")) { Text("Eigenschaften") }
                 TextButton(onClick = vm::save, enabled = ui.loaded && ui.loadProblem == null && !ui.saving, modifier = Modifier.testTag("save")) { Text("Speichern") }

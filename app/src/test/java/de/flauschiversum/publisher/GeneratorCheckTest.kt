@@ -100,4 +100,16 @@ class GeneratorCheckTest {
         assertTrue(old.readText().contains("/beitraege/"))
         assertTrue(!File(dist, "2013/07/baumarkte/index.md").exists())
     }
+
+    @Test fun fotoverwaltungErzeugtKeineWarnungenZuFehlendenMedien() {
+        val base = baseline()
+        placement.place(wf, PhotoTarget.Existing("baumaerkte"), listOf(PhotoWithAlt(photo("A.jpg"), "a"), PhotoWithAlt(photo("B.jpg"), "b"), PhotoWithAlt(photo("C.jpg"), "c")))
+        de.flauschiversum.publisher.posts.PhotoManagement.move(wf, "baumaerkte", "C.jpg", 0)
+        de.flauschiversum.publisher.posts.PhotoManagement.setAlt(wf, "baumaerkte", "B.jpg", "Neu [b]")
+        de.flauschiversum.publisher.posts.PhotoManagement.setCover(wf, "baumaerkte", "A.jpg")
+        de.flauschiversum.publisher.posts.PhotoManagement.remove(wf, "baumaerkte", "B.jpg")
+        val after = GeneratorCheck.check(GeneratorCheck.prepare(tmp.newFolder("fotos"), wf))
+        assertEquals(after.output, 0, after.exitCode)
+        assertEquals(base.warnings, after.warnings)
+    }
 }
