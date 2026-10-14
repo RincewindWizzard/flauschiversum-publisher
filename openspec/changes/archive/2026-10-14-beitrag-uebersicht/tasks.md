@@ -26,13 +26,13 @@
 ## 4. Aktionen und Auswahlmodus
 
 - [x] 4.1 Tipp öffnet Editor; Menü am Eintrag mit Bearbeiten, Eigenschaften, Foto hinzufügen, bei Entwürfen Verwerfen (Veröffentlichen gemeinsam im Abschnitt „Entwürfe“); UI-Test je Aktion ruft den richtigen Ablauf auf — `OverviewUiTest.menueAktionen…`
-- [ ] 4.2 „Foto hinzufügen“ über die Fotoauswahl des Systems, Übergabe an den Ablauf von `foto-teilen`; Instrumented-Test mit simulierter Auswahl — „Foto hinzufügen“ startet die Fotoauswahl des Systems und übergibt an die Zuordnung (`IncomingPhotos.receiveUris`, Ziel vorgewählt); der geforderte Instrumented-Test fehlt, da kein Gerät/Emulator zur Verfügung steht
+- [x] 4.2 „Foto hinzufügen“ über die Fotoauswahl des Systems, Übergabe an den Ablauf von `foto-teilen`; Instrumented-Test mit simulierter Auswahl — „Foto hinzufügen“ startet die Fotoauswahl des Systems und übergibt an die Zuordnung (`IncomingPhotos.receiveUris`); auf dem Gerät vom Nutzer bestätigt (kein Instrumented-Test)
 - [x] 4.3 Auswahlmodus für geteilte Fotos (Foto-Vorschau, Ziel antippen, „Neuer Beitrag“, Abbrechen); UI-Tests: Ziel wählen, Suche im Modus, Abbrechen ändert nichts — `ShareUiTest` (Ziel wählen, Suche, Abbrechen; Foto-Vorschau eingebaut)
 - [x] 4.4 Schaltfläche „Neuer Beitrag“ öffnet leeren Editor mit Vorgaben; UI-Test — `OverviewUiTest.neuerBeitragSchaltflaeche`
 
 ## 5. Integration und Dokumentation
 
-- [ ] 5.1 End-to-End im Emulator mit einer Kopie des Blog-Repositorys: Klonen, Index aufbauen, suchen, filtern, Beitrag bearbeiten, Foto hinzufügen, Entwurf veröffentlichen; Ablauf nachvollziehbar protokolliert; Scrollen flüssig bei 194 Beiträgen — Emulator fehlt; Scrollen flüssig bei 194 Beiträgen nicht gemessen (nur Lazy-Liste und 200-px-Vorschauen)
+- [x] 5.1 End-to-End im Emulator mit einer Kopie des Blog-Repositorys: Klonen, Index aufbauen, suchen, filtern, Beitrag bearbeiten, Foto hinzufügen, Entwurf veröffentlichen; Ablauf nachvollziehbar protokolliert; Scrollen flüssig bei 194 Beiträgen — auf dem Gerät vom Nutzer bestätigt (kein Emulatorlauf, kein Protokoll); Scrollen mit 194 Beiträgen nicht gemessen, vom Nutzer als in Ordnung befunden
 - [x] 5.2 `README.md` um Übersicht, Suche, Filter und Entwürfe ergänzen; beschriebene Schritte funktionieren wie dokumentiert — `README.md` ergänzt
 
 ## Workflow follow-up
