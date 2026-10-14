@@ -96,15 +96,16 @@ fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit, onPh
     var showDelete by remember { mutableStateOf(false) }
     LaunchedEffect(ui.saved) { if (ui.saved) onDone() }
     LaunchedEffect(ui.message) { ui.message?.let { snackbar.showSnackbar(it); vm.messageShown() } }
-    BackHandler(enabled = true) { if (ui.showProperties) vm.showProperties(false) else vm.requestLeave(onDone) }
+    BackHandler(enabled = true) { if (ui.showProperties) vm.showProperties(false) else if (ui.showPreview) vm.showPreview(false) else vm.requestLeave(onDone) }
     Scaffold(
         topBar = { TopAppBar(
             title = { Text(if (ui.showProperties) "Eigenschaften" else ui.title.ifBlank { if (ui.isNew) "Neuer Beitrag" else ui.dir.orEmpty() }, maxLines = 1) },
-            navigationIcon = { TextButton(onClick = { if (ui.showProperties) vm.showProperties(false) else vm.requestLeave(onDone) }, modifier = Modifier.testTag("editor-back")) { Text("Zurück") } },
+            navigationIcon = { TextButton(onClick = { if (ui.showProperties) vm.showProperties(false) else if (ui.showPreview) vm.showPreview(false) else vm.requestLeave(onDone) }, modifier = Modifier.testTag("editor-back")) { Text("Zurück") } },
             actions = {
-                if (!ui.showProperties && !ui.isNew) TextButton(onClick = { ui.dir?.let(onPhotos) }, modifier = Modifier.testTag("editor-photos")) { Text("Fotos") }
-                if (!ui.showProperties && !ui.isNew) TextButton(onClick = { showDelete = true }, modifier = Modifier.testTag("editor-delete")) { Text("Löschen") }
-                if (!ui.showProperties) TextButton(onClick = { vm.showProperties(true) }, modifier = Modifier.testTag("open-properties")) { Text("Eigenschaften") }
+                if (!ui.showProperties) TextButton(onClick = { vm.showPreview(!ui.showPreview) }, modifier = Modifier.testTag("toggle-preview")) { Text(if (ui.showPreview) "Bearbeiten" else "Vorschau") }
+                if (!ui.showProperties && !ui.showPreview && !ui.isNew) TextButton(onClick = { ui.dir?.let(onPhotos) }, modifier = Modifier.testTag("editor-photos")) { Text("Fotos") }
+                if (!ui.showProperties && !ui.showPreview && !ui.isNew) TextButton(onClick = { showDelete = true }, modifier = Modifier.testTag("editor-delete")) { Text("Löschen") }
+                if (!ui.showProperties && !ui.showPreview) TextButton(onClick = { vm.showProperties(true) }, modifier = Modifier.testTag("open-properties")) { Text("Eigenschaften") }
                 TextButton(onClick = vm::save, enabled = ui.loaded && ui.loadProblem == null && !ui.saving, modifier = Modifier.testTag("save")) { Text("Speichern") }
             },
         ) },
@@ -131,7 +132,8 @@ fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit, onPh
                 if (ui.serverChanged) Text("Der Beitrag wurde auf dem Server geändert. Deine Änderungen bleiben erhalten; beim Speichern gewinnt deine Fassung.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp).testTag("server-changed"))
                 if (ui.updatedFromServer) Text("Der Beitrag wurde mit der neuesten Fassung aktualisiert.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp).testTag("updated-from-server"))
                 if (ui.restored) Text("Nicht gespeicherte Eingaben wurden wiederhergestellt.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp).testTag("restored"))
-                if (ui.showProperties) PropertiesContent(ui, vm) else BodyContent(ui, vm, fontScale)
+                if (ui.showPreview) de.flauschiversum.publisher.ui.preview.PreviewPane(vm.container, vm.previewData(), Modifier.fillMaxSize())
+                else if (ui.showProperties) PropertiesContent(ui, vm) else BodyContent(ui, vm, fontScale)
             }
         }
     }

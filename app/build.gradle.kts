@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.snakeyaml.engine)
     implementation(libs.lucene.core)
     implementation(libs.lucene.analyzers)
+    implementation(libs.androidx.webkit)
     implementation(libs.commonmark)
     implementation(libs.commonmark.tables)
     implementation(libs.commonmark.strike)

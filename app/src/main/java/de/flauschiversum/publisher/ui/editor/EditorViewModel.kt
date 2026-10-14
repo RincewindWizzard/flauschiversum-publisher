@@ -55,6 +55,7 @@ data class EditorUi(
     val imageFiles: List<String> = emptyList(),
     val errors: List<FieldError> = emptyList(),
     val showProperties: Boolean = false,
+    val showPreview: Boolean = false,
     val saving: Boolean = false,
     val saved: Boolean = false,
     val message: String? = null,
@@ -314,6 +315,15 @@ class EditorViewModel(private val c: AppContainer, private val handle: SavedStat
     }
     fun setImage(v: String?) = edit { it.copy(image = v) }
     fun toggleTag(t: String) = edit { it.copy(tags = if (t in it.tags) it.tags - t else it.tags + t) }
+    fun showPreview(show: Boolean) { _ui.update { it.copy(showPreview = show, showProperties = false) } }
+    /** Aktueller, auch ungespeicherter Stand für die Vorschau. */
+    fun previewData(): de.flauschiversum.publisher.ui.preview.PreviewData {
+        val u = _ui.value
+        val name = u.dir ?: de.flauschiversum.publisher.posts.PostNaming.dirNameFromTitle(u.title.ifBlank { "beitrag" })
+        return de.flauschiversum.publisher.ui.preview.PreviewData(
+            de.flauschiversum.publisher.preview.PreviewInput(name, u.title, u.date, u.author.takeIf { it.isNotBlank() }, u.tags, u.image, u.body), u.imageFiles, contentRev ?: "",
+        )
+    }
     fun showProperties(show: Boolean) { _ui.update { it.copy(showProperties = show) } }
     /** Der Beitrag wurde gelöscht: gesicherte Eingaben verwerfen. */
     fun markGone() { snapshots.delete(key); _ui.update { it.copy(saved = true) } }

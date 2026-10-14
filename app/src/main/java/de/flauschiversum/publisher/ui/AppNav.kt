@@ -42,6 +42,8 @@ object Routes {
     const val HOME = "home"
     const val SETTINGS = "settings"
     const val SHARE = "share"
+    const val PREVIEW = "preview/{dir}"
+    fun preview(dir: String) = "preview/" + URLEncoder.encode(dir, "UTF-8")
     const val PHOTOS = "photos/{dir}"
     fun photos(dir: String) = "photos/" + URLEncoder.encode(dir, "UTF-8")
     const val EDITOR = "editor/{dir}?props={props}"
@@ -71,7 +73,7 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
                 if (uris.isNotEmpty()) container.appScope.launch(Dispatchers.IO) { container.incoming.receiveUris(uris, dir) }
             }
             HomeScreen(vm, onOpenPost = { nav.navigate(Routes.editor(it)) }, onSettings = { nav.navigate(Routes.SETTINGS) },
-                onFixAccess = { nav.navigate(Routes.SETUP) }, onOpenProperties = { nav.navigate(Routes.editor(it, properties = true)) }, onOpenPhotos = { nav.navigate(Routes.photos(it)) },
+                onFixAccess = { nav.navigate(Routes.SETUP) }, onOpenProperties = { nav.navigate(Routes.editor(it, properties = true)) }, onOpenPhotos = { nav.navigate(Routes.photos(it)) }, onOpenPreview = { nav.navigate(Routes.preview(it)) },
                 onAddPhoto = { photoTarget = it; picker.launch("image/*") })
         }
         composable(Routes.SHARE) {
@@ -85,6 +87,10 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
                 override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T = PhotosViewModel(container, dir) as T
             })
             PhotosScreen(vm, onBack = { nav.popBackStack() })
+        }
+        composable(Routes.PREVIEW, arguments = listOf(navArgument("dir") { type = NavType.StringType })) { entry ->
+            val dir = Routes.decodeDir(entry.arguments?.getString("dir")) ?: return@composable
+            de.flauschiversum.publisher.ui.preview.PreviewScreen(container, dir, onBack = { nav.popBackStack() })
         }
         composable(Routes.SETTINGS) {
             val vm: SettingsViewModel = viewModel(factory = factory)

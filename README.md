@@ -48,6 +48,11 @@ Mit *Einstellungen → Einrichtung wiederholen* lässt sich jeder Schritt erneut
 - **Eigenschaften** (Menü im Editor): Titel, Datum mit Kalender und optionaler Uhrzeit, Permalink (Vorschlag aus Datum
   und Titel), Schlagworte mit Suche, Autor (bekannte Autoren zum Antippen), Titelbild als Vorschau-Raster und
   Kurzbeschreibung mit Zähler und „Aus Text übernehmen“.
+- **Vorschau**: „Vorschau“ im Editor (zeigt den aktuellen, auch ungespeicherten Text samt Eigenschaften) oder im Menü am
+  Beitrag. Dargestellt werden Kopf, Text mit Tabellen, Durchgestrichenem und eingebettetem HTML, Bilder mit
+  Unterschrift, Bildgruppen als wischbares Karussell, fehlende Bilder als Platzhalter. Sie ist eine Annäherung ohne
+  Wasserzeichen, Suche und verwandte Beiträge (Hinweis beim ersten Öffnen), läuft offline ohne Skripte, und Links
+  öffnen erst nach Bestätigung im Browser.
 - **Fotos eines Beitrags** („Fotos“ im Editor oder im Menü am Beitrag): Raster mit Vorschau, Kennzeichnung „Titelbild“
   und „Nicht im Text“. Alt-Text ändern, nicht eingebundene Bilder unter `## Anhänge` einbinden, Reihenfolge mit ↑/↓
   ändern, Titelbild setzen und Fotos samt Bildzeile entfernen (bei einem Titelbild erst ein anderes wählen). Alles

@@ -24,6 +24,7 @@ sshd = "2.15.0"
 robolectric = "4.16"
 snakeyaml = "3.2"
 lucene = "8.11.4"
+webkit = "1.12.1"
 commonmark = "0.24.0"
 testCore = "1.6.1"
 
@@ -64,6 +65,7 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 androidx-test-core = { group = "androidx.test", name = "core-ktx", version.ref = "testCore" }
 lucene-core = { group = "org.apache.lucene", name = "lucene-core", version.ref = "lucene" }
 lucene-analyzers = { group = "org.apache.lucene", name = "lucene-analyzers-common", version.ref = "lucene" }
+androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 commonmark = { group = "org.commonmark", name = "commonmark", version.ref = "commonmark" }
 commonmark-tables = { group = "org.commonmark", name = "commonmark-ext-gfm-tables", version.ref = "commonmark" }
 commonmark-strike = { group = "org.commonmark", name = "commonmark-ext-gfm-strikethrough", version.ref = "commonmark" }

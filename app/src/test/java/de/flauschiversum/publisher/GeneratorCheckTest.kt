@@ -112,4 +112,30 @@ class GeneratorCheckTest {
         assertEquals(after.output, 0, after.exitCode)
         assertEquals(base.warnings, after.warnings)
     }
+
+    @Test fun vorschauStimmtInBildernGruppenUndUnterschriftenMitDemGeneratorUeberein() {
+        val work = GeneratorCheck.prepare(tmp.newFolder("vorschau"), wf)
+        val (result, dist) = GeneratorCheck.build(work)
+        assertEquals(result.output, 0, result.exitCode)
+        val reader = de.flauschiversum.publisher.posts.PostReader(blog.store)
+        val sample = listOf("winter-is-coming", "flauschangriff", "baumaerkte", "puppenspiel", "acab-silberring", "einschulungsgeschenk")
+        var compared = 0
+        for (dir in sample) {
+            val doc = reader.document(wf.refs.target, dir) ?: continue
+            val permalink = de.flauschiversum.publisher.posts.PostDeletion.oldPath(doc, dir)
+            val page = File(dist, permalink.trim('/') + "/index.html").takeIf { it.isFile } ?: continue
+            val html = page.readText()
+            val files = File(work, "content/posts/$dir").list()!!.toSet() + reader.files(wf.refs.target, dir)
+            val mine = de.flauschiversum.publisher.preview.PreviewRenderer.bodyHtml(doc.body, dir, files)
+            // Der Generator zählt alle Medien (mit Bild); fehlende Dateien gibt es im Test-Blog nicht, daher zählen die Zahlen direkt
+            val figures = Regex("<figure class=\"media").findAll(html).count()
+            val groups = Regex("<div class=\"carousel\"").findAll(html).count()
+            val captions = Regex("<figcaption>").findAll(html).count()
+            assertEquals("$dir Bilder", figures, mine.imageCount - mine.missing.size)
+            assertEquals("$dir Gruppen", groups, mine.groupCount)
+            assertEquals("$dir Unterschriften", captions, mine.captionCount)
+            compared++
+        }
+        assertTrue("Zu wenige Beiträge verglichen: $compared", compared >= 3)
+    }
 }

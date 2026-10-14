@@ -42,10 +42,10 @@ object MarkdownLint {
      * die Leerzeichen durch geschützte Leerzeichen gleicher Länge ersetzt, damit Positionen stimmen.
      */
     fun normalizeForParsing(text: String): String =
-        IMAGE_DEST.replace(text) { m -> m.value.replace(' ', ' ') }
+        IMAGE_DEST.replace(text) { m -> m.groupValues[1] + m.groupValues[2].replace(' ', '\u00A0') + m.groupValues[3] }
 
     private val ESCAPED = Regex("""\\.""")
-    private val IMAGE_DEST = Regex("""!\[[^\]\n]*]\([^)\n]*\)""")
+    private val IMAGE_DEST = Regex("""(!\[[^\]\n]*]\()([^)\n]*)(\))""")
 
     fun parse(text: String): Node = parser.parse(normalizeForParsing(text))
 

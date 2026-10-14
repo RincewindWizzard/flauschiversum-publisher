@@ -24,6 +24,8 @@ data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val editorFontScale: Float = 1.0f,
     val uploadWifiOnly: Boolean = false,
+    /** Der Hinweis zur Vorschau als Annäherung wurde schon gezeigt. */
+    val previewHintShown: Boolean = false,
     /** Zeitpunkt der letzten erfolgreichen Aktualisierung (Millisekunden seit 1970), 0 = nie. */
     val lastSyncMillis: Long = 0L,
 ) {
@@ -49,6 +51,7 @@ class SettingsRepository(private val store: DataStore<Preferences>) {
         val themeMode = stringPreferencesKey("theme_mode")
         val editorFontScale = floatPreferencesKey("editor_font_scale")
         val uploadWifiOnly = booleanPreferencesKey("upload_wifi_only")
+        val previewHintShown = booleanPreferencesKey("preview_hint_shown")
         val lastSyncMillis = longPreferencesKey("last_sync_millis")
     }
 
@@ -64,6 +67,7 @@ class SettingsRepository(private val store: DataStore<Preferences>) {
             themeMode = p[Keys.themeMode]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() } ?: d.themeMode,
             editorFontScale = p[Keys.editorFontScale] ?: d.editorFontScale,
             uploadWifiOnly = p[Keys.uploadWifiOnly] ?: d.uploadWifiOnly,
+            previewHintShown = p[Keys.previewHintShown] ?: d.previewHintShown,
             lastSyncMillis = p[Keys.lastSyncMillis] ?: d.lastSyncMillis,
         )
     }
@@ -82,6 +86,7 @@ class SettingsRepository(private val store: DataStore<Preferences>) {
             p[Keys.themeMode] = next.themeMode.name
             p[Keys.editorFontScale] = next.editorFontScale
             p[Keys.uploadWifiOnly] = next.uploadWifiOnly
+            p[Keys.previewHintShown] = next.previewHintShown
             p[Keys.lastSyncMillis] = next.lastSyncMillis
         }
     }

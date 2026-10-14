@@ -1,0 +1,44 @@
+/* Vorschau: Farben des Schemas „Flauschi-Nebel“ (content/style/theme.css des Blogs), Hell und Dunkel */
+@font-face { font-family: "Lobster"; src: url("/assets/preview/fonts/lobster.otf"); }
+@font-face { font-family: "Lora"; src: url("/assets/preview/fonts/lora_regular.ttf"); font-weight: 400; font-style: normal; }
+@font-face { font-family: "Lora"; src: url("/assets/preview/fonts/lora_bold.ttf"); font-weight: 700; font-style: normal; }
+@font-face { font-family: "Lora"; src: url("/assets/preview/fonts/lora_italic.ttf"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "Lora"; src: url("/assets/preview/fonts/lora_bold_italic.ttf"); font-weight: 700; font-style: italic; }
+
+:root {
+  color-scheme: light;
+  --bgcolor: #f6f3fc; --card-bg: #ffffff; --acolor: #1d1930; --muted: #575270; --link: #4a38b0;
+  --accent: #6d4fe0; --accent-ink: #ffffff; --accent-soft: #e9e4fa; --bordercolor: #ddd7ef; --missing-bg: #fde8e7; --missing-text: #7a1410;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bgcolor: #0e0b1f; --card-bg: #191537; --acolor: #ebe8f8; --muted: #aaa5c8; --link: #b4a2ff;
+  --accent: #8f73f5; --accent-ink: #0e0b1f; --accent-soft: #2a2459; --bordercolor: #2d2860; --missing-bg: #4a1613; --missing-text: #ffd9d6;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bgcolor); color: var(--acolor); font-family: "Lora", Georgia, serif; line-height: 1.55; }
+article { max-width: 760px; margin: 0 auto; padding: 16px; }
+h1 { font-family: "Lobster", cursive; font-weight: 400; font-size: 2em; margin: 0.2em 0; }
+h2, h3, h4 { font-family: "Lora", serif; }
+.meta, .tags { color: var(--muted); font-size: 0.875em; margin: 0.2em 0; }
+.tags span { background: var(--accent-soft); color: var(--acolor); border-radius: 999px; padding: 1px 10px; margin-right: 6px; display: inline-block; }
+a { color: var(--link); }
+img { max-width: 100%; height: auto; }
+table { border-collapse: collapse; margin: 1em 0; }
+th, td { border: 1px solid var(--bordercolor); padding: 4px 8px; }
+blockquote { border-left: 4px solid var(--accent); margin-left: 0; padding-left: 12px; color: var(--muted); }
+code, pre { background: var(--accent-soft); border-radius: 4px; }
+pre { padding: 8px; overflow-x: auto; }
+figure.media { margin: 1em 0; text-align: center; }
+figure.media img { border-radius: 8px; }
+figcaption { color: var(--muted); font-size: 0.875em; margin-top: 4px; }
+.missing { background: var(--missing-bg); color: var(--missing-text); border: 2px dashed var(--missing-text); border-radius: 8px; padding: 12px; margin: 1em 0; font-weight: 700; }
+.carousel { margin: 1em 0; }
+.carousel-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; list-style: none; margin: 0; padding: 0; gap: 8px; }
+.carousel-slide { flex: 0 0 100%; scroll-snap-align: center; position: relative; }
+.carousel-slide .page { position: absolute; top: 8px; right: 8px; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 0 10px; font-size: 0.8em; }
+.lightbox { display: none; }
+.lightbox:target { display: flex; flex-direction: column; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgb(0 0 0 / 0.92); z-index: 10; padding: 16px; }
+.lightbox img { max-height: 80vh; }
+.lightbox p { color: #fff; }
+.lightbox .close { color: #fff; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 6px 16px; text-decoration: none; }
