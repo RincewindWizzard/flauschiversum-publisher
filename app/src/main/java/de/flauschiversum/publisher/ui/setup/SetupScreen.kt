@@ -2,6 +2,8 @@ package de.flauschiversum.publisher.ui.setup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -65,7 +67,7 @@ fun SetupScreen(vm: SetupViewModel, onFinished: () -> Unit) {
     if (ui.finished && ui.shown == SetupStep.CLONE && ui.clone is CloneUi.Idle) {
         androidx.compose.runtime.LaunchedEffect(Unit) { onFinished() }
     }
-    Scaffold(topBar = { TopAppBar(title = { Text("Einrichtung") }) }) { padding ->
+    Scaffold(contentWindowInsets = WindowInsets.safeDrawing, topBar = { TopAppBar(title = { Text("Einrichtung") }) }) { padding ->
         Column(
             Modifier.padding(padding).padding(horizontal = 16.dp).fillMaxSize().verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),

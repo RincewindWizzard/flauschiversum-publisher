@@ -9,6 +9,8 @@ import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -49,6 +51,7 @@ fun ShareScreen(vm: ShareViewModel, onClose: () -> Unit, beforeSave: ((proceed: 
     LaunchedEffect(ui.done) { if (ui.done) onClose() }
     LaunchedEffect(ui.message) { ui.message?.let { snackbar.showSnackbar(it); vm.messageShown() } }
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
         topBar = { TopAppBar(title = { Text(if (ui.photos.size == 1) "1 Foto ablegen" else "${ui.photos.size} Fotos ablegen") }) },
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {

@@ -38,6 +38,7 @@ class EditorFeaturesUiTest {
     @get:Rule val compose = createComposeRule()
     @get:Rule val tmp = TemporaryFolder()
     private var h: AppTestHarness? = null
+    private var composeView: android.view.View? = null
     @After fun tearDown() { h?.close() }
 
     private fun waitFor(timeoutMs: Long = 30_000, cond: () -> Boolean) {
@@ -52,12 +53,39 @@ class EditorFeaturesUiTest {
     private fun editor(dir: String? = null, onDone: () -> Unit = {}): EditorViewModel {
         val harness = AppTestHarness(tmp.newFolder()).also { it.completeSetup(); h = it }
         val vm = EditorViewModel(harness.container, SavedStateHandle(), dir)
-        compose.setContent { FlauschiversumPublisherTheme { EditorScreen(vm, 1f, onDone) } }
+        compose.setContent {
+            val view = androidx.compose.ui.platform.LocalView.current
+            androidx.compose.runtime.SideEffect { composeView = view }
+            FlauschiversumPublisherTheme { EditorScreen(vm, 1f, onDone) }
+        }
         waitFor { vm.ui.value.loaded }
         return vm
     }
 
     private fun tool(tag: String) = if (tag.startsWith("tool-")) compose.onNodeWithTag(tag).performScrollTo().performClick() else compose.onNodeWithTag(tag).performClick()
+
+    /** Meldet der Oberfläche eine eingeblendete Tastatur der Höhe [heightPx] (wie das System beim Antippen eines Textfeldes). */
+    private fun showKeyboard(heightPx: Int) {
+        val decor = composeView!!.rootView
+        val insets = androidx.core.view.WindowInsetsCompat.Builder()
+            .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, heightPx))
+            .setVisible(androidx.core.view.WindowInsetsCompat.Type.ime(), true).build()
+        compose.runOnUiThread { androidx.core.view.ViewCompat.dispatchApplyWindowInsets(decor, insets) }
+        compose.waitForIdle()
+    }
+
+    @Test fun textfeldEndetUeberDerTastaturUndSiehtDenUnterenTextOhneVerdeckung() {
+        val vm = editor("baumaerkte")
+        waitFor { vm.ui.value.body.isNotEmpty() }
+        val screenHeight = composeView!!.rootView.height
+        val before = compose.onNodeWithTag("body-input").fetchSemanticsNode().boundsInRoot
+        showKeyboard(heightPx = screenHeight / 2)
+        val after = compose.onNodeWithTag("body-input").fetchSemanticsNode().boundsInRoot
+        assertTrue("Textfeld muss über der Tastatur enden: unten ${after.bottom}, Tastatur ab ${screenHeight / 2}", after.bottom <= screenHeight / 2f + 1)
+        assertTrue("Textfeld ist kürzer geworden: vorher ${before.bottom}, nachher ${after.bottom}", after.bottom < before.bottom)
+        // die Werkzeugleiste unter dem Feld wandert mit nach oben und bleibt erreichbar
+        compose.onNodeWithTag("tool-bold").assertIsDisplayed()
+    }
 
     @Test fun markierterTextWirdMitDerWerkzeugleisteFett() {
         val vm = editor()

@@ -2,6 +2,8 @@ package de.flauschiversum.publisher.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
@@ -63,7 +65,7 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
     val ui by vm.ui.collectAsState()
     val s = ui.settings
     val context = LocalContext.current
-    Scaffold(topBar = { TopAppBar(title = { Text("Einstellungen") }, navigationIcon = { AppIconButton(icon = Icons.Default.ArrowBack, label = "Zurück", onClick = onBack, modifier = Modifier.testTag("settings-back")) }) }) { padding ->
+    Scaffold(contentWindowInsets = WindowInsets.safeDrawing, topBar = { TopAppBar(title = { Text("Einstellungen") }, navigationIcon = { AppIconButton(icon = Icons.Default.ArrowBack, label = "Zurück", onClick = onBack, modifier = Modifier.testTag("settings-back")) }) }) { padding ->
         Column(Modifier.padding(padding).padding(horizontal = 16.dp).fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Section("Repository")
             Text("Adresse: ${s.repositoryAddress}", modifier = Modifier.testTag("settings-address"))

@@ -45,6 +45,8 @@ import de.flauschiversum.publisher.editor.Misspelling
 import de.flauschiversum.publisher.editor.Severity
 import de.flauschiversum.publisher.editor.SpanKind
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -126,6 +128,7 @@ fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit, onPh
     LaunchedEffect(ui.message) { ui.message?.let { snackbar.showSnackbar(it); vm.messageShown() } }
     BackHandler(enabled = true) { if (ui.showProperties) vm.showProperties(false) else if (ui.showPreview) vm.showPreview(false) else vm.requestLeave(onDone) }
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
         topBar = { TopAppBar(
             title = { Text(if (ui.showProperties) "Eigenschaften" else ui.title.ifBlank { if (ui.isNew) "Neuer Beitrag" else ui.dir.orEmpty() }, maxLines = 1) },
             navigationIcon = { AppIconButton(icon = Icons.Default.ArrowBack, label = "Zurück", onClick = { if (ui.showProperties) vm.showProperties(false) else if (ui.showPreview) vm.showPreview(false) else vm.requestLeave(onDone) }, modifier = Modifier.testTag("editor-back")) },

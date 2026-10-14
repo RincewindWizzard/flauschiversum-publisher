@@ -2,6 +2,8 @@ package de.flauschiversum.publisher.ui.photos
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -61,6 +63,7 @@ fun PhotosScreen(vm: PhotosViewModel, onBack: () -> Unit) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(ui.message) { ui.message?.let { snackbar.showSnackbar(it); vm.messageShown() } }
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
         topBar = { TopAppBar(title = { Text("Fotos: ${ui.title}", maxLines = 1) }, navigationIcon = { AppIconButton(icon = Icons.Default.ArrowBack, label = "Zurück", onClick = onBack, modifier = Modifier.testTag("photos-back")) }) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { pad ->
