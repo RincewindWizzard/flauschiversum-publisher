@@ -56,7 +56,7 @@ data class HomeUi(
 )
 
 /** Beitragsübersicht mit Entwürfen und „Veröffentlichen“ (Specs `repository-klon`, `entwurf-veroeffentlichen`). */
-class HomeViewModel(val c: AppContainer, private val minRefreshMillis: Long = 500L) : ViewModel() {
+class HomeViewModel @JvmOverloads constructor(val c: AppContainer, private val minRefreshMillis: Long = 500L) : ViewModel() {
     private val local = MutableStateFlow(HomeUi())
     private var newTagsLoaded: List<String> = emptyList()
     val ui: StateFlow<HomeUi> = local.asStateFlow()
