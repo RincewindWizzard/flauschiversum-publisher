@@ -62,7 +62,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () 
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             if (ui.syncing || ui.publishing) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("sync-indicator"))
-            LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp), modifier = Modifier.fillMaxSize()) {
+            LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp), modifier = Modifier.fillMaxSize().testTag("list")) {
                 // Das erste Element bleibt immer an seinem Platz: So rutschen neue Beiträge und Entwürfe darunter ins Bild.
                 item(key = "kopf") {
                     Column {
@@ -77,15 +77,16 @@ fun HomeScreen(vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () 
                 }
                 if (ui.drafts.isNotEmpty() || ui.newTags.isNotEmpty() || (ui.overview?.otherChanges?.isNotEmpty() == true)) {
                     item { DraftsHeader(ui, vm) }
-                    items(ui.drafts, key = { "d-" + it.summary.dir }) { row -> PostItem(row, onClick = { onOpenPost(row.summary.dir) }, onDiscard = { vm.discard(row.summary.dir) }) }
+                    items(ui.drafts, key = { "d-" + it.summary.dir }) { row -> PostItem(row, onClick = { onOpenPost(row.summary.dir) }, onDiscard = { vm.discard(row.summary.dir) }, onDelete = { vm.askDelete(row.summary.dir) }) }
                     item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
                 }
                 if (ui.loading) item { Text("Lade Beiträge …", Modifier.padding(16.dp)) }
-                items(ui.posts, key = { it.summary.dir }) { row -> PostItem(row, onClick = { onOpenPost(row.summary.dir) }, onDiscard = null) }
+                items(ui.posts, key = { it.summary.dir }) { row -> PostItem(row, onClick = { onOpenPost(row.summary.dir) }, onDiscard = null, onDelete = { vm.askDelete(row.summary.dir) }) }
             }
         }
     }
     if (ui.confirmPublish) PublishDialog(ui, vm)
+    ui.deleteDir?.let { d -> de.flauschiversum.publisher.ui.delete.DeletePostDialog(vm.c, d, onDismiss = { vm.askDelete(null) }, onDeleted = vm::deleted, onError = vm::deleteFailed) }
 }
 
 @Composable
@@ -105,7 +106,7 @@ private fun DraftsHeader(ui: HomeUi, vm: HomeViewModel) {
 }
 
 @Composable
-private fun PostItem(row: PostRow, onClick: () -> Unit, onDiscard: (() -> Unit)?) {
+private fun PostItem(row: PostRow, onClick: () -> Unit, onDiscard: (() -> Unit)?, onDelete: () -> Unit) {
     Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 10.dp).testTag("post-${row.summary.dir}")) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(row.summary.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
@@ -114,7 +115,10 @@ private fun PostItem(row: PostRow, onClick: () -> Unit, onDiscard: (() -> Unit)?
         val meta = listOfNotNull(row.summary.date?.date?.toString(), row.summary.tags.takeIf { it.isNotEmpty() }?.joinToString(", "))
         if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         row.summary.problem?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-        if (onDiscard != null) TextButton(onClick = onDiscard) { Text("Verwerfen") }
+        Row {
+            if (onDiscard != null) TextButton(onClick = onDiscard) { Text("Verwerfen") }
+            if (row.draft != DraftKind.DELETED) TextButton(onClick = onDelete, modifier = Modifier.testTag("delete-${row.summary.dir}")) { Text("Löschen") }
+        }
     }
 }
 

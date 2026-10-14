@@ -39,10 +39,11 @@ data class HomeUi(
     val publishErrors: Map<String, Int> = emptyMap(),
     /** Schlagworte, die nur im Entwurf stehen. */
     val newTags: List<String> = emptyList(),
+    val deleteDir: String? = null,
 )
 
 /** Beitragsübersicht mit Entwürfen und „Veröffentlichen“ (Specs `repository-klon`, `entwurf-veroeffentlichen`). */
-class HomeViewModel(private val c: AppContainer) : ViewModel() {
+class HomeViewModel(val c: AppContainer) : ViewModel() {
     private val local = MutableStateFlow(HomeUi())
     private var newTagsLoaded: List<String> = emptyList()
     val ui: StateFlow<HomeUi> = local.asStateFlow()
@@ -80,6 +81,10 @@ class HomeViewModel(private val c: AppContainer) : ViewModel() {
         val posts = reader.summaries(wf.refs.target).filter { it.dir !in draftDirs }.map { PostRow(it, null) }
         return Triple(drafts, posts, overview)
     }
+
+    fun askDelete(dir: String?) { local.update { it.copy(deleteDir = dir) } }
+    fun deleted() { local.update { it.copy(deleteDir = null) }; reload() }
+    fun deleteFailed(msg: String) { local.update { it.copy(deleteDir = null, message = msg) } }
 
     fun refreshNow() { c.sync.request(SyncReason.MANUAL) }
 
@@ -125,7 +130,7 @@ class HomeViewModel(private val c: AppContainer) : ViewModel() {
     fun discard(dir: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val wf = c.session.workflow() ?: return@launch
-            c.session.locked { wf.discard(dir) }
+            c.session.locked { de.flauschiversum.publisher.posts.PostDeletion.discard(wf, dir) }
             runCatching { wf.pushDraft() }
             reload()
         }

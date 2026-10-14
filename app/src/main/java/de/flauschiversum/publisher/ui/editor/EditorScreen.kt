@@ -93,6 +93,7 @@ import java.time.ZoneOffset
 fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit) {
     val ui by vm.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
+    var showDelete by remember { mutableStateOf(false) }
     LaunchedEffect(ui.saved) { if (ui.saved) onDone() }
     LaunchedEffect(ui.message) { ui.message?.let { snackbar.showSnackbar(it); vm.messageShown() } }
     BackHandler(enabled = true) { if (ui.showProperties) vm.showProperties(false) else vm.requestLeave(onDone) }
@@ -101,12 +102,15 @@ fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit) {
             title = { Text(if (ui.showProperties) "Eigenschaften" else ui.title.ifBlank { if (ui.isNew) "Neuer Beitrag" else ui.dir.orEmpty() }, maxLines = 1) },
             navigationIcon = { TextButton(onClick = { if (ui.showProperties) vm.showProperties(false) else vm.requestLeave(onDone) }, modifier = Modifier.testTag("editor-back")) { Text("Zurück") } },
             actions = {
+                if (!ui.showProperties && !ui.isNew) TextButton(onClick = { showDelete = true }, modifier = Modifier.testTag("editor-delete")) { Text("Löschen") }
                 if (!ui.showProperties) TextButton(onClick = { vm.showProperties(true) }, modifier = Modifier.testTag("open-properties")) { Text("Eigenschaften") }
                 TextButton(onClick = vm::save, enabled = ui.loaded && ui.loadProblem == null && !ui.saving, modifier = Modifier.testTag("save")) { Text("Speichern") }
             },
         ) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
+        if (showDelete && ui.dir != null) de.flauschiversum.publisher.ui.delete.DeletePostDialog(vm.container, ui.dir!!, onDismiss = { showDelete = false },
+            onDeleted = { showDelete = false; vm.markGone() }, onError = { showDelete = false; vm.report(it) })
         if (ui.confirmLeave) AlertDialog(
             onDismissRequest = vm::cancelLeave, title = { Text("Änderungen verwerfen?") },
             text = { Text("Der Beitrag enthält Änderungen, die noch nicht gespeichert sind.") },

@@ -44,6 +44,10 @@ Mit *Einstellungen → Einrichtung wiederholen* lässt sich jeder Schritt erneut
 - **Eigenschaften** (Menü im Editor): Titel, Datum mit Kalender und optionaler Uhrzeit, Permalink (Vorschlag aus Datum
   und Titel), Schlagworte mit Suche, Autor (bekannte Autoren zum Antippen), Titelbild als Vorschau-Raster und
   Kurzbeschreibung mit Zähler und „Aus Text übernehmen“.
+- **Beitrag löschen**: „Löschen“ in der Übersicht oder im Editor. Die Abfrage nennt Titel und Adresse, warnt vor
+  Beiträgen mit Links auf die Adresse und fragt nach der Weiterleitung (Beitragsübersicht, Startseite, anderer
+  Beitrag oder keine; sie wird an `content/redirects.yaml` angehängt). Der Beitrag steht bis zum Veröffentlichen als
+  „Gelöscht“ in den Entwürfen und lässt sich mit „Verwerfen“ samt Weiterleitung wiederherstellen.
 - **Neues Schlagwort**: In den Eigenschaften unter „Schlagworte“ → „Neues Schlagwort …“. Der Name wird sortiert in
   `content/tags.yaml` eingetragen (eigener Commit auf `draft`, in der Entwurfsliste als „Neues Schlagwort: …“) und sofort
   für den Beitrag gewählt. Gibt es das Schlagwort schon (auch in anderer Schreibweise), wählt die App das vorhandene.

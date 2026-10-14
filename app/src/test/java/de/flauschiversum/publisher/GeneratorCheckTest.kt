@@ -88,4 +88,16 @@ class GeneratorCheckTest {
         assertTrue(File(dist, "tag/makramee/index.html").isFile)
         assertTrue(File(dist, "tag/makramee/index.html").readText().contains("Makramee-Test"))
     }
+
+    @Test fun geloeschterBeitragVerschwindetUndLeitetWeiter() {
+        de.flauschiversum.publisher.posts.PostDeletion.delete(wf, "baumaerkte", de.flauschiversum.publisher.posts.PostDeletion.DEFAULT_TARGET)
+        val work = GeneratorCheck.prepare(tmp.newFolder("del"), wf)
+        val (result, dist) = GeneratorCheck.build(work)
+        assertEquals(result.output, 0, result.exitCode)
+        assertTrue(result.output, result.errors.isEmpty())
+        val old = File(dist, "2013/07/baumarkte/index.html")
+        assertTrue("Weiterleitungsseite fehlt", old.isFile)
+        assertTrue(old.readText().contains("/beitraege/"))
+        assertTrue(!File(dist, "2013/07/baumarkte/index.md").exists())
+    }
 }

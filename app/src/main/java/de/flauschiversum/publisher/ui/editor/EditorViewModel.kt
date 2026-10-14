@@ -89,6 +89,7 @@ data class EditorUi(
 
 /** Beitrag schreiben und bearbeiten: Text im Editor, Felder im Menü „Eigenschaften“ (Specs `beitrag-erstellen`, `beitrag-bearbeiten`). */
 class EditorViewModel(private val c: AppContainer, private val handle: SavedStateHandle, private val dir: String?) : ViewModel() {
+    val container: AppContainer get() = c
     private val key = dir ?: "_neu"
     private val snapshots = EditorSnapshotStore(File(c.context.filesDir, "editor"))
     private val _ui = MutableStateFlow(EditorUi(isNew = dir == null, dir = dir))
@@ -314,6 +315,9 @@ class EditorViewModel(private val c: AppContainer, private val handle: SavedStat
     fun setImage(v: String?) = edit { it.copy(image = v) }
     fun toggleTag(t: String) = edit { it.copy(tags = if (t in it.tags) it.tags - t else it.tags + t) }
     fun showProperties(show: Boolean) { _ui.update { it.copy(showProperties = show) } }
+    /** Der Beitrag wurde gelöscht: gesicherte Eingaben verwerfen. */
+    fun markGone() { snapshots.delete(key); _ui.update { it.copy(saved = true) } }
+    fun report(text: String) { _ui.update { it.copy(message = text) } }
     fun messageShown() { _ui.update { it.copy(message = null) } }
 
     /** Insert einer Bildzeile an der Cursorposition ist Sache der Oberfläche; hier nur Hilfe für Verzeichnisnamen. */
