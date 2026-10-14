@@ -18,6 +18,17 @@ class PreviewRendererTest {
         val h = body("Nadja Bender<br/>\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\n~~alt~~\n").html
         assertTrue(h.contains("Nadja Bender<br/>")); assertTrue(h.contains("<table>")); assertTrue(h.contains("<del>alt</del>"))
     }
+    @Test fun eigeneBilderWerdenNichtAlsExternBlockiert() {
+        val b = body("Text ![Mitten](a.jpg) im Satz\n\n![Allein](b.jpg)\n\n![x](c.jpg)\n![y](d.jpg)", setOf("a.jpg", "b.jpg", "c.jpg", "d.jpg"))
+        assertFalse(b.html, b.html.contains("Externes Bild blockiert"))
+        for (f in listOf("a", "b", "c", "d")) assertTrue(b.html, b.html.contains("src=\"https://appassets.androidplatform.net/post/post/$f.jpg\""))
+    }
+
+    @Test fun fremdeBilderBleibenBlockiert() {
+        val b = body("<img src=\"https://example.org/x.jpg\"> und <img src=\"//example.org/y.jpg\">")
+        assertEquals(2, Regex("Externes Bild blockiert").findAll(b.html).count())
+    }
+
     @Test fun einzelbildMitUnterschriftOhneKarussell() {
         val r = body("![Alraune aus Topf gezogen](DSCF0529.jpg)\n", setOf("DSCF0529.jpg"))
         assertTrue(r.html.contains("<figcaption>Alraune aus Topf gezogen</figcaption>"))
