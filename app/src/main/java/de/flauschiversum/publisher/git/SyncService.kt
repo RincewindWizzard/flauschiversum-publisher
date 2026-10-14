@@ -37,6 +37,7 @@ class SyncService(
     private val classify: (Throwable) -> GitFailure,
     private val action: suspend () -> Unit,
     private val onSuccess: suspend (Long) -> Unit = {},
+    private val onFailure: (GitFailure) -> Unit = {},
 ) {
     private val running = AtomicBoolean(false)
     private val _state = MutableStateFlow(SyncState())
@@ -68,6 +69,7 @@ class SyncService(
             } catch (e: Throwable) {
                 val failure = classify(e)
                 if (failure is GitFailure.KeyRejected) authFailures++
+                runCatching { onFailure(failure) }
                 _state.update {
                     it.copy(
                         running = false, lastFailure = failure, generation = it.generation + 1,

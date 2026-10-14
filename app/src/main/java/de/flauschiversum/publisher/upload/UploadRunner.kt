@@ -32,6 +32,7 @@ class UploadRunner(
     /** Wird nach jeder Änderung an `draft` aufgerufen (Listen neu laden). */
     private val onDraftChanged: () -> Unit = {},
     private val maxUnknownAttempts: Int = 5,
+    private val diag: de.flauschiversum.publisher.diag.DiagnosticLog? = null,
 ) {
     /** Schritt 1: Verkleinern, Rechteangaben, Einbinden, Commit. Ohne Netz möglich. */
     suspend fun commit(id: String): StepResult {
@@ -48,8 +49,10 @@ class UploadRunner(
             store.deletePhotos(id)
             store.update(id) { it.copy(committed = true, resultDir = result.dir, message = result.warnings.firstOrNull(), status = JobStatus.WAITING_NETWORK) }
             onDraftChanged()
+            diag?.record(de.flauschiversum.publisher.diag.DiagOp.JOB_COMMIT, de.flauschiversum.publisher.diag.DiagResult.OK)
             StepResult.Done
         } catch (e: Exception) {
+            diag?.record(de.flauschiversum.publisher.diag.DiagOp.JOB_COMMIT, de.flauschiversum.publisher.diag.DiagResult.FAILED, kind = e.javaClass.simpleName)
             val msg = "Ablegen fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}"
             store.update(id) { it.copy(status = JobStatus.FAILED, message = msg, finishedAt = now()) }
             StepResult.Failed(msg)
@@ -71,16 +74,24 @@ class UploadRunner(
         if (wf == null) return fail(id, "Das Repository ist nicht eingerichtet.")
         return try {
             when (val o = wf.pushDraft()) {
-                PushOutcome.Ok -> { store.update(id) { it.copy(status = JobStatus.DONE, message = null, finishedAt = now()) }; onDraftChanged(); StepResult.Done }
-                is PushOutcome.Rejected -> fail(id, "Der Server hat den Upload abgelehnt: ${o.reason}")
+                PushOutcome.Ok -> { logPush(de.flauschiversum.publisher.diag.DiagResult.OK, null); store.update(id) { it.copy(status = JobStatus.DONE, message = null, finishedAt = now()) }; onDraftChanged(); StepResult.Done }
+                is PushOutcome.Rejected -> { logPush(de.flauschiversum.publisher.diag.DiagResult.FAILED, "Server hat abgelehnt"); fail(id, "Der Server hat den Upload abgelehnt: ${o.reason}") }
             }
         } catch (e: Exception) {
-            when (val f = session.classify(e)) {
+            val f0 = session.classify(e)
+            val permanent = !(f0 === GitFailure.NoNetwork || f0 is GitFailure.Unreachable || f0 is GitFailure.Other)
+            logPush(if (permanent) de.flauschiversum.publisher.diag.DiagResult.FAILED else de.flauschiversum.publisher.diag.DiagResult.RETRY, de.flauschiversum.publisher.diag.DiagKind.of(f0))
+            when (val f = f0) {
                 GitFailure.NoNetwork, is GitFailure.Unreachable -> waiting(id, f.message)
                 is GitFailure.Other -> if (job.attempts + 1 >= maxUnknownAttempts) fail(id, f.message) else waiting(id, f.message)
                 else -> fail(id, "Zugriff: ${f.message}")
             }
         }
+    }
+
+    private fun logPush(result: de.flauschiversum.publisher.diag.DiagResult, kind: String?) {
+        val a = session.address()
+        diag?.record(de.flauschiversum.publisher.diag.DiagOp.JOB_PUSH, result, kind, a?.host, a?.port)
     }
 
     private fun waiting(id: String, reason: String): StepResult {

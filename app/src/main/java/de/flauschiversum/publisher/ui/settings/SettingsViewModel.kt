@@ -22,7 +22,7 @@ data class SettingsUi(
     val dictionary: List<String> = emptyList(),
 )
 
-class SettingsViewModel(private val c: AppContainer) : ViewModel() {
+class SettingsViewModel(val c: AppContainer) : ViewModel() {
     private val extra = MutableStateFlow(load())
     private val _ui = MutableStateFlow(SettingsUi(c.settingsSnapshot).merge(extra.value))
     val ui: StateFlow<SettingsUi> = _ui.asStateFlow()
@@ -44,6 +44,7 @@ class SettingsViewModel(private val c: AppContainer) : ViewModel() {
 
     fun setTheme(mode: ThemeMode) = update { it.copy(themeMode = mode) }
 
+    val container: AppContainer get() = c
     fun addDictionaryWord(word: String) { c.spell.personal.add(word.trim()); _ui.update { it.copy(dictionary = c.spell.personal.all()) } }
     fun removeDictionaryWord(word: String) { c.spell.personal.remove(word); _ui.update { it.copy(dictionary = c.spell.personal.all()) } }
 

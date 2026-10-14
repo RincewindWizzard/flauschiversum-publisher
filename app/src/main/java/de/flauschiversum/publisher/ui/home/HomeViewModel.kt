@@ -144,6 +144,13 @@ class HomeViewModel(val c: AppContainer) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val wf = c.session.workflow()
             val result = if (wf == null) PublishResult.Failed(GitFailure.Other("Das Repository ist nicht eingerichtet.")) else c.session.locked { wf.publish() }
+            when (result) {
+                is PublishResult.Published -> { val a = c.session.address(); c.diag.record(de.flauschiversum.publisher.diag.DiagOp.PUBLISH, de.flauschiversum.publisher.diag.DiagResult.OK, host = a?.host, port = a?.port) }
+                is PublishResult.Failed -> c.diagFailure(de.flauschiversum.publisher.diag.DiagOp.PUBLISH, result.failure)
+                is PublishResult.Conflict -> { val a = c.session.address(); c.diag.record(de.flauschiversum.publisher.diag.DiagOp.PUBLISH, de.flauschiversum.publisher.diag.DiagResult.FAILED, kind = "Konflikt", host = a?.host, port = a?.port) }
+                is PublishResult.Rejected -> { val a = c.session.address(); c.diag.record(de.flauschiversum.publisher.diag.DiagOp.PUBLISH, de.flauschiversum.publisher.diag.DiagResult.FAILED, kind = "Server hat abgelehnt", host = a?.host, port = a?.port) }
+                else -> Unit
+            }
             val text = when (result) {
                 is PublishResult.Published -> "Veröffentlicht."
                 PublishResult.NothingToPublish -> "Es gibt nichts zu veröffentlichen."

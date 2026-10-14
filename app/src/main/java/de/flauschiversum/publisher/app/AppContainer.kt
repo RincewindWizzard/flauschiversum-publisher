@@ -30,6 +30,10 @@ class AppContainer(val context: Context) {
     @Volatile var settingsSnapshot: AppSettings = runBlocking { settings.current() }
         private set
 
+    /** Diagnoseprotokoll (höchstens 1 MB) und Absturzhinweis. */
+    val diag = de.flauschiversum.publisher.diag.DiagnosticLog(File(filesDir, "diagnose/protokoll.log"))
+    val crash = de.flauschiversum.publisher.diag.CrashHandler(diag, File(filesDir, "diagnose/absturz.marke"), BuildConfigInfo.version)
+
     val keyStore = SshKeyStore(File(filesDir, "ssh"))
     val hostKeys = HostKeyStore(File(filesDir, "ssh/known_hosts"))
     val network = de.flauschiversum.publisher.git.SwitchableNetwork(AndroidNetworkState(context))
@@ -47,6 +51,7 @@ class AppContainer(val context: Context) {
             session.lock.withLock { workflow.reconcile() }
         },
         onSuccess = { millis -> settings.update { it.copy(lastSyncMillis = millis) } },
+        onFailure = { f -> diagFailure(de.flauschiversum.publisher.diag.DiagOp.SYNC, f) },
     )
 
     val spell = de.flauschiversum.publisher.editor.SpellService(context, appScope, File(filesDir, "dictionary/personal.txt"))
@@ -63,7 +68,7 @@ class AppContainer(val context: Context) {
 
     val uploads: de.flauschiversum.publisher.upload.UploadService = run {
         val store = de.flauschiversum.publisher.upload.JobStore(File(filesDir, "outbox"))
-        val runner = de.flauschiversum.publisher.upload.UploadRunner(store, session, { photoPlacement }, { settingsSnapshot }, network, onDraftChanged = { draftChanges.value++ })
+        val runner = de.flauschiversum.publisher.upload.UploadRunner(store, session, { photoPlacement }, { settingsSnapshot }, network, onDraftChanged = { draftChanges.value++ }, diag = diag)
         de.flauschiversum.publisher.upload.UploadService(
             store, runner, de.flauschiversum.publisher.upload.WorkManagerScheduler(context), { settingsSnapshot }, network,
             de.flauschiversum.publisher.upload.UploadNotifications(context), appScope,
@@ -83,6 +88,12 @@ class AppContainer(val context: Context) {
     init {
         appScope.launch { settings.settings.collect { settingsSnapshot = it } }
         sync.setLastSuccess(settingsSnapshot.lastSyncMillis)
+    }
+
+    /** Vermerkt einen Fehler im Diagnoseprotokoll (Fehlerart, Server, Port — nie die Meldung). */
+    fun diagFailure(op: de.flauschiversum.publisher.diag.DiagOp, f: de.flauschiversum.publisher.git.GitFailure, retry: Boolean = false) {
+        val a = session.address()
+        diag.recordFailure(op, f, a?.host, a?.port, retry)
     }
 
     fun requestSync(reason: SyncReason) { if (session.isInstalled()) sync.request(reason) }

@@ -168,6 +168,9 @@ class SetupViewModel(private val c: AppContainer) : ViewModel() {
                 check.value = CheckUi.NeedsHostTrust((result.failure as GitFailure.HostKeyUnknown).key)
                 return@launch
             }
+            val a = c.session.address()
+            if (result is AccessResult.Ok) c.diag.record(de.flauschiversum.publisher.diag.DiagOp.ACCESS, de.flauschiversum.publisher.diag.DiagResult.OK, host = a?.host, port = a?.port)
+            else if (result is AccessResult.Failed) c.diagFailure(de.flauschiversum.publisher.diag.DiagOp.ACCESS, result.failure)
             // Das Ergebnis bleibt sichtbar, bis der Nutzer „Weiter“ wählt (der nächste Schritt ist dann schon freigeschaltet).
             shownOverride = SetupStep.CHECK
             check.value = CheckUi.Done(result)
@@ -213,6 +216,7 @@ class SetupViewModel(private val c: AppContainer) : ViewModel() {
             )
             when (val r = installer.install(progress)) {
                 InstallOutcome.Success -> {
+                    c.session.address().let { a -> c.diag.record(de.flauschiversum.publisher.diag.DiagOp.CLONE, de.flauschiversum.publisher.diag.DiagResult.OK, host = a?.host, port = a?.port) }
                     c.setupState.update { it.copy(cloneVerifiedFor = facts().cloneId()) }
                     clone.value = CloneUi.Idle
                     c.requestSync(SyncReason.START)
@@ -226,7 +230,7 @@ class SetupViewModel(private val c: AppContainer) : ViewModel() {
                     branches = r.available, canPickBranch = true,
                 )
                 is InstallOutcome.WrongRepository -> clone.value = CloneUi.Problem(r.reason)
-                is InstallOutcome.Failed -> clone.value = CloneUi.Problem(r.failure.message)
+                is InstallOutcome.Failed -> { c.diagFailure(de.flauschiversum.publisher.diag.DiagOp.CLONE, r.failure); clone.value = CloneUi.Problem(r.failure.message) }
             }
           } catch (e: Throwable) {
             clone.value = CloneUi.Problem("Unerwarteter Fehler beim Holen des Repositorys: ${e.message ?: e.javaClass.simpleName}")

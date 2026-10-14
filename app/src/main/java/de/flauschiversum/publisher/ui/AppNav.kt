@@ -3,6 +3,7 @@ package de.flauschiversum.publisher.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -56,6 +57,17 @@ object Routes {
 @Composable
 fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
     val factory = AppViewModelFactory(container)
+    var crashPending by remember { mutableStateOf(container.crash.pending()) }
+    if (crashPending && start != Routes.SETUP) {
+        val ctx = androidx.compose.ui.platform.LocalContext.current
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { container.crash.acknowledge(); crashPending = false },
+            title = { androidx.compose.material3.Text("Die App ist abgestürzt") },
+            text = { androidx.compose.material3.Text("Es wurde nichts versendet. Den Vermerk dazu findest du im Diagnoseprotokoll (Einstellungen). Du kannst es ansehen oder teilen.") },
+            confirmButton = { androidx.compose.material3.TextButton(onClick = { container.crash.acknowledge(); crashPending = false; nav.navigate(Routes.SETTINGS) }, modifier = androidx.compose.ui.Modifier.testTag("crash-open")) { androidx.compose.material3.Text("Protokoll ansehen") } },
+            dismissButton = { androidx.compose.material3.TextButton(onClick = { runCatching { ctx.startActivity(de.flauschiversum.publisher.diag.DiagnosticShare.intent(ctx, container.diag)) }; container.crash.acknowledge(); crashPending = false }, modifier = androidx.compose.ui.Modifier.testTag("crash-share")) { androidx.compose.material3.Text("Teilen") } },
+        )
+    }
     // Geteilte Fotos öffnen die Zuordnung, sobald die Einrichtung abgeschlossen ist
     val openOutbox by container.openOutbox.collectAsState()
     LaunchedEffect(openOutbox, start) {

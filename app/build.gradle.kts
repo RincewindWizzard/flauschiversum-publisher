@@ -3,6 +3,13 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// Version aus dem Tag: ./gradlew -PversionName=1.2.0 …; ohne Angabe eine Entwicklungsversion.
+// versionCode = MAJOR * 10000 + MINOR * 100 + PATCH (entspricht AppVersion.codeOf in der App).
+val appVersionName: String = (findProperty("versionName") as String?)?.removePrefix("v") ?: "0.1.0-dev"
+val appVersionCode: Int = Regex("""^(\d+)\.(\d+)\.(\d+)""").find(appVersionName)
+    ?.destructured?.let { (a, b, c) -> a.toInt() * 10000 + b.toInt() * 100 + c.toInt() } ?: 1
+val buildId: String = System.getenv("GITHUB_SHA")?.take(7) ?: "lokal"
+
 android {
     namespace = "de.flauschiversum.publisher"
     compileSdk {
@@ -13,14 +20,26 @@ android {
         applicationId = "de.flauschiversum.publisher"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
+        buildConfigField("String", "BUILD_ID", "\"$buildId\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Signatur nur aus Umgebungsvariablen (Geheimnisse der Build-Umgebung), nie aus dem Repository
+    val keystorePath = System.getenv("SIGNING_KEYSTORE_FILE")
+    if (keystorePath != null) {
+        signingConfigs.create("release") {
+            storeFile = file(keystorePath)
+            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+        }
+    }
     buildTypes {
         release {
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             optimization {
                 enable = true
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")

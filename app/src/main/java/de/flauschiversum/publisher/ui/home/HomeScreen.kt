@@ -43,6 +43,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -218,13 +220,13 @@ private fun SearchBar(ui: HomeUi, vm: HomeViewModel) {
     Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
         OutlinedTextField(q.text, { vm.setQuery(q.copy(text = it)) }, singleLine = true, label = { Text("Beitrag suchen …") }, modifier = Modifier.fillMaxWidth().testTag("search"))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            AssistChip(onClick = { showTags = true }, label = { Text("Schlagwort") }, modifier = Modifier.testTag("filter-tags"))
+            AssistChip(onClick = { showTags = true }, label = { Text("Schlagwort") }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).testTag("filter-tags"))
             Box {
-                AssistChip(onClick = { yearMenu = true }, label = { Text("Jahr") }, modifier = Modifier.testTag("filter-year"))
+                AssistChip(onClick = { yearMenu = true }, label = { Text("Jahr") }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).testTag("filter-year"))
                 DropdownMenu(yearMenu, { yearMenu = false }) { ui.years.forEach { y -> DropdownMenuItem(text = { Text(y.toString()) }, onClick = { yearMenu = false; vm.setQuery(q.copy(year = y)) }, modifier = Modifier.testTag("year-$y")) } }
             }
             Box {
-                AssistChip(onClick = { sortMenu = true }, label = { Text(q.sort.label) }, modifier = Modifier.testTag("sort"))
+                AssistChip(onClick = { sortMenu = true }, label = { Text(q.sort.label) }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).testTag("sort"))
                 DropdownMenu(sortMenu, { sortMenu = false }) { SortOrder.entries.forEach { o -> DropdownMenuItem(text = { Text(o.label) }, onClick = { sortMenu = false; vm.setQuery(q.copy(sort = o)) }, modifier = Modifier.testTag("sort-${o.name}")) } }
             }
         }

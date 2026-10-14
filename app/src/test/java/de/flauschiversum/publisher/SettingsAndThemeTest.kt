@@ -106,4 +106,10 @@ class SettingsAndThemeTest {
         }
         assertEquals(Nebel.Light.bg, LightColors.background)
     }
+
+    @Test fun editorSchriftgroesseSkaliertNurDenEditorText() {
+        assertEquals(17f, de.flauschiversum.publisher.ui.theme.editorTextStyle(1f).fontSize.value, 0.01f)
+        assertEquals(25.5f, de.flauschiversum.publisher.ui.theme.editorTextStyle(1.5f).fontSize.value, 0.01f)
+        assertEquals(26f * 1.5f, de.flauschiversum.publisher.ui.theme.editorTextStyle(1.5f).lineHeight.value, 0.01f)
+    }
 }

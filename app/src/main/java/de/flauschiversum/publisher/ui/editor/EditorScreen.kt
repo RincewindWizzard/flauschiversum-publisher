@@ -290,15 +290,15 @@ private fun PropertiesContent(ui: EditorUi, vm: EditorViewModel) {
     val scheme = MaterialTheme.colorScheme
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         OutlinedTextField(ui.title, vm::setTitle, label = { Text("Titel") }, singleLine = true, isError = ui.error(Fields.TITLE) != null,
-            supportingText = { ui.error(Fields.TITLE)?.let { Text(it) } }, modifier = Modifier.fillMaxWidth().testTag("prop-title"))
+            supportingText = { ui.error(Fields.TITLE)?.let { Text("⚠ $it") } }, modifier = Modifier.fillMaxWidth().testTag("prop-title"))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(onClick = { showDate = true }, modifier = Modifier.weight(1f).testTag("prop-date")) { Text("Datum: ${ui.date?.date?.toString() ?: "wählen"}") }
             OutlinedButton(onClick = { showTime = true }, modifier = Modifier.weight(1f).testTag("prop-time")) { Text(ui.date?.time?.let { "Uhrzeit: %02d:%02d".format(it.hour, it.minute) } ?: "Uhrzeit hinzufügen") }
             if (ui.date?.time != null) TextButton(onClick = { vm.setTime(null) }, modifier = Modifier.testTag("prop-time-clear")) { Text("Entfernen") }
         }
-        ui.error(Fields.DATE)?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        ui.error(Fields.DATE)?.let { Text("⚠ $it", color = MaterialTheme.colorScheme.error) }
         OutlinedTextField(ui.permalink, vm::setPermalink, label = { Text("Permalink") }, singleLine = true, isError = ui.error(Fields.PERMALINK) != null,
-            supportingText = { Text(ui.error(Fields.PERMALINK) ?: if (ui.permalinkAuto && ui.isNew) "Automatisch aus Datum und Titel" else "") }, modifier = Modifier.fillMaxWidth().testTag("prop-permalink"))
+            supportingText = { Text(ui.error(Fields.PERMALINK)?.let { "⚠ $it" } ?: if (ui.permalinkAuto && ui.isNew) "Automatisch aus Datum und Titel" else "") }, modifier = Modifier.fillMaxWidth().testTag("prop-permalink"))
         if (ui.isNew && !ui.permalinkAuto) TextButton(onClick = vm::useAutoPermalink) { Text("Automatisch vorschlagen") }
 
         Text("Schlagworte", style = MaterialTheme.typography.titleSmall)
@@ -311,7 +311,7 @@ private fun PropertiesContent(ui: EditorUi, vm: EditorViewModel) {
             shown.forEach { t -> FilterChip(selected = ui.tags.any { it.equals(t, true) }, onClick = { vm.toggleTag(ui.tags.firstOrNull { it.equals(t, true) } ?: t) }, label = { Text(t) }, modifier = Modifier.testTag("tag-$t")) }
             if (shown.isEmpty() && q.isNotEmpty()) Text("Kein Schlagwort gefunden.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("tag-none"))
         }
-        ui.error(Fields.TAGS)?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        ui.error(Fields.TAGS)?.let { Text("⚠ $it", color = MaterialTheme.colorScheme.error) }
         TextButton(onClick = { showNewTag = true }, modifier = Modifier.testTag("new-tag")) { Text("Neues Schlagwort …") }
         ui.newTagMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("new-tag-message")) }
 
@@ -327,7 +327,7 @@ private fun PropertiesContent(ui: EditorUi, vm: EditorViewModel) {
             ui.imageFiles.forEach { f -> CoverTile(f, selected = ui.image == f, vm = vm) { vm.setImage(f) } }
             if (ui.image != null && ui.image !in ui.imageFiles) FilterChip(selected = true, onClick = { vm.setImage(null) }, label = { Text("${ui.image} (fehlt)") }, modifier = Modifier.testTag("cover-missing"))
         }
-        ui.error(Fields.IMAGE)?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("cover-error")) }
+        ui.error(Fields.IMAGE)?.let { Text("⚠ $it", color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("cover-error")) }
 
         val excerptTransformation = remember(ui.excerpt, ui.excerptMisspellings, scheme) { UnderlineTransformation(ui.excerptMisspellings, scheme.error) }
         OutlinedTextField(ui.excerpt, vm::setExcerpt, label = { Text("Kurzbeschreibung") }, minLines = 2, visualTransformation = excerptTransformation,

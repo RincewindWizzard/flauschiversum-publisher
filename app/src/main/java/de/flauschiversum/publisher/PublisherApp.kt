@@ -16,5 +16,6 @@ class PublisherApp : Application() {
         CryptoProviders.install()
         AppSshSessionFactory.configureJsch()
         container = AppContainer(this)
+        container.crash.install()
     }
 }

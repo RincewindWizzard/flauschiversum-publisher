@@ -39,6 +39,7 @@ class UploadNotifications(private val context: Context) {
     }
 
     /** Ergebnis melden, sofern Benachrichtigungen erlaubt sind. */
+    @android.annotation.SuppressLint("MissingPermission") // areNotificationsEnabled() prüft die Berechtigung; SecurityException wird abgefangen
     fun result(job: UploadJob) {
         val nm = NotificationManagerCompat.from(context)
         if (!nm.areNotificationsEnabled()) return

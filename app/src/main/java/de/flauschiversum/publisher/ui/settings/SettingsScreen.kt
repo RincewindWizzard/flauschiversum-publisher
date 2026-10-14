@@ -3,6 +3,8 @@ package de.flauschiversum.publisher.ui.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +33,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import de.flauschiversum.publisher.BuildConfig
@@ -70,7 +74,7 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
             Section("Darstellung")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ThemeMode.entries.forEach { m ->
-                    FilterChip(selected = s.themeMode == m, onClick = { vm.setTheme(m) }, label = { Text(when (m) { ThemeMode.SYSTEM -> "System"; ThemeMode.LIGHT -> "Hell"; ThemeMode.DARK -> "Dunkel" }) }, modifier = Modifier.testTag("theme-${m.name}"))
+                    FilterChip(selected = s.themeMode == m, onClick = { vm.setTheme(m) }, label = { Text(when (m) { ThemeMode.SYSTEM -> "System"; ThemeMode.LIGHT -> "Hell"; ThemeMode.DARK -> "Dunkel" }) }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).testTag("theme-${m.name}"))
                 }
             }
             Text("Schriftgröße im Editor: ${(s.editorFontScale * 100).toInt()} %")
@@ -79,7 +83,7 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
 
             Section("Hochladen")
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Switch(checked = s.uploadWifiOnly, onCheckedChange = { v -> vm.update { it.copy(uploadWifiOnly = v) } }, modifier = Modifier.testTag("wifi-only"))
+                Switch(checked = s.uploadWifiOnly, onCheckedChange = { v -> vm.update { it.copy(uploadWifiOnly = v) } }, modifier = Modifier.heightIn(min = 48.dp).testTag("wifi-only").semantics { contentDescription = "Nur über WLAN hochladen" })
                 Text("Nur über WLAN hochladen")
             }
             Text("Manche Hersteller beenden Hintergrundaufgaben früh. Wenn Uploads nicht von selbst laufen, nimm die App von der Akku-Optimierung aus.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("battery-hint"))
@@ -127,8 +131,41 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
             }
             HorizontalDivider()
 
+            Section("Diagnose")
+            var showLog by remember { mutableStateOf(false) }
+            var confirmClear by remember { mutableStateOf(false) }
+            Text("Das Protokoll bleibt auf dem Gerät. Es enthält nur Zeit, Vorgang, Ergebnis, Fehlerart und Server – nie Schlüssel oder Beitragstexte.", style = MaterialTheme.typography.bodySmall)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { showLog = true }, modifier = Modifier.testTag("diag-show")) { Text("Anzeigen") }
+                OutlinedButton(onClick = { runCatching { context.startActivity(de.flauschiversum.publisher.diag.DiagnosticShare.intent(context, vm.container.diag)) } }, modifier = Modifier.testTag("diag-share")) { Text("Teilen") }
+                OutlinedButton(onClick = { confirmClear = true }, modifier = Modifier.testTag("diag-clear")) { Text("Löschen") }
+            }
+            if (showLog) AlertDialog(
+                onDismissRequest = { showLog = false }, title = { Text("Protokoll") },
+                text = { Column(Modifier.verticalScroll(rememberScrollState())) { Text(vm.container.diag.text().ifBlank { "Das Protokoll ist leer." }, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("diag-text")) } },
+                confirmButton = { TextButton(onClick = { showLog = false }, modifier = Modifier.testTag("diag-close")) { Text("Schließen") } },
+            )
+            if (confirmClear) AlertDialog(
+                onDismissRequest = { confirmClear = false }, title = { Text("Protokoll löschen?") },
+                confirmButton = { TextButton(onClick = { vm.container.diag.clear(); confirmClear = false }, modifier = Modifier.testTag("diag-clear-confirm")) { Text("Löschen") } },
+                dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("Abbrechen") } },
+            )
+            HorizontalDivider()
+
             Section("Über")
             Text("Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", modifier = Modifier.testTag("about-version"))
+            Text("Build ${BuildConfig.BUILD_ID}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("about-build"))
+            var showLicenses by remember { mutableStateOf(false) }
+            OutlinedButton(onClick = { showLicenses = true }, modifier = Modifier.testTag("about-licenses")) { Text("Lizenzen") }
+            if (showLicenses) AlertDialog(
+                onDismissRequest = { showLicenses = false }, title = { Text("Lizenzen") },
+                text = { Column(Modifier.verticalScroll(rememberScrollState()).testTag("licenses-list"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    de.flauschiversum.publisher.Licenses.entries.forEach { e ->
+                        Column { Text(e.name, style = MaterialTheme.typography.titleSmall); Text(e.license, style = MaterialTheme.typography.bodySmall); e.note?.let { Text(it, style = MaterialTheme.typography.bodySmall) } }
+                    }
+                } },
+                confirmButton = { TextButton(onClick = { showLicenses = false }, modifier = Modifier.testTag("licenses-close")) { Text("Schließen") } },
+            )
         }
     }
 }
