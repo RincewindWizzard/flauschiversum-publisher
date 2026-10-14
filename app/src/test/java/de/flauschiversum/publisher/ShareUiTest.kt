@@ -87,7 +87,8 @@ class ShareUiTest {
         start(h, closed)
         compose.onNodeWithTag("share-save").assertIsNotEnabled()
         compose.onNodeWithTag("alt-0").performTextInput("Ein Baum")
-        compose.onNodeWithTag("post-search").performScrollTo().performTextInput("Baum")
+        compose.onNodeWithTag("share-list").performScrollToNode(androidx.compose.ui.test.hasTestTag("post-search"))
+        compose.onNodeWithTag("post-search").performTextInput("Baum")
         compose.onNodeWithTag("share-list").performScrollToNode(androidx.compose.ui.test.hasTestTag("post-baumaerkte"))
         compose.onNodeWithTag("post-baumaerkte").performClick()
         compose.onNodeWithTag("share-save").assertIsEnabled().performClick()
@@ -102,9 +103,11 @@ class ShareUiTest {
     @Test fun neuerBeitragBrauchtTitel() {
         val h = harness(); share(h, "a.jpg"); val closed = AtomicBoolean(false)
         start(h, closed)
-        compose.onNodeWithTag("choose-new").performScrollTo().performClick()
+        compose.onNodeWithTag("share-list").performScrollToNode(androidx.compose.ui.test.hasTestTag("choose-new"))
+        compose.onNodeWithTag("choose-new").performClick()
         compose.onNodeWithTag("share-save").assertIsNotEnabled()
-        compose.onNodeWithTag("new-title").performScrollTo().performTextInput("Fotoabend")
+        compose.onNodeWithTag("share-list").performScrollToNode(androidx.compose.ui.test.hasTestTag("new-title"))
+        compose.onNodeWithTag("new-title").performTextInput("Fotoabend")
         compose.onNodeWithTag("share-save").assertIsEnabled().performClick()
         waitFor { closed.get() }
         val wf = h.container.session.workflow()!!

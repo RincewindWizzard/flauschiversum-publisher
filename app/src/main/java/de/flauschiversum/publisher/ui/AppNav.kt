@@ -1,6 +1,13 @@
 package de.flauschiversum.publisher.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,9 +40,9 @@ object Routes {
     const val HOME = "home"
     const val SETTINGS = "settings"
     const val SHARE = "share"
-    const val EDITOR = "editor/{dir}"
+    const val EDITOR = "editor/{dir}?props={props}"
     private const val NEW = "-"
-    fun editor(dir: String?) = "editor/" + if (dir == null) NEW else URLEncoder.encode(dir, "UTF-8")
+    fun editor(dir: String?, properties: Boolean = false) = "editor/" + (if (dir == null) NEW else URLEncoder.encode(dir, "UTF-8")) + "?props=$properties"
     fun decodeDir(arg: String?): String? = if (arg == null || arg == NEW) null else URLDecoder.decode(arg, "UTF-8")
 }
 
@@ -54,8 +61,14 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
         }
         composable(Routes.HOME) {
             val vm: HomeViewModel = viewModel(factory = factory)
+            var photoTarget by remember { mutableStateOf<String?>(null) }
+            val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+                val dir = photoTarget; photoTarget = null
+                if (uris.isNotEmpty()) container.appScope.launch(Dispatchers.IO) { container.incoming.receiveUris(uris, dir) }
+            }
             HomeScreen(vm, onOpenPost = { nav.navigate(Routes.editor(it)) }, onSettings = { nav.navigate(Routes.SETTINGS) },
-                onFixAccess = { nav.navigate(Routes.SETUP) })
+                onFixAccess = { nav.navigate(Routes.SETUP) }, onOpenProperties = { nav.navigate(Routes.editor(it, properties = true)) },
+                onAddPhoto = { photoTarget = it; picker.launch("image/*") })
         }
         composable(Routes.SHARE) {
             val vm: ShareViewModel = viewModel(factory = factory)
@@ -65,11 +78,11 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
             val vm: SettingsViewModel = viewModel(factory = factory)
             SettingsScreen(vm, onBack = { nav.popBackStack() }, onSetup = { nav.navigate(Routes.SETUP) { popUpTo(Routes.HOME) } })
         }
-        composable(Routes.EDITOR, arguments = listOf(navArgument("dir") { type = NavType.StringType })) { entry ->
+        composable(Routes.EDITOR, arguments = listOf(navArgument("dir") { type = NavType.StringType }, navArgument("props") { type = NavType.BoolType; defaultValue = false })) { entry ->
             val dir = Routes.decodeDir(entry.arguments?.getString("dir"))
             val vm: EditorViewModel = viewModel(key = "editor-$dir", factory = object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T = EditorViewModel(container, SavedStateHandle(), dir) as T
+                override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T = EditorViewModel(container, SavedStateHandle(), dir, entry.arguments?.getBoolean("props") == true) as T
             })
             val scale = container.settingsSnapshot.editorFontScale
             EditorScreen(vm, scale, onDone = { nav.popBackStack() })

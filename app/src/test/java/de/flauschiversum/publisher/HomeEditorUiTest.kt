@@ -170,7 +170,8 @@ class HomeEditorUiTest {
         val h = harness(); val vm = home(h); waitFor { !vm.ui.value.loading }
         makeDraft(h, "muetze", "Mütze")
         waitFor { exists("post-muetze") }
-        compose.onNodeWithText("Verwerfen").performClick()
+        compose.onNodeWithTag("menu-muetze").performClick()
+        compose.onNodeWithTag("action-discard-muetze").performClick()
         waitFor { !exists("post-muetze") }
     }
 

@@ -9,6 +9,9 @@ import de.flauschiversum.publisher.git.GitFailure
 import de.flauschiversum.publisher.git.PublishResult
 import de.flauschiversum.publisher.git.SyncReason
 import de.flauschiversum.publisher.git.UploadState
+import de.flauschiversum.publisher.overview.IndexedPost
+import de.flauschiversum.publisher.overview.PostQuery
+import de.flauschiversum.publisher.overview.PostSearch
 import de.flauschiversum.publisher.posts.PostReader
 import de.flauschiversum.publisher.posts.TagCreation
 import de.flauschiversum.publisher.posts.PostSummary
@@ -21,7 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Eine Zeile der Beitragsübersicht. [draft] ist gesetzt, wenn der Beitrag ein offener Entwurf ist. */
-data class PostRow(val summary: PostSummary, val draft: DraftKind?)
+data class PostRow(val summary: PostSummary, val draft: DraftKind?, val cover: String? = null, val rev: String = "")
 
 data class HomeUi(
     val loading: Boolean = true,
@@ -40,6 +43,13 @@ data class HomeUi(
     /** Schlagworte, die nur im Entwurf stehen. */
     val newTags: List<String> = emptyList(),
     val deleteDir: String? = null,
+    val query: PostQuery = PostQuery(),
+    val years: List<Int> = emptyList(),
+    val allTags: List<String> = emptyList(),
+    /** Zahl der Beiträge ohne Suche und Filter. */
+    val totalPosts: Int = 0,
+    /** Das Repository ist noch nicht geholt. */
+    val noClone: Boolean = false,
 )
 
 /** Beitragsübersicht mit Entwürfen und „Veröffentlichen“ (Specs `repository-klon`, `entwurf-veroeffentlichen`). */
@@ -57,29 +67,48 @@ class HomeViewModel(val c: AppContainer) : ViewModel() {
         c.requestSync(SyncReason.START)
     }
 
+    private var base: List<IndexedPost> = emptyList()
+    private var draftRows: List<PostRow> = emptyList()
+    private var overviewNow: DraftOverview? = null
+    private var targetRef: String = ""
+
     fun reload() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val loaded = c.session.locked { load() } ?: return@launch
-                local.update { it.copy(loading = false, drafts = loaded.first, posts = loaded.second, overview = loaded.third, newTags = newTagsLoaded) }
+                val ok = c.session.locked { load() }
+                if (ok == null) { local.update { it.copy(loading = false, noClone = true) }; return@launch }
+                publishState()
             } catch (e: Throwable) {
                 local.update { it.copy(loading = false, message = "Beiträge konnten nicht gelesen werden: ${e.message ?: e.javaClass.simpleName}") }
             }
         }
     }
 
-    private fun load(): Triple<List<PostRow>, List<PostRow>, DraftOverview>? {
+    private fun publishState() {
+        val q = local.value.query
+        val rows = PostSearch.apply(base, q).map { PostRow(it.summary, null, it.cover, targetRef) }
+        local.update { it.copy(loading = false, noClone = false, drafts = draftRows, posts = rows, overview = overviewNow, newTags = newTagsLoaded,
+            years = PostSearch.years(base), allTags = PostSearch.tags(base), totalPosts = base.size) }
+    }
+
+    fun setQuery(q: PostQuery) { local.update { it.copy(query = q) }; publishState() }
+
+    private fun load(): Boolean? {
         newTagsLoaded = c.session.workflow()?.let { TagCreation.newTags(it) }.orEmpty()
         val wf = c.session.workflow() ?: return null
-        val reader = PostReader(wf.store)
+        val index = c.postIndex() ?: return null
+        targetRef = wf.refs.target
         val overview = wf.overview()
         val draftDirs = overview.posts.associate { it.dir to it.kind }
-        val drafts = overview.posts.mapNotNull { d ->
-            val rev = if (d.kind == DraftKind.DELETED) wf.refs.target else wf.refs.draft
-            reader.summary(rev, d.dir)?.let { PostRow(it, d.kind) }
+        val targetIndex = index.build(wf.refs.target)
+        val draftIndex = if (overview.posts.any { it.kind != DraftKind.DELETED }) index.build(wf.refs.draft).associateBy { it.dir } else emptyMap()
+        draftRows = overview.posts.mapNotNull { d ->
+            val p = if (d.kind == DraftKind.DELETED) targetIndex.firstOrNull { it.dir == d.dir } else draftIndex[d.dir]
+            p?.let { PostRow(it.summary, d.kind, it.cover, if (d.kind == DraftKind.DELETED) wf.refs.target else wf.refs.draft) }
         }
-        val posts = reader.summaries(wf.refs.target).filter { it.dir !in draftDirs }.map { PostRow(it, null) }
-        return Triple(drafts, posts, overview)
+        base = targetIndex.filter { it.dir !in draftDirs }
+        overviewNow = overview
+        return true
     }
 
     fun askDelete(dir: String?) { local.update { it.copy(deleteDir = dir) } }

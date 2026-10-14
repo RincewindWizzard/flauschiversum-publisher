@@ -14,6 +14,9 @@ class IncomingPhotos(private val context: Context) {
     private val dir = File(context.filesDir, "incoming")
     val pending = MutableStateFlow<List<SharedPhoto>>(emptyList())
 
+    /** Beitrag, zu dem die Fotos gehören sollen (aus „Foto hinzufügen“ in der Übersicht); null: Nutzer wählt. */
+    val targetDir = MutableStateFlow<String?>(null)
+
     /** Ob [intent] Bilder zum Teilen enthält. */
     fun isShare(intent: Intent?): Boolean =
         intent != null && (intent.action == Intent.ACTION_SEND || intent.action == Intent.ACTION_SEND_MULTIPLE) &&
@@ -38,6 +41,15 @@ class IncomingPhotos(private val context: Context) {
         return copied.size
     }
 
+    /** Fotos aus der Fotoauswahl des Systems („Foto hinzufügen“ am Beitrag). */
+    fun receiveUris(uris: List<Uri>, forDir: String?) {
+        clear()
+        dir.mkdirs()
+        val copied = uris.mapIndexedNotNull { i, uri -> copy(context.contentResolver, uri, i) }
+        targetDir.value = forDir
+        pending.value = copied
+    }
+
     private fun copy(resolver: ContentResolver, uri: Uri, index: Int): SharedPhoto? = runCatching {
         val name = resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
             if (c.moveToFirst()) c.getString(0) else null
@@ -50,6 +62,7 @@ class IncomingPhotos(private val context: Context) {
     /** Verwirft die vorgemerkten Bilder samt Kopien. */
     fun clear() {
         pending.value = emptyList()
+        targetDir.value = null
         dir.listFiles()?.forEach { it.delete() }
     }
 }

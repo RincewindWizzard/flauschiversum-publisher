@@ -37,6 +37,34 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import de.flauschiversum.publisher.git.DraftKind
 import de.flauschiversum.publisher.git.UploadState
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import de.flauschiversum.publisher.overview.PostQuery
+import de.flauschiversum.publisher.overview.SortOrder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
 
@@ -47,10 +75,17 @@ fun formatSync(millis: Long): String =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () -> Unit, onFixAccess: () -> Unit) {
+fun HomeScreen(
+    vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () -> Unit, onFixAccess: () -> Unit,
+    onOpenProperties: (String) -> Unit = { onOpenPost(it) }, onAddPhoto: (String) -> Unit = {},
+) {
     val ui by vm.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
+    // Suche und Filter überstehen Drehung und Prozessende
+    var savedQuery by rememberSaveable(stateSaver = QuerySaver) { mutableStateOf(ui.query) }
+    LaunchedEffect(Unit) { if (savedQuery != ui.query) vm.setQuery(savedQuery) }
+    LaunchedEffect(ui.query) { savedQuery = ui.query }
     LaunchedEffect(ui.message) { ui.message?.let { snackbar.showSnackbar(it); vm.messageShown() } }
     Scaffold(
         topBar = { TopAppBar(title = { Text("Flauschiversum", style = MaterialTheme.typography.headlineSmall) }, actions = {
@@ -62,26 +97,42 @@ fun HomeScreen(vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () 
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             if (ui.syncing || ui.publishing) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("sync-indicator"))
+            PullToRefreshBox(isRefreshing = ui.syncing, onRefresh = vm::refreshNow, modifier = Modifier.fillMaxSize()) {
             LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp), modifier = Modifier.fillMaxSize().testTag("list")) {
                 // Das erste Element bleibt immer an seinem Platz: So rutschen neue Beiträge und Entwürfe darunter ins Bild.
                 item(key = "kopf") {
                     Column {
-                Text(formatSync(ui.lastSyncMillis), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).testTag("last-sync"))
-                if (ui.accessProblem) Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer), modifier = Modifier.padding(16.dp).fillMaxWidth().testTag("access-problem")) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text("Zugriff verweigert. Ist der Schlüssel noch auf dem Server eingetragen?")
-                        TextButton(onClick = { vm.fixAccess(onFixAccess) }, modifier = Modifier.testTag("fix-access")) { Text("Prüfen und erneut eintragen") }
-                    }
-                }
+                        Text(formatSync(ui.lastSyncMillis), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).testTag("last-sync"))
+                        if (ui.syncFailure == de.flauschiversum.publisher.git.GitFailure.NoNetwork) Text("Kein Netz – es gilt der zuletzt geholte Stand.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 16.dp).testTag("offline"))
+                        if (ui.accessProblem) Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer), modifier = Modifier.padding(16.dp).fillMaxWidth().testTag("access-problem")) {
+                            Column(Modifier.padding(12.dp)) {
+                                Text("Zugriff verweigert. Ist der Schlüssel noch auf dem Server eingetragen?")
+                                TextButton(onClick = { vm.fixAccess(onFixAccess) }, modifier = Modifier.testTag("fix-access")) { Text("Prüfen und erneut eintragen") }
+                            }
+                        }
                     }
                 }
                 if (ui.drafts.isNotEmpty() || ui.newTags.isNotEmpty() || (ui.overview?.otherChanges?.isNotEmpty() == true)) {
                     item { DraftsHeader(ui, vm) }
-                    items(ui.drafts, key = { "d-" + it.summary.dir }) { row -> PostItem(row, onClick = { onOpenPost(row.summary.dir) }, onDiscard = { vm.discard(row.summary.dir) }, onDelete = { vm.askDelete(row.summary.dir) }) }
+                    items(ui.drafts, key = { "d-" + it.summary.dir }) { row -> PostItem(row, vm.c, onClick = { onOpenPost(row.summary.dir) }, actions = PostActions(onOpenPost, onOpenProperties, onAddPhoto, vm)) }
                     item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
                 }
+                item(key = "suche") { SearchBar(ui, vm) }
+                if (ui.noClone) item(key = "keinklon") {
+                    Column(Modifier.padding(16.dp).testTag("no-clone")) {
+                        Text("Das Repository ist noch nicht geholt. Schließe die Einrichtung ab, um Beiträge zu sehen.")
+                        TextButton(onClick = onFixAccess, modifier = Modifier.testTag("to-setup")) { Text("Zur Einrichtung") }
+                    }
+                }
                 if (ui.loading) item { Text("Lade Beiträge …", Modifier.padding(16.dp)) }
-                items(ui.posts, key = { it.summary.dir }) { row -> PostItem(row, onClick = { onOpenPost(row.summary.dir) }, onDiscard = null, onDelete = { vm.askDelete(row.summary.dir) }) }
+                if (!ui.loading && ui.posts.isEmpty() && ui.totalPosts > 0) item(key = "leer") {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Keine Beiträge gefunden.", modifier = Modifier.testTag("no-results"))
+                        TextButton(onClick = { vm.setQuery(PostQuery(sort = ui.query.sort)) }, modifier = Modifier.testTag("reset-filters")) { Text("Zurücksetzen") }
+                    }
+                }
+                items(ui.posts, key = { it.summary.dir }) { row -> PostItem(row, vm.c, onClick = { onOpenPost(row.summary.dir) }, actions = PostActions(onOpenPost, onOpenProperties, onAddPhoto, vm)) }
+            }
             }
         }
     }
@@ -105,22 +156,92 @@ private fun DraftsHeader(ui: HomeUi, vm: HomeViewModel) {
     }
 }
 
+class PostActions(
+    val onEdit: (String?) -> Unit, val onProperties: (String) -> Unit, val onPhoto: (String) -> Unit, val vm: HomeViewModel,
+)
+
 @Composable
-private fun PostItem(row: PostRow, onClick: () -> Unit, onDiscard: (() -> Unit)?, onDelete: () -> Unit) {
-    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 10.dp).testTag("post-${row.summary.dir}")) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(row.summary.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-            row.draft?.let { Text(draftLabel(it), color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.labelLarge) }
+private fun PostItem(row: PostRow, c: de.flauschiversum.publisher.app.AppContainer, onClick: () -> Unit, actions: PostActions) {
+    val dir = row.summary.dir
+    var menu by remember { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 8.dp).testTag("post-$dir"), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Thumb(row, c)
+        Column(Modifier.weight(1f)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(row.summary.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                row.draft?.let { Text(draftLabel(it), color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.labelLarge) }
+            }
+            val meta = listOfNotNull(row.summary.date?.date?.toString(), row.summary.tags.takeIf { it.isNotEmpty() }?.joinToString(", "))
+            if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            row.summary.problem?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
         }
-        val meta = listOfNotNull(row.summary.date?.date?.toString(), row.summary.tags.takeIf { it.isNotEmpty() }?.joinToString(", "))
-        if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        row.summary.problem?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-        Row {
-            if (onDiscard != null) TextButton(onClick = onDiscard) { Text("Verwerfen") }
-            if (row.draft != DraftKind.DELETED) TextButton(onClick = onDelete, modifier = Modifier.testTag("delete-${row.summary.dir}")) { Text("Löschen") }
+        Box {
+            TextButton(onClick = { menu = true }, modifier = Modifier.testTag("menu-$dir")) { Text("⋮") }
+            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                if (row.draft != DraftKind.DELETED) {
+                    DropdownMenuItem(text = { Text("Bearbeiten") }, onClick = { menu = false; actions.onEdit(dir) }, modifier = Modifier.testTag("action-edit-$dir"))
+                    DropdownMenuItem(text = { Text("Eigenschaften") }, onClick = { menu = false; actions.onProperties(dir) }, modifier = Modifier.testTag("action-props-$dir"))
+                    DropdownMenuItem(text = { Text("Foto hinzufügen") }, onClick = { menu = false; actions.onPhoto(dir) }, modifier = Modifier.testTag("action-photo-$dir"))
+                }
+                if (row.draft != null) DropdownMenuItem(text = { Text("Verwerfen") }, onClick = { menu = false; actions.vm.discard(dir) }, modifier = Modifier.testTag("action-discard-$dir"))
+                if (row.draft != DraftKind.DELETED) DropdownMenuItem(text = { Text("Löschen") }, onClick = { menu = false; actions.vm.askDelete(dir) }, modifier = Modifier.testTag("action-delete-$dir"))
+            }
         }
     }
 }
+
+@Composable
+private fun Thumb(row: PostRow, c: de.flauschiversum.publisher.app.AppContainer) {
+    val cover = row.cover
+    val bitmap by produceState<android.graphics.Bitmap?>(null, row.summary.dir, cover, row.rev) {
+        value = if (cover == null) null else withContext(Dispatchers.IO) { c.thumbnails.get(row.rev, "content/posts/${row.summary.dir}/$cover") }
+    }
+    Box(Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant).testTag("thumb-${row.summary.dir}"), contentAlignment = Alignment.Center) {
+        val b = bitmap
+        if (b != null) Image(b.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        else Text(row.summary.title.take(1).uppercase(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SearchBar(ui: HomeUi, vm: HomeViewModel) {
+    var showTags by remember { mutableStateOf(false) }
+    var sortMenu by remember { mutableStateOf(false) }
+    var yearMenu by remember { mutableStateOf(false) }
+    val q = ui.query
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+        OutlinedTextField(q.text, { vm.setQuery(q.copy(text = it)) }, singleLine = true, label = { Text("Beitrag suchen …") }, modifier = Modifier.fillMaxWidth().testTag("search"))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AssistChip(onClick = { showTags = true }, label = { Text("Schlagwort") }, modifier = Modifier.testTag("filter-tags"))
+            Box {
+                AssistChip(onClick = { yearMenu = true }, label = { Text("Jahr") }, modifier = Modifier.testTag("filter-year"))
+                DropdownMenu(yearMenu, { yearMenu = false }) { ui.years.forEach { y -> DropdownMenuItem(text = { Text(y.toString()) }, onClick = { yearMenu = false; vm.setQuery(q.copy(year = y)) }, modifier = Modifier.testTag("year-$y")) } }
+            }
+            Box {
+                AssistChip(onClick = { sortMenu = true }, label = { Text(q.sort.label) }, modifier = Modifier.testTag("sort"))
+                DropdownMenu(sortMenu, { sortMenu = false }) { SortOrder.entries.forEach { o -> DropdownMenuItem(text = { Text(o.label) }, onClick = { sortMenu = false; vm.setQuery(q.copy(sort = o)) }, modifier = Modifier.testTag("sort-${o.name}")) } }
+            }
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            q.tags.forEach { t -> InputChip(selected = true, onClick = { vm.setQuery(q.copy(tags = q.tags - t)) }, label = { Text("$t ✕") }, modifier = Modifier.testTag("active-tag-$t")) }
+            q.year?.let { y -> InputChip(selected = true, onClick = { vm.setQuery(q.copy(year = null)) }, label = { Text("$y ✕") }, modifier = Modifier.testTag("active-year")) }
+        }
+        if (q.isFiltered) Text("${ui.posts.size} von ${ui.totalPosts} Beiträgen", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("result-count"))
+    }
+    if (showTags) AlertDialog(
+        onDismissRequest = { showTags = false }, title = { Text("Schlagworte") },
+        text = { Column(Modifier.verticalScroll(rememberScrollState())) { FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ui.allTags.forEach { t -> FilterChip(selected = t in q.tags, onClick = { vm.setQuery(q.copy(tags = if (t in q.tags) q.tags - t else q.tags + t)) }, label = { Text(t) }, modifier = Modifier.testTag("tagfilter-$t")) }
+        } } },
+        confirmButton = { TextButton(onClick = { showTags = false }, modifier = Modifier.testTag("tagfilter-done")) { Text("Fertig") } },
+    )
+}
+
+private val QuerySaver = androidx.compose.runtime.saveable.Saver<PostQuery, List<String>>(
+    save = { listOf(it.text, it.tags.joinToString("\u001F"), it.year?.toString().orEmpty(), it.sort.name) },
+    restore = { PostQuery(it[0], it[1].split('\u001F').filter { t -> t.isNotEmpty() }.toSet(), it[2].toIntOrNull(), SortOrder.valueOf(it[3])) },
+)
 
 @Composable
 private fun PublishDialog(ui: HomeUi, vm: HomeViewModel) {

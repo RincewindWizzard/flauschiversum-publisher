@@ -1,6 +1,13 @@
 package de.flauschiversum.publisher.ui.share
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,6 +57,7 @@ fun ShareScreen(vm: ShareViewModel, onClose: () -> Unit) {
         LazyColumn(Modifier.padding(pad).padding(horizontal = 16.dp).testTag("share-list")) {
             item { Text("Beschreibung der Bilder", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp)) }
             itemsIndexed(ui.photos) { i, p ->
+                PhotoPreview(p.file, Modifier.padding(top = 4.dp).testTag("preview-$i"))
                 OutlinedTextField(
                     value = ui.alts.getOrNull(i).orEmpty(), onValueChange = { vm.setAlt(i, it) },
                     label = { Text("Beschreibung: ${p.displayName ?: "Foto ${i + 1}"}") },
@@ -82,4 +90,20 @@ fun ShareScreen(vm: ShareViewModel, onClose: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun PhotoPreview(file: java.io.File, modifier: Modifier) {
+    val bitmap by produceState<android.graphics.Bitmap?>(null, file) {
+        value = withContext(Dispatchers.IO) {
+            runCatching {
+                val o = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                android.graphics.BitmapFactory.decodeFile(file.path, o)
+                var sample = 1
+                while (o.outWidth / (sample * 2) >= 240 && o.outHeight / (sample * 2) >= 240) sample *= 2
+                android.graphics.BitmapFactory.decodeFile(file.path, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample })
+            }.getOrNull()
+        }
+    }
+    bitmap?.let { Image(it.asImageBitmap(), contentDescription = "Vorschau", modifier = modifier.height(120.dp), contentScale = ContentScale.Fit) }
 }

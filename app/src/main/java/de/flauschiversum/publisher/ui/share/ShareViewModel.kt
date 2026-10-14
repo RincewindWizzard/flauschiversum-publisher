@@ -39,6 +39,7 @@ class ShareViewModel(private val c: AppContainer) : ViewModel() {
     val ui: StateFlow<ShareUi> = _ui.asStateFlow()
 
     init {
+        c.incoming.targetDir.value?.let { d -> _ui.update { it.copy(selectedDir = d, creatingNew = false) } }
         viewModelScope.launch { c.incoming.pending.collect { p -> _ui.update { it.copy(photos = p, alts = List(p.size) { i -> it.alts.getOrNull(i).orEmpty() }) } } }
         viewModelScope.launch(Dispatchers.IO) {
             val posts = runCatching { c.session.locked {

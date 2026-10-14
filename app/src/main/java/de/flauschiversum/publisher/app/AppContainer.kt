@@ -50,6 +50,17 @@ class AppContainer(val context: Context) {
     )
 
     val spell = de.flauschiversum.publisher.editor.SpellService(context, appScope, File(filesDir, "dictionary/personal.txt"))
+    private var indexFor: de.flauschiversum.publisher.git.GitStore? = null
+    private var index: de.flauschiversum.publisher.overview.PostIndex? = null
+    /** Index der Beiträge (mit Zwischenspeicher auf Platte); neu, wenn das Repository neu angelegt wurde. */
+    @Synchronized fun postIndex(): de.flauschiversum.publisher.overview.PostIndex? {
+        val store = session.store() ?: return null
+        if (indexFor !== store) { indexFor = store; index = de.flauschiversum.publisher.overview.PostIndex(store, File(filesDir, "index/posts.tsv")) }
+        return index
+    }
+    /** Vorschaubilder der Beiträge aus dem lokalen Klon. */
+    val thumbnails = de.flauschiversum.publisher.overview.Thumbnails { rev, path -> runCatching { session.store()?.readBytes(rev, path) }.getOrNull() }
+
     val incoming = de.flauschiversum.publisher.photos.IncomingPhotos(context)
     val imageProcessor: de.flauschiversum.publisher.images.ImageProcessor = de.flauschiversum.publisher.images.AndroidImageProcessor(File(context.cacheDir, "exif"))
     /** Legt Fotos in Beiträgen ab; die Rechteangaben kommen aus den Einstellungen. */

@@ -59,8 +59,13 @@ class DeleteUiTest {
     }
     private fun wf() = h!!.container.session.workflow()!!
     private fun clickDelete(dir: String) {
-        compose.onNodeWithTag("list").performScrollToNode(hasTestTag("delete-$dir"))
-        compose.onNodeWithTag("delete-$dir").performClick()
+        if (!exists("menu-$dir") || dir == "baumaerkte") {
+            compose.onNodeWithTag("list").performScrollToNode(hasTestTag("search"))
+            compose.onNodeWithTag("search").performTextInput(h!!.container.session.workflow()!!.let { wf -> de.flauschiversum.publisher.posts.PostReader(wf.store).summary(wf.baseRev(), dir)?.title ?: dir })
+            waitFor { exists("menu-$dir") }
+        }
+        compose.onNodeWithTag("menu-$dir").performClick()
+        compose.onNodeWithTag("action-delete-$dir").performClick()
         waitFor { exists("delete-dialog") }
     }
 
@@ -107,8 +112,9 @@ class DeleteUiTest {
         val vm = home(); clickDelete("baumaerkte")
         compose.onNodeWithTag("delete-confirm").performClick()
         waitFor { vm.ui.value.drafts.any { it.draft == DraftKind.DELETED } }
-        compose.onNodeWithTag("list").performScrollToNode(hasTestTag("post-baumaerkte"))
-        compose.onNodeWithText("Verwerfen").performClick()
+        compose.onNodeWithTag("list").performScrollToNode(hasTestTag("menu-baumaerkte"))
+        compose.onNodeWithTag("menu-baumaerkte").performClick()
+        compose.onNodeWithTag("action-discard-baumaerkte").performClick()
         waitFor { vm.ui.value.drafts.isEmpty() }
         assertEquals(Fixtures.redirectsYaml(), wf().store.readText(wf().refs.draft, "content/redirects.yaml"))
         assertTrue(wf().store.exists(wf().refs.draft, "content/posts/baumaerkte/index.md"))

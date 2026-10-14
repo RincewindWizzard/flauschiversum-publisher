@@ -88,11 +88,11 @@ data class EditorUi(
 }
 
 /** Beitrag schreiben und bearbeiten: Text im Editor, Felder im Menü „Eigenschaften“ (Specs `beitrag-erstellen`, `beitrag-bearbeiten`). */
-class EditorViewModel(private val c: AppContainer, private val handle: SavedStateHandle, private val dir: String?) : ViewModel() {
+class EditorViewModel(private val c: AppContainer, private val handle: SavedStateHandle, private val dir: String?, private val startWithProperties: Boolean = false) : ViewModel() {
     val container: AppContainer get() = c
     private val key = dir ?: "_neu"
     private val snapshots = EditorSnapshotStore(File(c.context.filesDir, "editor"))
-    private val _ui = MutableStateFlow(EditorUi(isNew = dir == null, dir = dir))
+    private val _ui = MutableStateFlow(EditorUi(isNew = dir == null, dir = dir, showProperties = startWithProperties))
     val ui: StateFlow<EditorUi> = _ui.asStateFlow()
     private var original: PostProps? = null
     private var baseDoc: PostDocument? = null
