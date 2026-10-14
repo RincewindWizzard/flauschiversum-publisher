@@ -98,6 +98,7 @@ class RefreshGestureTest {
     @Test fun laeuftSchonEinLaufStartetKeinZweiter() {
         val vm = home()
         val c = h!!.container
+        waitFor { !c.sync.state.value.running && c.sync.state.value.generation >= 1 } // erst den Lauf nach dem Start abwarten
         h!!.blog.server.pause() // Lauf bleibt kurz hängen/scheitert, bleibt aber ein einzelner Lauf
         val gen = c.sync.state.value.generation
         c.requestSync(SyncReason.MANUAL)

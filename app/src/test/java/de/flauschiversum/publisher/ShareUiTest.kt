@@ -89,7 +89,13 @@ class ShareUiTest {
         compose.onNodeWithTag("alt-0").performTextInput("Ein Baum")
         compose.onNodeWithTag("share-list").performScrollToNode(androidx.compose.ui.test.hasTestTag("post-search"))
         compose.onNodeWithTag("post-search").performTextInput("Baum")
-        compose.onNodeWithTag("share-list").performScrollToNode(androidx.compose.ui.test.hasTestTag("post-baumaerkte"))
+        // die Suche filtert asynchron: erst wenn der Eintrag in der Liste steht, lässt er sich anklicken
+        waitFor {
+            runCatching {
+                compose.onNodeWithTag("share-list").performScrollToNode(androidx.compose.ui.test.hasTestTag("post-baumaerkte"))
+                compose.onNodeWithTag("post-baumaerkte").assertExists()
+            }.isSuccess
+        }
         compose.onNodeWithTag("post-baumaerkte").performClick()
         compose.onNodeWithTag("share-save").assertIsEnabled().performClick()
         waitFor { closed.get() }

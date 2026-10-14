@@ -160,14 +160,18 @@ class HomeViewModel @JvmOverloads constructor(val c: AppContainer, private val m
             val wf = c.session.workflow()
             val result = if (wf == null) PublishResult.Failed(GitFailure.Other("Das Repository ist nicht eingerichtet.")) else c.session.locked { wf.publish() }
             when (result) {
-                is PublishResult.Published -> { val a = c.session.address(); c.diag.record(de.flauschiversum.publisher.diag.DiagOp.PUBLISH, de.flauschiversum.publisher.diag.DiagResult.OK, host = a?.host, port = a?.port) }
+                is PublishResult.Published -> {
+                    val a = c.session.address(); val sm = result.serverMessages
+                    c.diag.record(de.flauschiversum.publisher.diag.DiagOp.PUBLISH, if (sm.hasProblem) de.flauschiversum.publisher.diag.DiagResult.FAILED else de.flauschiversum.publisher.diag.DiagResult.OK, kind = if (sm.hasProblem) "Server-Meldung" else null, host = a?.host, port = a?.port)
+                    if (sm.hasProblem) c.notifier.serverProblem("Veröffentlicht, aber der Server meldet einen Fehler", sm.summary, sm.full)
+                }
                 is PublishResult.Failed -> c.diagFailure(de.flauschiversum.publisher.diag.DiagOp.PUBLISH, result.failure)
                 is PublishResult.Conflict -> { val a = c.session.address(); c.diag.record(de.flauschiversum.publisher.diag.DiagOp.PUBLISH, de.flauschiversum.publisher.diag.DiagResult.FAILED, kind = "Konflikt", host = a?.host, port = a?.port) }
                 is PublishResult.Rejected -> { val a = c.session.address(); c.diag.record(de.flauschiversum.publisher.diag.DiagOp.PUBLISH, de.flauschiversum.publisher.diag.DiagResult.FAILED, kind = "Server hat abgelehnt", host = a?.host, port = a?.port) }
                 else -> Unit
             }
             val text = when (result) {
-                is PublishResult.Published -> "Veröffentlicht."
+                is PublishResult.Published -> if (result.serverMessages.hasProblem) "Veröffentlicht, aber der Server meldet einen Fehler:\n${result.serverMessages.summary}" else "Veröffentlicht."
                 PublishResult.NothingToPublish -> "Es gibt nichts zu veröffentlichen."
                 is PublishResult.Conflict -> "Konflikt bei: ${result.files.joinToString()}. Bitte am Rechner lösen; nichts wurde verändert."
                 is PublishResult.Rejected -> "Der Server hat das Veröffentlichen abgelehnt: ${result.reason}. Der Entwurf bleibt erhalten."

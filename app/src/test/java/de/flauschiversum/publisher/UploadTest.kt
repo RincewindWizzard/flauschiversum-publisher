@@ -88,6 +88,21 @@ class UploadTest {
         assertNotNull(serverDraft()); assertEquals(UploadState.UPLOADED, wf().upload())
     }
 
+    @Test fun fehlerMeldungDesServersBleibtAmAuftragUndWirdBenachrichtigt() {
+        val harness = harness()
+        harness.blog.server.receiveMessages = listOf("==> Deployment von abc", "Fehler: content/redirects.yaml: Adressen müssen mit `/` beginnen und enden", "==> Deployment FEHLGESCHLAGEN.")
+        val id = uploads.submit(photos("a.jpg"), listOf("a"), PhotoTarget.Existing("baumaerkte"))
+        val job = uploads.store.load(id)!!
+        assertEquals(JobStatus.DONE, job.status) // der Push selbst ist angekommen
+        assertTrue(job.message!!, job.message!!.startsWith("Der Server meldet:") && job.message!!.contains("redirects.yaml"))
+        val notifier = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        val shadow = org.robolectric.Shadows.shadowOf(notifier.getSystemService(android.app.NotificationManager::class.java))
+        de.flauschiversum.publisher.upload.UploadNotifications(notifier).result(job)
+        val posted = shadow.allNotifications.single()
+        assertEquals("Hochgeladen – Hinweis vom Server", posted.extras.getString(android.app.Notification.EXTRA_TITLE))
+        assertTrue(posted.extras.getCharSequence(android.app.Notification.EXTRA_BIG_TEXT).toString().contains("redirects.yaml"))
+    }
+
     @Test fun zugriffVerweigertWirdNichtWiederholt() {
         val harness = harness()
         harness.blog.server.revokeAll()

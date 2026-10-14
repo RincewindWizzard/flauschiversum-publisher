@@ -74,7 +74,7 @@ class UploadRunner(
         if (wf == null) return fail(id, "Das Repository ist nicht eingerichtet.")
         return try {
             when (val o = wf.pushDraft()) {
-                PushOutcome.Ok -> { logPush(de.flauschiversum.publisher.diag.DiagResult.OK, null); store.update(id) { it.copy(status = JobStatus.DONE, message = null, finishedAt = now()) }; onDraftChanged(); StepResult.Done }
+                PushOutcome.Ok -> { val sm = wf.lastDraftMessages; val problem = sm.hasProblem; logPush(if (problem) de.flauschiversum.publisher.diag.DiagResult.FAILED else de.flauschiversum.publisher.diag.DiagResult.OK, if (problem) "Server-Meldung" else null); store.update(id) { it.copy(status = JobStatus.DONE, message = if (problem) "Der Server meldet: ${sm.summary}" else null, finishedAt = now()) }; onDraftChanged(); StepResult.Done }
                 is PushOutcome.Rejected -> { logPush(de.flauschiversum.publisher.diag.DiagResult.FAILED, "Server hat abgelehnt"); fail(id, "Der Server hat den Upload abgelehnt: ${o.reason}") }
             }
         } catch (e: Exception) {

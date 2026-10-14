@@ -44,7 +44,8 @@ data class DraftOverview(
 }
 
 sealed interface PublishResult {
-    data class Published(val posts: List<DraftPost>, val otherChanges: List<PathDiff>) : PublishResult
+    /** [serverMessages]: Ausgabe des Servers zum Push, z. B. eines Deploy-Hooks (kann einen Fehler melden, obwohl der Push gelang). */
+    data class Published(val posts: List<DraftPost>, val otherChanges: List<PathDiff>, val serverMessages: ServerMessages = ServerMessages.NONE) : PublishResult
     data object NothingToPublish : PublishResult
     data class Conflict(val files: List<String>) : PublishResult
     data class Rejected(val reason: String) : PublishResult
@@ -173,8 +174,12 @@ class DraftWorkflow(
     fun pushDraft(force: Boolean = false): PushOutcome {
         val local = draftId() ?: return PushOutcome.Ok
         val o = ops() ?: return PushOutcome.Rejected("draft", "Kein Zugang eingerichtet")
-        return o.push(mapOf(Refs.DRAFT to local), force = force)
+        return o.push(mapOf(Refs.DRAFT to local), force = force).also { lastDraftMessages = o.lastServerMessages }
     }
+
+    /** Server-Meldungen zum letzten Hochladen von `draft`. */
+    @Volatile var lastDraftMessages: ServerMessages = ServerMessages.NONE
+        private set
 
     /** Holt Zielbranch und `draft` (reine Netzwerkphase, braucht keine Sperre auf dem Repository). */
     fun fetch() {
@@ -245,10 +250,11 @@ class DraftWorkflow(
         }
         val pushed = try { o.push(mapOf(refs.targetBranch to newTarget)) } catch (e: Exception) { return PublishResult.Failed(classify(e)) }
         if (pushed is PushOutcome.Rejected) return PublishResult.Rejected(pushed.reason)
+        val serverMessages = o.lastServerMessages
         // Erfolg: draft entspricht jetzt dem Zielbranch
         store.updateRef(refs.draft, newTarget, force = true)
         runCatching { pushDraft() }
-        return PublishResult.Published(before.posts, before.otherChanges)
+        return PublishResult.Published(before.posts, before.otherChanges, serverMessages)
     }
 
     private fun mergeCommit(tree: ObjectId, parentA: ObjectId, parentB: ObjectId, message: String): ObjectId {

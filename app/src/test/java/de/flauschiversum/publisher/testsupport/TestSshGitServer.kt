@@ -32,6 +32,8 @@ class TestSshGitServer(val root: File) : AutoCloseable {
     /** Anzahl der Verbindungen, die eine Anmeldung versucht haben (zum Prüfen von Netzzugriffen). */
     @Volatile var loginAttempts = 0
     @Volatile var rejectReceivePack: Boolean = false
+    /** Zeilen, die der Server nach dem Empfang an den Client schickt (wie die Ausgabe eines Deploy-Hooks: `remote: …`). */
+    @Volatile var receiveMessages: List<String> = emptyList()
 
     val port: Int get() = sshd.port
     val hostKeyBlob: ByteArray get() = KeyUtils.getFingerPrint(sshd.keyPairProvider.loadKeys(null).first().public).toByteArray()
@@ -52,7 +54,11 @@ class TestSshGitServer(val root: File) : AutoCloseable {
             isWrite || isRead
         }
         val resolver = GitLocationResolver { _, _, _, _ -> root.toPath() }
-        val git = GitPackCommandFactory().withGitLocationResolver(resolver)
+        val git = GitPackCommandFactory().withGitLocationResolver(resolver).withGitPackConfiguration(object : org.apache.sshd.git.pack.GitPackConfiguration {
+            override fun configureReceivePack(session: org.apache.sshd.server.session.ServerSession, rp: org.eclipse.jgit.transport.ReceivePack) {
+                rp.setPostReceiveHook { pack, _ -> receiveMessages.forEach { pack.sendMessage(it) } }
+            }
+        })
         sshd.commandFactory = object : CommandFactory {
             override fun createCommand(channel: ChannelSession, command: String): Command {
                 val readOnly = channel.session.getAttribute(READ_ONLY) == true

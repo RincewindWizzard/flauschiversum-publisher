@@ -25,6 +25,10 @@ sealed interface PushOutcome {
  * Remote-Tracking-Refs liegen unter `refs/remotes/origin/…`, lokale Branches unter `refs/heads/…`.
  */
 class RemoteOps(private val store: GitStore, private val remote: SshRemote) {
+    /** Meldungen des Servers zum letzten Push (z. B. Ausgabe eines Deploy-Hooks). */
+    @Volatile var lastServerMessages: ServerMessages = ServerMessages.NONE
+        private set
+
 
     /** Welche Branches der Server hat (nur Köpfe). */
     fun listRemoteHeads(): List<RemoteRef> =
@@ -89,6 +93,7 @@ class RemoteOps(private val store: GitStore, private val remote: SshRemote) {
      * Remote-Tracking-Ref nachgezogen.
      */
     fun push(branches: Map<String, ObjectId>, force: Boolean = false, progress: ProgressMonitor? = null): PushOutcome {
+        lastServerMessages = ServerMessages.NONE
         Git(store.repo).use { git ->
             val specs = branches.keys.map { RefSpec((if (force) "+" else "") + "${branches[it]!!.name}:refs/heads/$it") }
             val results = with(remote) {
@@ -96,9 +101,12 @@ class RemoteOps(private val store: GitStore, private val remote: SshRemote) {
                 if (progress != null) cmd.setProgressMonitor(progress)
                 cmd.useSsh().call()
             }
+            val serverText = ServerMessages.from(results.mapNotNull { it.messages?.takeIf { m -> m.isNotBlank() } }.joinToString("\n"))
+            lastServerMessages = serverText
             for (r in results) for (u in r.remoteUpdates) {
                 if (u.status != RemoteRefUpdate.Status.OK && u.status != RemoteRefUpdate.Status.UP_TO_DATE) {
-                    return PushOutcome.Rejected(u.remoteName, "${u.status}${u.message?.let { ": $it" } ?: ""}")
+                    val why = "${u.status}${u.message?.let { ": $it" } ?: ""}"
+                    return PushOutcome.Rejected(u.remoteName, if (serverText.isEmpty) why else "$why\n${serverText.summary}")
                 }
             }
         }

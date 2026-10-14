@@ -70,12 +70,15 @@ class AppContainer(val context: Context) {
     /** Vorschaubilder der Beiträge aus dem lokalen Klon. */
     val thumbnails = de.flauschiversum.publisher.overview.Thumbnails { rev, path -> runCatching { session.store()?.readBytes(rev, path) }.getOrNull() }
 
+    /** Benachrichtigungen der App (Uploads und Meldungen des Servers). */
+    val notifier = de.flauschiversum.publisher.upload.UploadNotifications(context)
+
     val uploads: de.flauschiversum.publisher.upload.UploadService = run {
         val store = de.flauschiversum.publisher.upload.JobStore(File(filesDir, "outbox"))
         val runner = de.flauschiversum.publisher.upload.UploadRunner(store, session, { photoPlacement }, { settingsSnapshot }, network, onDraftChanged = { draftChanges.value++ }, diag = diag)
         de.flauschiversum.publisher.upload.UploadService(
             store, runner, de.flauschiversum.publisher.upload.WorkManagerScheduler(context), { settingsSnapshot }, network,
-            de.flauschiversum.publisher.upload.UploadNotifications(context), appScope,
+            notifier, appScope,
         )
     }
 

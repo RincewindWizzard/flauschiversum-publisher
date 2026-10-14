@@ -15,7 +15,9 @@ class UploadNotifications(private val context: Context) {
     companion object {
         const val CHANNEL = "uploads"
         const val EXTRA_OPEN_OUTBOX = "de.flauschiversum.publisher.OPEN_OUTBOX"
+        const val PROBLEM_CHANNEL = "server-problems"
         private const val ONGOING_ID = 7001
+        private const val PROBLEM_ID = 7002
     }
 
     private fun ensureChannel() {
@@ -45,12 +47,34 @@ class UploadNotifications(private val context: Context) {
         if (!nm.areNotificationsEnabled()) return
         ensureChannel()
         val (title, text) = when (job.status) {
-            JobStatus.DONE -> "Hochgeladen" to job.label
+            JobStatus.DONE -> if (job.message != null) "Hochgeladen – Hinweis vom Server" to job.message else "Hochgeladen" to job.label
             JobStatus.FAILED -> "Hochladen fehlgeschlagen" to (job.message ?: job.label)
             else -> return
         }
         val n = NotificationCompat.Builder(context, CHANNEL).setSmallIcon(android.R.drawable.stat_sys_upload_done).setContentTitle(title).setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(openOutbox()).setAutoCancel(true).build()
         runCatching { nm.notify(job.id.hashCode(), n) }
+    }
+
+    /**
+     * Meldet einen Fehler, den der Server beim Veröffentlichen ausgibt (z. B. ein fehlgeschlagenes Deployment). Der Text
+     * steht ausgeklappt vollständig da, damit man ohne Server-Zugang versteht, was schiefging. Eigener Kanal mit
+     * höherer Wichtigkeit: Das Veröffentlichen sieht sonst wie ein Erfolg aus.
+     */
+    @android.annotation.SuppressLint("MissingPermission") // areNotificationsEnabled() prüft die Berechtigung; SecurityException wird abgefangen
+    fun serverProblem(title: String, summary: String, full: String) {
+        val nm = NotificationManagerCompat.from(context)
+        if (!nm.areNotificationsEnabled()) return
+        if (Build.VERSION.SDK_INT >= 26) {
+            val sys = context.getSystemService(NotificationManager::class.java)
+            if (sys.getNotificationChannel(PROBLEM_CHANNEL) == null) sys.createNotificationChannel(
+                NotificationChannel(PROBLEM_CHANNEL, "Meldungen des Servers", NotificationManager.IMPORTANCE_HIGH).apply { description = "Fehler, die der Server beim Veröffentlichen meldet" },
+            )
+        }
+        val n = NotificationCompat.Builder(context, PROBLEM_CHANNEL).setSmallIcon(android.R.drawable.stat_notify_error).setContentTitle(title).setContentText(summary.lineSequence().firstOrNull().orEmpty())
+            .setStyle(NotificationCompat.BigTextStyle().bigText(full.ifBlank { summary }).setSummaryText(summary.takeIf { full.isBlank() }))
+            .setContentIntent(openOutbox()).setAutoCancel(true).setPriority(NotificationCompat.PRIORITY_HIGH).build()
+        runCatching { nm.notify(PROBLEM_ID, n) }
     }
 }

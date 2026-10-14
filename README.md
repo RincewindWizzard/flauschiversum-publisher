@@ -42,6 +42,11 @@ Mit *Einstellungen → Einrichtung wiederholen* lässt sich jeder Schritt erneut
   Tabellenzeile mit falscher Spaltenzahl) und Warnungen (übersprungene Überschriftenebene, leere Links, mehrere
   Leerzeilen) sind im Text markiert; „Prüfung: …“ unter dem Editor öffnet die Liste, ein Tipp springt zur Stelle.
   Vor dem Speichern und Veröffentlichen warnt die App bei Fehlern; Weitermachen ist möglich.
+- **Meldungen des Servers:** Gibt der Server beim Push Text aus (die `remote:`-Zeilen, z. B. von einem Deploy-Hook) und
+  steht darin ein Fehler („Fehler“, „fehlgeschlagen“, „error“, „failed“ …), zeigt die App nach dem Veröffentlichen eine
+  Meldung mit dem Grund und eine Benachrichtigung („Veröffentlicht, aber der Server meldet einen Fehler“) mit dem
+  vollständigen Text. Der Push selbst gilt als angekommen; die Seite im Netz ist dann aber nicht aktualisiert. Ohne
+  erteilte Berechtigung für Benachrichtigungen bleibt die Meldung in der App stehen.
 - **Rechtschreibung** (Deutsch, eingebautes Wörterbuch): Falsche Wörter sind unterstrichen. Steht der Cursor im Wort,
   erscheinen bis zu fünf Vorschläge sowie „Ins Wörterbuch“ und „Ignorieren“. Das persönliche Wörterbuch lässt sich in
   den Einstellungen bearbeiten. Schlagworte aus `tags.yaml` gelten als richtig.
