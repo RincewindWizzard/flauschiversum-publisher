@@ -20,6 +20,8 @@ data class SettingsUi(
     val hostKeys: List<StoredHostKey> = emptyList(),
     val pinned: Map<String, Set<String>> = emptyMap(),
     val dictionary: List<String> = emptyList(),
+    /** Erklärung zur App-Sperre (z. B. fehlende Gerätesperre). */
+    val lockMessage: String? = null,
 )
 
 class SettingsViewModel(val c: AppContainer) : ViewModel() {
@@ -45,6 +47,25 @@ class SettingsViewModel(val c: AppContainer) : ViewModel() {
     fun setTheme(mode: ThemeMode) = update { it.copy(themeMode = mode) }
 
     val container: AppContainer get() = c
+
+    /** Schaltet die App-Sperre ein (nach Bestätigung durch die Geräte-Authentifizierung) oder aus. */
+    suspend fun setLock(context: android.content.Context, on: Boolean) {
+        if (!on) {
+            update { it.copy(lockEnabled = false) }; c.lock.disabledNow(); _ui.update { it.copy(lockMessage = null) }; return
+        }
+        when (c.authenticator.availability(context)) {
+            de.flauschiversum.publisher.lock.LockAvailability.AVAILABLE -> {
+                val r = c.authenticator.authenticate(context, "App-Sperre einschalten")
+                if (r == de.flauschiversum.publisher.lock.AuthResult.SUCCESS) {
+                    update { it.copy(lockEnabled = true) }; c.lock.enabledNow(); _ui.update { it.copy(lockMessage = null) }
+                } else _ui.update { it.copy(lockMessage = "Die Sperre wurde nicht eingeschaltet, weil die Bestätigung fehlte.") }
+            }
+            de.flauschiversum.publisher.lock.LockAvailability.NOT_SET_UP ->
+                _ui.update { it.copy(lockMessage = "Auf diesem Gerät ist keine Bildschirmsperre eingerichtet. Richte zuerst eine PIN, ein Muster oder einen Fingerabdruck in den Android-Einstellungen ein.") }
+            de.flauschiversum.publisher.lock.LockAvailability.UNSUPPORTED ->
+                _ui.update { it.copy(lockMessage = "Dieses Gerät unterstützt keine Geräte-Authentifizierung für die App-Sperre.") }
+        }
+    }
     fun addDictionaryWord(word: String) { c.spell.personal.add(word.trim()); _ui.update { it.copy(dictionary = c.spell.personal.all()) } }
     fun removeDictionaryWord(word: String) { c.spell.personal.remove(word); _ui.update { it.copy(dictionary = c.spell.personal.all()) } }
 

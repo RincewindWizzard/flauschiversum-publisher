@@ -1,7 +1,6 @@
 package de.flauschiversum.publisher
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
@@ -22,12 +21,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainActivity : ComponentActivity() {
+class MainActivity : androidx.fragment.app.FragmentActivity() {
     private val container: AppContainer get() = (application as PublisherApp).container
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        applySecure(container.settingsSnapshot.lockEnabled)
         handleShare(intent)
         if (intent?.getBooleanExtra(de.flauschiversum.publisher.upload.UploadNotifications.EXTRA_OPEN_OUTBOX, false) == true) container.openOutbox.value = true
         container.appScope.launch(Dispatchers.IO) { container.uploads.cleanup(); container.uploads.resumeAll() }
@@ -35,8 +35,12 @@ class MainActivity : ComponentActivity() {
             val settings by container.settings.settings.collectAsState(initial = container.settingsSnapshot)
             var start by remember { mutableStateOf<String?>(null) }
             LaunchedEffect(Unit) { start = withContext(Dispatchers.IO) { startRoute() } }
+            // FLAG_SECURE: bei aktiver Sperre zeigt die Übersicht der zuletzt benutzten Apps keinen Inhalt
+            LaunchedEffect(settings.lockEnabled) { applySecure(settings.lockEnabled) }
             FlauschiversumPublisherTheme(settings.themeMode) {
-                start?.let { AppNav(container, rememberNavController(), it) }
+                de.flauschiversum.publisher.ui.lock.LockGate(container) {
+                    start?.let { AppNav(container, rememberNavController(), it) }
+                }
             }
         }
     }
@@ -56,7 +60,18 @@ class MainActivity : ComponentActivity() {
         kotlinx.coroutines.runBlocking(Dispatchers.IO) { container.incoming.receive(shared) }
     }
 
+    private fun applySecure(enabled: Boolean) {
+        if (enabled) window.setFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE, android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (!isChangingConfigurations) container.lock.onLeave() // Drehen sperrt nicht
+    }
+
     override fun onStart() {
+        container.lock.onReturn()
         super.onStart()
         container.requestSync(SyncReason.FOREGROUND)
     }

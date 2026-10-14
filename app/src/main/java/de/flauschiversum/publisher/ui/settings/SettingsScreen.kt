@@ -2,6 +2,7 @@ package de.flauschiversum.publisher.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
@@ -131,6 +132,24 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
             }
             HorizontalDivider()
 
+            Section("Sicherheit")
+            val scope = androidx.compose.runtime.rememberCoroutineScope()
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Switch(checked = s.lockEnabled, onCheckedChange = { v -> scope.launch { vm.setLock(context, v) } },
+                    modifier = Modifier.heightIn(min = 48.dp).testTag("lock-switch").semantics { contentDescription = "App-Sperre" })
+                Text("App-Sperre mit Gerätesperre")
+            }
+            ui.lockMessage?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("lock-message")) }
+            if (s.lockEnabled) {
+                Text("Sperren nach dem Verlassen", style = MaterialTheme.typography.bodySmall)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    de.flauschiversum.publisher.lock.LockDelay.entries.forEach { d ->
+                        FilterChip(selected = s.lockDelay == d.name, onClick = { vm.update { it.copy(lockDelay = d.name) } }, label = { Text(d.label) }, modifier = Modifier.heightIn(min = 48.dp).testTag("lock-delay-${d.name}"))
+                    }
+                }
+            }
+            HorizontalDivider()
+
             Section("Diagnose")
             var showLog by remember { mutableStateOf(false) }
             var confirmClear by remember { mutableStateOf(false) }
@@ -155,6 +174,11 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
             Section("Über")
             Text("Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", modifier = Modifier.testTag("about-version"))
             Text("Build ${BuildConfig.BUILD_ID}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("about-build"))
+            Text(
+                "Datenschutz: Die App verbindet sich nur per SSH mit dem eingestellten Git-Server. Es gibt keine Analyse, Werbung oder Absturzberichte an Dritte. " +
+                    "Schlüssel, Klon, Aufträge und Protokoll liegen im privaten App-Speicher und sind von Backups ausgenommen. Die Vorschau lädt nichts aus dem Netz.",
+                style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("about-privacy"),
+            )
             var showLicenses by remember { mutableStateOf(false) }
             OutlinedButton(onClick = { showLicenses = true }, modifier = Modifier.testTag("about-licenses")) { Text("Lizenzen") }
             if (showLicenses) AlertDialog(

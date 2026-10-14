@@ -30,6 +30,10 @@ class AppContainer(val context: Context) {
     @Volatile var settingsSnapshot: AppSettings = runBlocking { settings.current() }
         private set
 
+    /** Austauschbar für Tests. */
+    var lock = de.flauschiversum.publisher.lock.AppLock({ settingsSnapshot })
+    var authenticator: de.flauschiversum.publisher.lock.Authenticator = de.flauschiversum.publisher.lock.BiometricAuthenticator()
+
     /** Diagnoseprotokoll (höchstens 1 MB) und Absturzhinweis. */
     val diag = de.flauschiversum.publisher.diag.DiagnosticLog(File(filesDir, "diagnose/protokoll.log"))
     val crash = de.flauschiversum.publisher.diag.CrashHandler(diag, File(filesDir, "diagnose/absturz.marke"), BuildConfigInfo.version)

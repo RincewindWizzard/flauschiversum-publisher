@@ -26,6 +26,9 @@ data class AppSettings(
     val uploadWifiOnly: Boolean = false,
     /** Der Hinweis zur Vorschau als Annäherung wurde schon gezeigt. */
     val previewHintShown: Boolean = false,
+    /** Optionale App-Sperre mit Geräte-Authentifizierung. */
+    val lockEnabled: Boolean = false,
+    val lockDelay: String = "ONE_MINUTE",
     /** Zeitpunkt der letzten erfolgreichen Aktualisierung (Millisekunden seit 1970), 0 = nie. */
     val lastSyncMillis: Long = 0L,
 ) {
@@ -52,6 +55,8 @@ class SettingsRepository(private val store: DataStore<Preferences>) {
         val editorFontScale = floatPreferencesKey("editor_font_scale")
         val uploadWifiOnly = booleanPreferencesKey("upload_wifi_only")
         val previewHintShown = booleanPreferencesKey("preview_hint_shown")
+        val lockEnabled = booleanPreferencesKey("lock_enabled")
+        val lockDelay = stringPreferencesKey("lock_delay")
         val lastSyncMillis = longPreferencesKey("last_sync_millis")
     }
 
@@ -68,6 +73,8 @@ class SettingsRepository(private val store: DataStore<Preferences>) {
             editorFontScale = p[Keys.editorFontScale] ?: d.editorFontScale,
             uploadWifiOnly = p[Keys.uploadWifiOnly] ?: d.uploadWifiOnly,
             previewHintShown = p[Keys.previewHintShown] ?: d.previewHintShown,
+            lockEnabled = p[Keys.lockEnabled] ?: d.lockEnabled,
+            lockDelay = p[Keys.lockDelay] ?: d.lockDelay,
             lastSyncMillis = p[Keys.lastSyncMillis] ?: d.lastSyncMillis,
         )
     }
@@ -87,6 +94,8 @@ class SettingsRepository(private val store: DataStore<Preferences>) {
             p[Keys.editorFontScale] = next.editorFontScale
             p[Keys.uploadWifiOnly] = next.uploadWifiOnly
             p[Keys.previewHintShown] = next.previewHintShown
+            p[Keys.lockEnabled] = next.lockEnabled
+            p[Keys.lockDelay] = next.lockDelay
             p[Keys.lastSyncMillis] = next.lastSyncMillis
         }
     }

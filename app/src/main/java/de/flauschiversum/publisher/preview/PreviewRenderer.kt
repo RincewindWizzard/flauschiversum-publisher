@@ -144,4 +144,6 @@ object PreviewRenderer {
         .replace(Regex("(?is)<script\\b[^>]*>"), "")
         .replace(Regex("(?is)\\son[a-z]+\\s*=\\s*(\"[^\"]*\"|'[^']*'|[^\\s>]+)"), "")
         .replace(Regex("(?is)(href|src)\\s*=\\s*([\"'])\\s*javascript:[^\"']*\\2"), "$1=\"#\"")
+        // Bilder aus dem Netz werden nie geladen: eingebettete <img> mit Webadresse werden zum Platzhalter
+        .replace(Regex("(?is)<img\\b[^>]*\\bsrc\\s*=\\s*[\"']?\\s*(?:https?:)?//[^>]*>"), "<p class=\"missing\">Externes Bild blockiert</p>")
 }

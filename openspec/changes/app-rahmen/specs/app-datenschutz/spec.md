@@ -21,7 +21,7 @@ Die App SHALL Netzwerkverbindungen ausschließlich per SSH zum in den Einstellun
 - **THEN** lädt die App es nicht und zeigt einen Platzhalter
 
 ### Requirement: Minimale Berechtigungen
-Die App SHALL nur die Berechtigungen anfordern, die sie braucht: Internetzugriff, Netzwerkstatus (für Wiederholung und „Nur über WLAN“) und Benachrichtigungen (Android 13+, erst beim ersten Auftrag). Zugriff auf Fotos erfolgt ausschließlich über die Auswahl bzw. Teilen-Funktion des Systems, nicht über Speicherberechtigungen.
+Die App SHALL nur die Berechtigungen anfordern, die sie braucht: Internetzugriff, Netzwerkstatus (für Wiederholung und „Nur über WLAN“), Benachrichtigungen (Android 13+, erst beim ersten Auftrag) sowie unkritische Berechtigungen ohne Abfrage für längere Uploads und die Geräte-Authentifizierung. Zugriff auf Fotos erfolgt ausschließlich über die Auswahl bzw. Teilen-Funktion des Systems, nicht über Speicherberechtigungen.
 
 #### Scenario: Installation
 - **WHEN** die Berechtigungen der App aufgelistet werden

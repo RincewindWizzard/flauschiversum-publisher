@@ -84,6 +84,39 @@ Mit *Einstellungen → Einrichtung wiederholen* lässt sich jeder Schritt erneut
   übernommen und gepusht; bei einem Konflikt bricht die App ab und ändert nichts.
 - **Verwerfen**: einzelne Entwürfe oder alle; der Zielbranch bleibt unberührt.
 
+## Sicherheit, Datenschutz und Diagnose
+
+- **App-Sperre** (Einstellungen → Sicherheit, Vorgabe aus): verlangt beim Öffnen die Geräte-Authentifizierung (Fingerabdruck,
+  Gesicht, PIN oder Muster; ohne eingerichtete Bildschirmsperre lässt sie sich nicht einschalten). Sperrzeit: sofort, nach 1
+  oder 5 Minuten. Bei aktiver Sperre zeigt die Übersicht der zuletzt benutzten Apps keinen Inhalt (`FLAG_SECURE`). Teilen
+  fragt zuerst nach der Authentifizierung; gespeicherte Hintergrundaufträge laufen auch bei gesperrter App weiter. Es gibt
+  keine App-eigene Passwortumgehung.
+- **Datenschutz**: Die App verbindet sich ausschließlich per SSH mit dem eingestellten Git-Server und enthält keine
+  Analyse-, Werbe- oder Absturzbibliotheken. Berechtigungen: Internet, Netzwerkstatus, Benachrichtigungen (erst beim
+  ersten Auftrag) sowie unkritische Berechtigungen für Uploads im Vordergrund und die Geräte-Authentifizierung; kein Zugriff
+  auf Speicher, Standort, Kontakte oder Mikrofon (Fotos kommen über „Teilen“ bzw. die Fotoauswahl des Systems). Schlüssel,
+  Klon, Aufträge und Protokoll liegen im privaten App-Speicher und sind von Android-Backups ausgenommen. Die Vorschau lädt
+  nichts aus dem Netz. Diese Punkte prüfen Tests (`PrivacyTest`).
+- **Diagnose** (Einstellungen → Diagnose): ein lokales Protokoll (höchstens 1 MB, älteste Einträge fallen weg) mit Zeit,
+  Vorgang, Ergebnis, Fehlerart und Server:Port – nie Schlüssel, Passwörter, Beitragstexte oder Bilder. Anzeigen, als Textdatei
+  teilen (mit App- und Android-Version, nur auf Wunsch) und löschen. Nach einem Absturz erscheint beim nächsten Start ein
+  Hinweis; nichts wird automatisch versendet.
+
+## Installation, Signatur und Updates
+
+- **Bauen und Testen**: `./gradlew lintDebug testDebugUnitTest assembleDebug` (so läuft auch `.github/workflows/ci.yml` bei
+  jedem Push und Pull Request; die Debug-APK hängt als Artefakt am Lauf).
+- **Release**: Ein Tag `vMAJOR.MINOR.PATCH` (z. B. `v1.2.0`) startet `.github/workflows/release.yml`. Es baut die signierte
+  Release-APK und hängt sie an ein Release. Dafür müssen vier Repository-Geheimnisse gesetzt sein: `SIGNING_KEYSTORE_BASE64`
+  (Keystore, mit `base64 -w0 release.jks` kodiert), `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`.
+  Fehlt eines, bricht der Lauf mit einer Meldung ab und veröffentlicht nichts. `versionName` stammt aus dem Tag,
+  `versionCode = MAJOR·10000 + MINOR·100 + PATCH`.
+- **Sideloading**: APK herunterladen, auf dem Handy öffnen und „Installation aus dieser Quelle“ erlauben. Mindestversion ist
+  Android 8.0 (API 26).
+- **Update**: Eine neuere APK mit derselben Signatur lässt sich über die vorhandene App installieren; Schlüssel, Klon,
+  Einstellungen und Aufträge bleiben erhalten. Wichtig: den Keystore sicher aufbewahren – mit einem anderen Schlüssel
+  signierte APKs lassen sich nicht darüber installieren.
+
 ## Entwicklung
 
 ```sh
