@@ -15,9 +15,11 @@ class RepositoryAddressTest {
         assertEquals("git", a.user)
         assertEquals("git.magierdinge.de", a.host)
         assertEquals(2222, a.port)
-        assertEquals("nadja/flauschiversum", a.path)
-        assertEquals("nadja" to "flauschiversum", a.ownerAndName)
-        assertEquals("ssh://git@git.magierdinge.de:2222/nadja/flauschiversum", a.gitUrl)
+        assertEquals("/media/git/nadja/flauschiversum", a.path)
+        assertEquals(RepositoryAddresses.DEFAULT, a.gitUrl)
+        // JGit bekommt Port und absoluten Pfad so, wie `git clone` sie aus der Adresse liest
+        val u = org.eclipse.jgit.transport.URIish(a.gitUrl)
+        assertEquals(2222, u.port); assertEquals("git.magierdinge.de", u.host); assertEquals("/media/git/nadja/flauschiversum", u.path)
         assertTrue(!a.isGitHub)
     }
 

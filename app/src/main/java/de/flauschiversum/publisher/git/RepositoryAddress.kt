@@ -41,8 +41,8 @@ sealed interface AddressParse {
 }
 
 object RepositoryAddresses {
-    const val DEFAULT = "git@git.magierdinge.de:2222:nadja/flauschiversum"
-    const val EXAMPLES = "git@github.com:eigentümer/repo.git, git@server.example:2222:eigentümer/repo oder ssh://git@server.example:2222/srv/git/repo.git"
+    const val DEFAULT = "ssh://git@git.magierdinge.de:2222/media/git/nadja/flauschiversum"
+    const val EXAMPLES = "git@github.com:eigentümer/repo.git, git@server.example:2222:eigentümer/repo (Pfad absolut) oder ssh://git@server.example:2222/srv/git/repo.git"
 
     private val scpForm = Regex("""^([A-Za-z0-9._-]+)@(\[[0-9A-Fa-f:.]+]|[A-Za-z0-9._-]+):(?!//)(.+)$""")
     /** Kurzform mit Port: `benutzer@host:port:pfad`. Ein Pfad, der mit Ziffern und Doppelpunkt beginnt, ist unüblich. */
