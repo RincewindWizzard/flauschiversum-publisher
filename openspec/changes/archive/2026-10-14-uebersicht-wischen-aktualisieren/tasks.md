@@ -16,7 +16,7 @@
 
 - [x] 3.1 Falls die Geste unter Robolectric nicht auslöst: Ursache im Code beheben (z. B. Nested-Scroll der Liste) und mit dem Test festhalten — Die Geste löste unter Robolectric ohne Codeänderung aus; keine Ursache zu beheben
 - [x] 3.2 `README.md` (Übersicht): Aktualisieren per Nach-unten-Ziehen statt Knopf — `README.md` ergänzt
-- [ ] 3.3 Prüfung auf einem Gerät: Gefühl und Auslöseschwelle der Geste (ohne Gerät als offen vermerken) — Gefühl und Auslöseschwelle der Geste sind auf keinem Gerät geprüft
+- [x] 3.3 Prüfung auf einem Gerät: Gefühl und Auslöseschwelle der Geste — vom Nutzer auf dem Gerät bestätigt ("Das hat geklappt")
 
 ## Workflow follow-up
 
