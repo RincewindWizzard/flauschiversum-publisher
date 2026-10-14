@@ -10,6 +10,7 @@ import de.flauschiversum.publisher.git.PublishResult
 import de.flauschiversum.publisher.git.SyncReason
 import de.flauschiversum.publisher.git.UploadState
 import de.flauschiversum.publisher.posts.PostReader
+import de.flauschiversum.publisher.posts.TagCreation
 import de.flauschiversum.publisher.posts.PostSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,11 +37,14 @@ data class HomeUi(
     val confirmPublish: Boolean = false,
     /** Beiträge mit offenen Markdown-Fehlern unter den Entwürfen: Titel → Zahl der Fehler. */
     val publishErrors: Map<String, Int> = emptyMap(),
+    /** Schlagworte, die nur im Entwurf stehen. */
+    val newTags: List<String> = emptyList(),
 )
 
 /** Beitragsübersicht mit Entwürfen und „Veröffentlichen“ (Specs `repository-klon`, `entwurf-veroeffentlichen`). */
 class HomeViewModel(private val c: AppContainer) : ViewModel() {
     private val local = MutableStateFlow(HomeUi())
+    private var newTagsLoaded: List<String> = emptyList()
     val ui: StateFlow<HomeUi> = local.asStateFlow()
 
     init {
@@ -56,7 +60,7 @@ class HomeViewModel(private val c: AppContainer) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val loaded = c.session.locked { load() } ?: return@launch
-                local.update { it.copy(loading = false, drafts = loaded.first, posts = loaded.second, overview = loaded.third) }
+                local.update { it.copy(loading = false, drafts = loaded.first, posts = loaded.second, overview = loaded.third, newTags = newTagsLoaded) }
             } catch (e: Throwable) {
                 local.update { it.copy(loading = false, message = "Beiträge konnten nicht gelesen werden: ${e.message ?: e.javaClass.simpleName}") }
             }
@@ -64,6 +68,7 @@ class HomeViewModel(private val c: AppContainer) : ViewModel() {
     }
 
     private fun load(): Triple<List<PostRow>, List<PostRow>, DraftOverview>? {
+        newTagsLoaded = c.session.workflow()?.let { TagCreation.newTags(it) }.orEmpty()
         val wf = c.session.workflow() ?: return null
         val reader = PostReader(wf.store)
         val overview = wf.overview()

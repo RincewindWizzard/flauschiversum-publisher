@@ -75,7 +75,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () 
                 }
                     }
                 }
-                if (ui.drafts.isNotEmpty() || (ui.overview?.otherChanges?.isNotEmpty() == true)) {
+                if (ui.drafts.isNotEmpty() || ui.newTags.isNotEmpty() || (ui.overview?.otherChanges?.isNotEmpty() == true)) {
                     item { DraftsHeader(ui, vm) }
                     items(ui.drafts, key = { "d-" + it.summary.dir }) { row -> PostItem(row, onClick = { onOpenPost(row.summary.dir) }, onDiscard = { vm.discard(row.summary.dir) }) }
                     item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
@@ -92,6 +92,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () 
 private fun DraftsHeader(ui: HomeUi, vm: HomeViewModel) {
     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("Entwürfe", style = MaterialTheme.typography.titleLarge, modifier = Modifier.testTag("drafts-header"))
+        ui.newTags.forEach { Text("Neues Schlagwort: $it", modifier = Modifier.testTag("new-tag-$it")) }
         val upload = ui.overview?.upload
         if (upload == UploadState.PENDING) Text("Noch nicht hochgeladen", color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("upload-pending"))
         if (upload == UploadState.DIVERGED) Text("Entwurf weicht vom Server ab", color = MaterialTheme.colorScheme.error)
@@ -127,7 +128,8 @@ private fun PublishDialog(ui: HomeUi, vm: HomeViewModel) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("Diese Änderungen gehen live:")
                 posts.forEach { Text("• ${it.dir} (${draftLabel(it.kind)})", modifier = Modifier.testTag("publish-item")) }
-                ui.overview?.otherChanges?.forEach { Text("• ${it.path}") }
+                ui.newTags.forEach { Text("• Neues Schlagwort: $it", modifier = Modifier.testTag("publish-new-tag")) }
+                ui.overview?.otherChanges?.filter { !(it.path == "content/tags.yaml" && ui.newTags.isNotEmpty()) }?.forEach { Text("• ${it.path}") }
                 if (ui.publishErrors.isNotEmpty()) {
                     val n = ui.publishErrors.values.sum()
                     Text(

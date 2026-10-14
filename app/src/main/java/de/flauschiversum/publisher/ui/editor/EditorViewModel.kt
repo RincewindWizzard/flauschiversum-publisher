@@ -23,6 +23,8 @@ import de.flauschiversum.publisher.posts.PostEditing
 import de.flauschiversum.publisher.posts.PostNaming
 import de.flauschiversum.publisher.posts.PostProps
 import de.flauschiversum.publisher.posts.PostReader
+import de.flauschiversum.publisher.posts.TagCreation
+import de.flauschiversum.publisher.posts.TagResult
 import de.flauschiversum.publisher.posts.TagsFile
 import java.io.File
 import java.time.LocalDate
@@ -75,6 +77,7 @@ data class EditorUi(
     val tagQuery: String = "",
     /** Der Beitrag hat sich auf dem Server geändert, während der Nutzer schon eigene Änderungen hat. */
     val serverChanged: Boolean = false,
+    val newTagMessage: String? = null,
     /** Der Beitrag wurde durch eine neuere Fassung vom Server ersetzt (der Nutzer hatte noch nichts getippt). */
     val updatedFromServer: Boolean = false,
 ) {
@@ -262,6 +265,25 @@ class EditorViewModel(private val c: AppContainer, private val handle: SavedStat
     fun useAutoPermalink() = edit { it.copy(permalinkAuto = true).withAutoPermalink() }
     fun setAuthor(v: String) = edit { it.copy(author = v) }
     fun setExcerpt(v: String) { edit { it.copy(excerpt = v) }; scheduleExcerptCheck(v) }
+    /** Legt ein Schlagwort an (Commit auf `draft`) und wählt es für den Beitrag aus. */
+    fun createTag(name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val wf = c.session.workflow() ?: return@launch
+            try {
+                val result = c.session.locked { TagCreation.create(wf, name) to wf.store.readText(wf.baseRev(), TagsFile.PATH)?.let { TagsFile.names(it) }.orEmpty() }
+                val (r, names) = result
+                when (r) {
+                    is TagResult.Created -> { c.spell.setTags(names); c.uploadDraftInBackground(); _ui.update { u -> u.copy(allowedTags = names, tags = (u.tags + r.name).distinct(), newTagMessage = null, tagQuery = "") }; backup() }
+                    is TagResult.Existing -> _ui.update { u -> u.copy(tags = (u.tags + r.name).distinct(), allowedTags = (u.allowedTags + r.name).distinct(), newTagMessage = "„${r.name}“ gab es schon und wurde ausgewählt.") }
+                    is TagResult.Invalid -> _ui.update { it.copy(newTagMessage = r.message) }
+                }
+            } catch (e: Exception) {
+                _ui.update { it.copy(newTagMessage = "Schlagwort konnte nicht angelegt werden: ${e.message}") }
+            }
+        }
+    }
+    fun newTagMessageShown() { _ui.update { it.copy(newTagMessage = null) } }
+
     fun setTagQuery(v: String) { _ui.update { it.copy(tagQuery = v) } }
     fun setTime(t: java.time.LocalTime?) = edit { u -> u.copy(date = u.date?.copy(time = t)) }
     fun excerptFromText() { setExcerpt(de.flauschiversum.publisher.editor.Excerpt.firstSentence(_ui.value.body)) }

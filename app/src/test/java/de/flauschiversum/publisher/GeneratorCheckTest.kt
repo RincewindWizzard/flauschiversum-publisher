@@ -17,6 +17,7 @@ import de.flauschiversum.publisher.testsupport.BlogFixture
 import de.flauschiversum.publisher.testsupport.GeneratorCheck
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStream
 import java.time.LocalDate
 import javax.imageio.ImageIO
@@ -74,5 +75,17 @@ class GeneratorCheckTest {
         val after = GeneratorCheck.check(GeneratorCheck.prepare(tmp.newFolder("after"), wf))
         assertEquals(after.output, 0, after.exitCode)
         assertEquals(base.warnings, after.warnings)
+    }
+
+    @Test fun beitragMitNeuemSchlagwortBautUndErzeugtDieSchlagwortSeite() {
+        de.flauschiversum.publisher.posts.TagCreation.create(wf, "Makramee")
+        val date = PostDate(LocalDate.of(2026, 10, 13), null)
+        val doc = PostEditing.apply(null, null, PostProps("Makramee-Test", date, PostNaming.permalink(date.date, "makramee-test"), listOf("Makramee"), "Ermeline", null, null), "Knoten.\n")
+        wf.commit(listOf(TreeChange.Put("content/posts/makramee-test/index.md", doc.text.toByteArray())), "Beitrag: Makramee-Test")
+        val work = GeneratorCheck.prepare(tmp.newFolder("tag"), wf)
+        val (result, dist) = GeneratorCheck.build(work)
+        assertEquals(result.output, 0, result.exitCode)
+        assertTrue(File(dist, "tag/makramee/index.html").isFile)
+        assertTrue(File(dist, "tag/makramee/index.html").readText().contains("Makramee-Test"))
     }
 }

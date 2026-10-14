@@ -49,6 +49,17 @@ object GeneratorCheck {
         return Result(p.exitValue(), out)
     }
 
+    /** Baut die Seite in `work/dist` (Bild-Cache gemeinsam für alle Läufe); gibt Ausgabe und Ausgabeverzeichnis zurück. */
+    fun build(work: File): Pair<Result, File> {
+        val gen = generatorDir()
+        val bin = File(gen, "target/release/flauschiversum").absolutePath
+        val cache = File(gen, ".publisher-cache").also { it.mkdirs() }
+        val p = ProcessBuilder(bin, "build", "--cache", cache.absolutePath).directory(work).redirectErrorStream(true).start()
+        val out = p.inputStream.bufferedReader().readText()
+        if (!p.waitFor(900, TimeUnit.SECONDS)) { p.destroyForcibly(); error("Generator-Bau dauert zu lange") }
+        return Result(p.exitValue(), out) to File(work, "dist")
+    }
+
     private fun run(cmd: List<String>, dir: File) {
         val p = ProcessBuilder(cmd).directory(dir).redirectErrorStream(true).start()
         val out = p.inputStream.bufferedReader().readText()

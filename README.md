@@ -44,6 +44,9 @@ Mit *Einstellungen → Einrichtung wiederholen* lässt sich jeder Schritt erneut
 - **Eigenschaften** (Menü im Editor): Titel, Datum mit Kalender und optionaler Uhrzeit, Permalink (Vorschlag aus Datum
   und Titel), Schlagworte mit Suche, Autor (bekannte Autoren zum Antippen), Titelbild als Vorschau-Raster und
   Kurzbeschreibung mit Zähler und „Aus Text übernehmen“.
+- **Neues Schlagwort**: In den Eigenschaften unter „Schlagworte“ → „Neues Schlagwort …“. Der Name wird sortiert in
+  `content/tags.yaml` eingetragen (eigener Commit auf `draft`, in der Entwurfsliste als „Neues Schlagwort: …“) und sofort
+  für den Beitrag gewählt. Gibt es das Schlagwort schon (auch in anderer Schreibweise), wählt die App das vorhandene.
 - **Beitrag bearbeiten**: Antippen in der Übersicht. Die App zeigt den Entwurf, sonst den Stand des Zielbranches, und
   übernimmt neuere Fassungen vom Server, solange noch nichts getippt wurde; sonst erscheint ein Hinweis.
 - **Speichern** legt einen Commit auf `draft` an und lädt ihn im Hintergrund hoch („Noch nicht hochgeladen“ erscheint,

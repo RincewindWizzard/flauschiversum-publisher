@@ -271,6 +271,7 @@ private fun ImageInsertDialog(files: List<String>, onDismiss: () -> Unit, onInse
 private fun PropertiesContent(ui: EditorUi, vm: EditorViewModel) {
     var showDate by remember { mutableStateOf(false) }
     var showTime by remember { mutableStateOf(false) }
+    var showNewTag by remember { mutableStateOf(false) }
     val scheme = MaterialTheme.colorScheme
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         OutlinedTextField(ui.title, vm::setTitle, label = { Text("Titel") }, singleLine = true, isError = ui.error(Fields.TITLE) != null,
@@ -296,6 +297,8 @@ private fun PropertiesContent(ui: EditorUi, vm: EditorViewModel) {
             if (shown.isEmpty() && q.isNotEmpty()) Text("Kein Schlagwort gefunden.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("tag-none"))
         }
         ui.error(Fields.TAGS)?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        TextButton(onClick = { showNewTag = true }, modifier = Modifier.testTag("new-tag")) { Text("Neues Schlagwort …") }
+        ui.newTagMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("new-tag-message")) }
 
         OutlinedTextField(ui.author, vm::setAuthor, label = { Text("Autor") }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("prop-author"))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -330,6 +333,7 @@ private fun PropertiesContent(ui: EditorUi, vm: EditorViewModel) {
             dismissButton = { TextButton(onClick = { showDate = false }) { Text("Abbrechen") } },
         ) { DatePicker(state = state) }
     }
+    if (showNewTag) NewTagDialog(ui.allowedTags, onDismiss = { showNewTag = false }) { name -> vm.createTag(name); showNewTag = false }
     if (showTime) {
         val t = ui.date?.time
         val state = rememberTimePickerState(initialHour = t?.hour ?: 12, initialMinute = t?.minute ?: 0, is24Hour = true)
@@ -364,4 +368,21 @@ class UnderlineTransformation(private val words: List<Misspelling>, private val 
         for (m in words) if (m.end <= text.length && m.start < m.end) b.addStyle(SpanStyle(textDecoration = TextDecoration.Underline, color = color), m.start, m.end)
         return TransformedText(b.toAnnotatedString(), OffsetMapping.Identity)
     }
+}
+
+@Composable
+private fun NewTagDialog(existing: List<String>, onDismiss: () -> Unit, onCreate: (String) -> Unit) {
+    var name by remember { mutableStateOf("") }
+    val error = if (name.isEmpty()) null else de.flauschiversum.publisher.posts.TagsFile.validate(name, existing)
+    val duplicate = de.flauschiversum.publisher.posts.TagsFile.match(name.trim(), existing)
+    AlertDialog(
+        onDismissRequest = onDismiss, title = { Text("Neues Schlagwort") },
+        text = { Column {
+            OutlinedTextField(name, { name = it }, label = { Text("Name") }, singleLine = true, isError = error != null,
+                supportingText = { Text(error ?: "${name.trim().length}/${de.flauschiversum.publisher.posts.TagsFile.MAX_LENGTH}") }, modifier = Modifier.testTag("new-tag-name"))
+            if (duplicate != null) TextButton(onClick = { onCreate(duplicate) }, modifier = Modifier.testTag("new-tag-use-existing")) { Text("„$duplicate“ auswählen") }
+        } },
+        confirmButton = { TextButton(onClick = { onCreate(name) }, enabled = name.isNotBlank() && de.flauschiversum.publisher.posts.TagsFile.validate(name, existing) == null, modifier = Modifier.testTag("new-tag-create")) { Text("Anlegen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+    )
 }
