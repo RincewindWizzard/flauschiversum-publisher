@@ -96,8 +96,6 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
         composable(Routes.SHARE) {
             val vm: ShareViewModel = viewModel(factory = factory)
             val askedKey = "notifications_asked"
-            var afterPermission by remember { mutableStateOf<(() -> Unit)?>(null) }
-            val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { afterPermission?.invoke(); afterPermission = null }
             val context = androidx.compose.ui.platform.LocalContext.current
             ShareScreen(vm, onClose = { if (!nav.popBackStack()) nav.navigate(Routes.HOME) }, beforeSave = { proceed ->
                 // Berechtigung für Benachrichtigungen erst beim ersten Auftrag erbitten; die App funktioniert auch ohne
@@ -105,8 +103,8 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
                 if (android.os.Build.VERSION.SDK_INT >= 33 && !prefs.getBoolean(askedKey, false) &&
                     androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                     prefs.edit().putBoolean(askedKey, true).apply()
-                    afterPermission = proceed
-                    permission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    NotificationPermission.request(context)
+                    proceed()
                 } else proceed()
             })
         }
