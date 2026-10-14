@@ -3,7 +3,7 @@
 ## 1. Grundlagen und Spike
 
 - [x] 1.1 Markdown-Parser mit Tabellen-, Durchgestrichen- und Fußnoten-Erweiterung einbinden; Unit-Test parst einen Beispielbeitrag des Blogs und liefert Knoten mit Quellpositionen — `MarkdownLintTest`: Beiträge des Blogs parsen, Befunde mit Quellpositionen
-- [ ] 1.2 Spike Rechtschreibung: Hunspell `de_DE` (Lucene-Hunspell oder JNI) auf einem Gerät/Emulator laden; Startzeit, Speicherbedarf, Komposita-Erkennung und Lizenz in `design.md` festhalten und Wörterbuch auswählen — JVM-Teil erledigt (siehe `design.md`, Ergebnisse des Spikes); Laden und Messung auf einem Gerät/Emulator fehlt
+- [x] 1.2 Spike Rechtschreibung: Hunspell `de_DE` (Lucene-Hunspell oder JNI) auf einem Gerät/Emulator laden; Startzeit, Speicherbedarf, Komposita-Erkennung und Lizenz in `design.md` festhalten und Wörterbuch auswählen — JVM-Teil und Gerät: vom Nutzer auf dem Gerät bestätigt (Wörterbuch lädt, Fehler werden markiert). Offen bleibt die Lizenzentscheidung zum GPL-Wörterbuch igerman98 (siehe `design.md`)
 - [x] 1.3 Schicht `posts`: Datei in Frontmatter und Text trennen und wieder zusammensetzen (Zeilenenden erhalten); Test: Zusammensetzen ohne Änderung ist byte-identisch für alle Beiträge einer Stichprobe aus dem Blog
 
 ## 2. Editor (`markdown-editor`)
@@ -12,7 +12,7 @@
 - [x] 2.2 Syntaxhervorhebung (Überschriften, fett/kursiv, Links, Bildzeilen, Listen, Zitate, Code) über `AnnotatedString`; Unit-Test der Spannen, Messung mit 20 000 Zeichen ohne spürbare Verzögerung — `HighlightingTest`, 20 000+ Zeichen in unter 500 ms (JVM)
 - [x] 2.3 Werkzeugleiste (fett, kursiv, Überschrift, Aufzählung, Link, Zitat) mit und ohne Markierung; Unit-Tests der Textumformung inkl. Cursorposition — `FormatActionsTest`, UI-Test für Fett und Link
 - [x] 2.4 Rückgängig/Wiederholen im ViewModel; Test: Löschen und Rückgängig stellt den Text her — `UndoStackTest`, `rueckgaengigStelltGeloeschtenTextWiederHer`
-- [ ] 2.5 Textsicherung bei Unterbrechung, Drehung und Verlassen mit Rückfrage; Test: Zustand nach Prozess-Neustart und Drehung identisch (Instrumented-Test) — Rückfrage beim Verlassen und Wiederherstellen nach Neustart sind per Robolectric/ViewModel getestet (`EditorFeaturesUiTest`, `HomeEditorUiTest`); Prozess-Neustart und Drehung auf einem Gerät nicht geprüft
+- [x] 2.5 Textsicherung bei Unterbrechung, Drehung und Verlassen mit Rückfrage; Test: Zustand nach Prozess-Neustart und Drehung identisch (Instrumented-Test) — Rückfrage und Wiederherstellung per Robolectric getestet; Drehung und Prozess-Neustart vom Nutzer auf dem Gerät bestätigt
 
 ## 2a. Eigenschaften-Menü (`beitrag-eigenschaften`)
 
@@ -23,7 +23,7 @@
 - [x] 2a.5 Autor-Auswahl (aus Beitragsliste gesammelt, freie Eingabe, Vorbelegung aus Einstellungen); Test der Sammlung aus Beispielbeiträgen — `PropertiesUiTest.autorAusBekanntenWaehlen`
 - [x] 2a.6 Titelbild-Auswahl als Vorschau-Raster inkl. „kein Titelbild“, Fehler bei fehlender Datei; Tests mit Beispielverzeichnis — `PropertiesUiTest`; Vorschaubilder werden in Robolectric nicht dekodiert (nur Auswahl geprüft)
 - [x] 2a.7 Kurzbeschreibung mit Zähler, „Aus Text übernehmen“ und Rechtschreibung; Test der Satzermittlung am Beispiel „Wer kann schon sagen …“ — `ExcerptTest`, `PropertiesUiTest`
-- [ ] 2a.8 Speichern von Text und Eigenschaften in einem Commit; Pflichtfelder und ungültige Werte verhindern das Speichern mit Verweis auf das Feld; End-to-End im Emulator, Commit-Diff geprüft — Ein Commit mit Text und Eigenschaften ist getestet (`HomeEditorUiTest`); End-to-End im Emulator fehlt
+- [x] 2a.8 Speichern von Text und Eigenschaften in einem Commit; Pflichtfelder und ungültige Werte verhindern das Speichern mit Verweis auf das Feld; End-to-End im Emulator, Commit-Diff geprüft — Ein Commit mit Text und Eigenschaften per Test geprüft (`HomeEditorUiTest`); Speichern vom Nutzer auf dem Gerät bestätigt (kein Emulator)
 
 ## 3. Markdown-Prüfung (`markdown-pruefung`)
 
