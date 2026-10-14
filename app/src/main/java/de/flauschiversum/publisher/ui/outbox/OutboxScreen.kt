@@ -32,6 +32,15 @@ import de.flauschiversum.publisher.upload.JobStatus
 import de.flauschiversum.publisher.upload.UploadJob
 import java.text.DateFormat
 import java.util.Date
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.Icons
+import de.flauschiversum.publisher.ui.components.AppOutlinedButton
+import de.flauschiversum.publisher.ui.components.AppTextButton
+import de.flauschiversum.publisher.ui.components.AppIconButton
 
 /** Ausgangsbox: alle Aufträge mit Status; Wiederholen, Abbrechen (mit Bestätigung), „Jetzt senden“. */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -40,7 +49,7 @@ fun OutboxScreen(c: AppContainer, onBack: () -> Unit, onFixAccess: () -> Unit = 
     val jobs by c.uploads.jobs.collectAsState()
     var cancelId by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) { c.uploads.cleanup() }
-    Scaffold(topBar = { TopAppBar(title = { Text("Ausgang") }, navigationIcon = { TextButton(onClick = onBack, modifier = Modifier.testTag("outbox-back")) { Text("Zurück") } }) }) { pad ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Ausgang") }, navigationIcon = { AppIconButton(icon = Icons.Default.ArrowBack, label = "Zurück", onClick = onBack, modifier = Modifier.testTag("outbox-back")) }) }) { pad ->
         LazyColumn(Modifier.padding(pad).padding(horizontal = 16.dp).testTag("outbox-list"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (jobs.isEmpty()) item { Text("Keine Aufträge.", modifier = Modifier.padding(top = 16.dp).testTag("outbox-empty")) }
             items(jobs, key = { it.id }) { job -> JobCard(c, job, onCancel = { cancelId = job.id }, onFixAccess = onFixAccess) }
@@ -50,8 +59,8 @@ fun OutboxScreen(c: AppContainer, onBack: () -> Unit, onFixAccess: () -> Unit = 
         AlertDialog(
             onDismissRequest = { cancelId = null }, title = { Text("Auftrag abbrechen?") },
             text = { Text("Die gesicherten Fotos werden gelöscht.") },
-            confirmButton = { TextButton(onClick = { c.uploads.cancel(id); cancelId = null }, modifier = Modifier.testTag("cancel-confirm")) { Text("Abbrechen und löschen") } },
-            dismissButton = { TextButton(onClick = { cancelId = null }, modifier = Modifier.testTag("cancel-keep")) { Text("Behalten") } },
+            confirmButton = { AppTextButton(onClick = { c.uploads.cancel(id); cancelId = null }, modifier = Modifier.testTag("cancel-confirm"), label = "Abbrechen und löschen", icon = Icons.Default.Close) },
+            dismissButton = { AppTextButton(onClick = { cancelId = null }, modifier = Modifier.testTag("cancel-keep"), label = "Behalten", icon = Icons.Default.Close) },
         )
     }
 }
@@ -69,10 +78,10 @@ private fun JobCard(c: AppContainer, job: UploadJob, onCancel: () -> Unit, onFix
                 color = if (failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface, modifier = Modifier.testTag("status-${job.id}"),
             )
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (failed) OutlinedButton(onClick = { c.uploads.retry(job.id) }, modifier = Modifier.testTag("retry-${job.id}")) { Text("Wiederholen") }
-                if (failed && job.message?.contains("Zugriff") == true) OutlinedButton(onClick = onFixAccess, modifier = Modifier.testTag("fix-${job.id}")) { Text("Zur Einrichtung") }
-                if (job.status == JobStatus.WAITING_WIFI) OutlinedButton(onClick = { c.uploads.sendNow(job.id) }, modifier = Modifier.testTag("sendnow-${job.id}")) { Text("Jetzt senden") }
-                if (c.uploads.canCancel(job)) OutlinedButton(onClick = onCancel, modifier = Modifier.testTag("cancel-${job.id}")) { Text("Abbrechen") }
+                if (failed) AppOutlinedButton(onClick = { c.uploads.retry(job.id) }, modifier = Modifier.testTag("retry-${job.id}"), label = "Wiederholen", icon = Icons.Default.Refresh)
+                if (failed && job.message?.contains("Zugriff") == true) AppOutlinedButton(onClick = onFixAccess, modifier = Modifier.testTag("fix-${job.id}"), label = "Zur Einrichtung", icon = Icons.Default.Settings)
+                if (job.status == JobStatus.WAITING_WIFI) AppOutlinedButton(onClick = { c.uploads.sendNow(job.id) }, modifier = Modifier.testTag("sendnow-${job.id}"), label = "Jetzt senden", icon = Icons.Default.Send)
+                if (c.uploads.canCancel(job)) AppOutlinedButton(onClick = onCancel, modifier = Modifier.testTag("cancel-${job.id}"), label = "Abbrechen", icon = Icons.Default.Close)
             }
         }
     }

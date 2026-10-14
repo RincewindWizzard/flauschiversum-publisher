@@ -41,6 +41,21 @@ import androidx.compose.ui.unit.dp
 import de.flauschiversum.publisher.BuildConfig
 import de.flauschiversum.publisher.ui.Platform
 import de.flauschiversum.publisher.ui.theme.ThemeMode
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.Icons
+import de.flauschiversum.publisher.ui.components.AppOutlinedButton
+import de.flauschiversum.publisher.ui.components.AppTextButton
+import de.flauschiversum.publisher.ui.components.AppIconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,20 +63,20 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
     val ui by vm.ui.collectAsState()
     val s = ui.settings
     val context = LocalContext.current
-    Scaffold(topBar = { TopAppBar(title = { Text("Einstellungen") }, navigationIcon = { TextButton(onClick = onBack, modifier = Modifier.testTag("settings-back")) { Text("Zurück") } }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Einstellungen") }, navigationIcon = { AppIconButton(icon = Icons.Default.ArrowBack, label = "Zurück", onClick = onBack, modifier = Modifier.testTag("settings-back")) }) }) { padding ->
         Column(Modifier.padding(padding).padding(horizontal = 16.dp).fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Section("Repository")
             Text("Adresse: ${s.repositoryAddress}", modifier = Modifier.testTag("settings-address"))
-            OutlinedButton(onClick = { vm.changeAddress(onSetup) }) { Text("Adresse ändern …") }
+            AppOutlinedButton(onClick = { vm.changeAddress(onSetup) }, label = "Adresse ändern …", icon = Icons.Default.Edit)
             TextField("Zielbranch", s.targetBranch, "settings-branch") { v -> vm.update { it.copy(targetBranch = v.trim().ifEmpty { "main" }) } }
             var confirmReinstall by remember { mutableStateOf(false) }
-            OutlinedButton(onClick = { confirmReinstall = true }) { Text("Repository neu holen …") }
+            AppOutlinedButton(onClick = { confirmReinstall = true }, label = "Repository neu holen …", icon = Icons.Default.Refresh)
             if (confirmReinstall) AlertDialog(
                 onDismissRequest = { confirmReinstall = false },
                 title = { Text("Repository neu holen?") },
                 text = { Text("Der lokale Klon wird gelöscht und neu geholt. Nicht hochgeladene Entwürfe gehen dabei verloren. Der Schlüssel bleibt.") },
-                confirmButton = { TextButton(onClick = { confirmReinstall = false; vm.reinstallRepository(onSetup) }) { Text("Neu holen") } },
-                dismissButton = { TextButton(onClick = { confirmReinstall = false }) { Text("Abbrechen") } },
+                confirmButton = { AppTextButton(onClick = { confirmReinstall = false; vm.reinstallRepository(onSetup) }, label = "Neu holen", icon = Icons.Default.Refresh) },
+                dismissButton = { AppTextButton(onClick = { confirmReinstall = false }, label = "Abbrechen", icon = Icons.Default.Close) },
             )
             HorizontalDivider()
 
@@ -88,13 +103,13 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
                 Text("Nur über WLAN hochladen")
             }
             Text("Manche Hersteller beenden Hintergrundaufgaben früh. Wenn Uploads nicht von selbst laufen, nimm die App von der Akku-Optimierung aus.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("battery-hint"))
-            OutlinedButton(onClick = { runCatching { context.startActivity(android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } }, modifier = Modifier.testTag("battery-settings")) { Text("Akku-Einstellungen öffnen") }
+            AppOutlinedButton(onClick = { runCatching { context.startActivity(android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } }, modifier = Modifier.testTag("battery-settings"), label = "Akku-Einstellungen öffnen", icon = Icons.Default.Settings)
             HorizontalDivider()
 
             Section("SSH-Schlüssel")
             Text(ui.keyFingerprint ?: "Kein Schlüssel vorhanden", fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
-            ui.publicKey?.let { pk -> OutlinedButton(onClick = { Platform.copy(context, "Öffentlicher Schlüssel", pk, "Öffentlicher Schlüssel kopiert") }) { Text("Öffentlichen Schlüssel kopieren") } }
-            OutlinedButton(onClick = { vm.forgetRegistration(onSetup) }) { Text("Schlüssel erneut eintragen / prüfen …") }
+            ui.publicKey?.let { pk -> AppOutlinedButton(onClick = { Platform.copy(context, "Öffentlicher Schlüssel", pk, "Öffentlicher Schlüssel kopiert") }, label = "Öffentlichen Schlüssel kopieren", icon = Icons.Default.ContentCopy) }
+            AppOutlinedButton(onClick = { vm.forgetRegistration(onSetup) }, label = "Schlüssel erneut eintragen / prüfen …", icon = Icons.Default.Refresh)
             HorizontalDivider()
 
             Section("Bekannte Server")
@@ -105,15 +120,15 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
                 Column(Modifier.fillMaxWidth().testTag("hostkey-${h.hostId}")) {
                     Text("${h.hostId} · ${h.type.sshName}", style = MaterialTheme.typography.bodyMedium)
                     Text(h.fingerprint, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = { toRemove = h.hostId }) { Text("Zurücksetzen …") }
+                    AppTextButton(onClick = { toRemove = h.hostId }, label = "Zurücksetzen …", icon = Icons.Default.Refresh)
                 }
             }
             toRemove?.let { id -> AlertDialog(
                 onDismissRequest = { toRemove = null },
                 title = { Text("Server zurücksetzen?") },
                 text = { Text("Beim nächsten Kontakt mit $id fragt die App erneut nach der Bestätigung des Host-Schlüssels. Mache das nur, wenn der Server bewusst neu installiert wurde.") },
-                confirmButton = { TextButton(onClick = { vm.removeHostKey(id); toRemove = null }) { Text("Zurücksetzen") } },
-                dismissButton = { TextButton(onClick = { toRemove = null }) { Text("Abbrechen") } },
+                confirmButton = { AppTextButton(onClick = { vm.removeHostKey(id); toRemove = null }, label = "Zurücksetzen", icon = Icons.Default.Refresh) },
+                dismissButton = { AppTextButton(onClick = { toRemove = null }, label = "Abbrechen", icon = Icons.Default.Close) },
             ) }
             HorizontalDivider()
 
@@ -121,13 +136,13 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
             var newWord by remember { mutableStateOf("") }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(newWord, { newWord = it }, label = { Text("Neues Wort") }, singleLine = true, modifier = Modifier.weight(1f).testTag("dict-new"))
-                OutlinedButton(onClick = { vm.addDictionaryWord(newWord); newWord = "" }, enabled = newWord.isNotBlank(), modifier = Modifier.testTag("dict-add")) { Text("Hinzufügen") }
+                AppOutlinedButton(onClick = { vm.addDictionaryWord(newWord); newWord = "" }, enabled = newWord.isNotBlank(), modifier = Modifier.testTag("dict-add"), label = "Hinzufügen", icon = Icons.Default.Add)
             }
             if (ui.dictionary.isEmpty()) Text("Noch keine eigenen Wörter. Unbekannte Wörter lassen sich im Editor aufnehmen.", style = MaterialTheme.typography.bodySmall)
             ui.dictionary.forEach { w ->
                 Row(Modifier.fillMaxWidth().testTag("dict-$w"), verticalAlignment = Alignment.CenterVertically) {
                     Text(w, Modifier.weight(1f))
-                    TextButton(onClick = { vm.removeDictionaryWord(w) }, modifier = Modifier.testTag("dict-remove-$w")) { Text("Entfernen") }
+                    AppTextButton(onClick = { vm.removeDictionaryWord(w) }, modifier = Modifier.testTag("dict-remove-$w"), label = "Entfernen", icon = Icons.Default.Delete)
                 }
             }
             HorizontalDivider()
@@ -155,19 +170,19 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
             var confirmClear by remember { mutableStateOf(false) }
             Text("Das Protokoll bleibt auf dem Gerät. Es enthält nur Zeit, Vorgang, Ergebnis, Fehlerart und Server – nie Schlüssel oder Beitragstexte.", style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { showLog = true }, modifier = Modifier.testTag("diag-show")) { Text("Anzeigen") }
-                OutlinedButton(onClick = { runCatching { context.startActivity(de.flauschiversum.publisher.diag.DiagnosticShare.intent(context, vm.container.diag)) } }, modifier = Modifier.testTag("diag-share")) { Text("Teilen") }
-                OutlinedButton(onClick = { confirmClear = true }, modifier = Modifier.testTag("diag-clear")) { Text("Löschen") }
+                AppOutlinedButton(onClick = { showLog = true }, modifier = Modifier.testTag("diag-show"), label = "Anzeigen", icon = Icons.Default.Visibility)
+                AppOutlinedButton(onClick = { runCatching { context.startActivity(de.flauschiversum.publisher.diag.DiagnosticShare.intent(context, vm.container.diag)) } }, modifier = Modifier.testTag("diag-share"), label = "Teilen", icon = Icons.Default.Share)
+                AppOutlinedButton(onClick = { confirmClear = true }, modifier = Modifier.testTag("diag-clear"), label = "Löschen", icon = Icons.Default.Delete)
             }
             if (showLog) AlertDialog(
                 onDismissRequest = { showLog = false }, title = { Text("Protokoll") },
                 text = { Column(Modifier.verticalScroll(rememberScrollState())) { Text(vm.container.diag.text().ifBlank { "Das Protokoll ist leer." }, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("diag-text")) } },
-                confirmButton = { TextButton(onClick = { showLog = false }, modifier = Modifier.testTag("diag-close")) { Text("Schließen") } },
+                confirmButton = { AppTextButton(onClick = { showLog = false }, modifier = Modifier.testTag("diag-close"), label = "Schließen", icon = Icons.Default.Close) },
             )
             if (confirmClear) AlertDialog(
                 onDismissRequest = { confirmClear = false }, title = { Text("Protokoll löschen?") },
-                confirmButton = { TextButton(onClick = { vm.container.diag.clear(); confirmClear = false }, modifier = Modifier.testTag("diag-clear-confirm")) { Text("Löschen") } },
-                dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("Abbrechen") } },
+                confirmButton = { AppTextButton(onClick = { vm.container.diag.clear(); confirmClear = false }, modifier = Modifier.testTag("diag-clear-confirm"), label = "Löschen", icon = Icons.Default.Delete) },
+                dismissButton = { AppTextButton(onClick = { confirmClear = false }, label = "Abbrechen", icon = Icons.Default.Close) },
             )
             HorizontalDivider()
 
@@ -180,7 +195,7 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
                 style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("about-privacy"),
             )
             var showLicenses by remember { mutableStateOf(false) }
-            OutlinedButton(onClick = { showLicenses = true }, modifier = Modifier.testTag("about-licenses")) { Text("Lizenzen") }
+            AppOutlinedButton(onClick = { showLicenses = true }, modifier = Modifier.testTag("about-licenses"), label = "Lizenzen", icon = Icons.Default.Description)
             if (showLicenses) AlertDialog(
                 onDismissRequest = { showLicenses = false }, title = { Text("Lizenzen") },
                 text = { Column(Modifier.verticalScroll(rememberScrollState()).testTag("licenses-list"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -188,7 +203,7 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
                         Column { Text(e.name, style = MaterialTheme.typography.titleSmall); Text(e.license, style = MaterialTheme.typography.bodySmall); e.note?.let { Text(it, style = MaterialTheme.typography.bodySmall) } }
                     }
                 } },
-                confirmButton = { TextButton(onClick = { showLicenses = false }, modifier = Modifier.testTag("licenses-close")) { Text("Schließen") } },
+                confirmButton = { AppTextButton(onClick = { showLicenses = false }, modifier = Modifier.testTag("licenses-close"), label = "Schließen", icon = Icons.Default.Close) },
             )
         }
     }

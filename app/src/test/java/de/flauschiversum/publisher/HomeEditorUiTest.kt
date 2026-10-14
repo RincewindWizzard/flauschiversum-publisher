@@ -90,7 +90,7 @@ class HomeEditorUiTest {
         val h = harness(); val vm = home(h); waitFor { !vm.ui.value.loading }
         waitFor { !h.container.sync.state.value.running && h.container.sync.state.value.generation >= 1 } // erste Aktualisierung beim Start abwarten
         TestRepos.commit(h.blog.bare, "main", mapOf("content/posts/frisch/index.md" to "---\ntitle: \"Frisch\"\ndate: 2026-10-13\n---\nText\n"), "frisch")
-        compose.onNodeWithText("Aktualisieren").performClick()
+        compose.onNodeWithTag("refresh").performClick()
         try { waitFor { vm.ui.value.posts.any { it.summary.dir == "frisch" } } } catch (e: Throwable) { throw AssertionError("Zustand: msg=${vm.ui.value.message} sync=${h.container.sync.state.value} posts=${vm.ui.value.posts.size}", e) }
         waitFor { exists("post-frisch") } // neuester Beitrag steht oben
         assertTrue(h.container.sync.state.value.lastSuccessMillis > 0)
@@ -100,10 +100,10 @@ class HomeEditorUiTest {
     @Test fun entfernterSchluesselZeigtHinweisNachZweiFehlschlaegen() {
         val h = harness(); val vm = home(h); waitFor { !vm.ui.value.loading }
         h.blog.server.revokeAll()
-        compose.onNodeWithText("Aktualisieren").performClick()
+        compose.onNodeWithTag("refresh").performClick()
         waitFor { !h.container.sync.state.value.running && h.container.sync.state.value.lastFailure != null }
         assertFalse("nach einem Fehlschlag noch kein Hinweis", exists("access-problem"))
-        compose.onNodeWithText("Aktualisieren").performClick()
+        compose.onNodeWithTag("refresh").performClick()
         waitFor { exists("access-problem") }
         compose.onNodeWithText("Prüfen und erneut eintragen").assertIsDisplayed()
     }
@@ -113,7 +113,7 @@ class HomeEditorUiTest {
         h.container.network.delegate = object : de.flauschiversum.publisher.git.NetworkInfo { override fun isOnline() = false; override fun isMetered() = false }
         h.blog.server.close()
         repeat(3) {
-            compose.onNodeWithText("Aktualisieren").performClick()
+            compose.onNodeWithTag("refresh").performClick()
             waitFor { !h.container.sync.state.value.running && h.container.sync.state.value.generation > it }
         }
         assertFalse(exists("access-problem"))

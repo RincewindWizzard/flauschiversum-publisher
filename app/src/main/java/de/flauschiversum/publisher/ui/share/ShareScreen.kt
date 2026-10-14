@@ -35,6 +35,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.Icons
+import de.flauschiversum.publisher.ui.components.AppButton
+import de.flauschiversum.publisher.ui.components.AppOutlinedButton
 
 /** Wohin mit den geteilten Fotos? Beitrag wählen oder neu anlegen, Beschreibung je Bild, Speichern oder Abbrechen. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,8 +53,8 @@ fun ShareScreen(vm: ShareViewModel, onClose: () -> Unit, beforeSave: ((proceed: 
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
             Row(Modifier.fillMaxWidth().padding(16.dp)) {
-                OutlinedButton(onClick = vm::cancel, modifier = Modifier.padding(end = 8.dp).testTag("share-cancel")) { Text("Abbrechen") }
-                Button(onClick = { if (beforeSave != null) beforeSave { vm.save() } else vm.save() }, enabled = ui.canSave, modifier = Modifier.testTag("share-save")) { Text(if (ui.saving) "Speichert …" else "Ablegen") }
+                AppOutlinedButton(onClick = vm::cancel, modifier = Modifier.padding(end = 8.dp).testTag("share-cancel"), label = "Abbrechen", icon = Icons.Default.Close)
+                AppButton(onClick = { if (beforeSave != null) beforeSave { vm.save() } else vm.save() }, enabled = ui.canSave, modifier = Modifier.testTag("share-save"), label = if (ui.saving) "Speichert …" else "Ablegen")
             }
         },
     ) { pad ->

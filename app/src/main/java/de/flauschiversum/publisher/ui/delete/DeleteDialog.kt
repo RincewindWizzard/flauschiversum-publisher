@@ -33,6 +33,9 @@ import de.flauschiversum.publisher.posts.PostReader
 import de.flauschiversum.publisher.posts.PostSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.Icons
+import de.flauschiversum.publisher.ui.components.AppTextButton
 
 /** Auswahl des Weiterleitungsziels. */
 sealed interface RedirectChoice {
@@ -126,8 +129,8 @@ fun DeletePostDialog(c: AppContainer, dir: String, onDismiss: () -> Unit, onDele
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { working = true; start = true }, enabled = !working, modifier = Modifier.testTag("delete-confirm")) { Text(if (d.info.published) "Löschen" else "Verwerfen") } },
-        dismissButton = { TextButton(onClick = onDismiss, enabled = !working, modifier = Modifier.testTag("delete-cancel")) { Text("Abbrechen") } },
+        confirmButton = { AppTextButton(onClick = { working = true; start = true }, enabled = !working, modifier = Modifier.testTag("delete-confirm"), label = if (d.info.published) "Löschen" else "Verwerfen") },
+        dismissButton = { AppTextButton(onClick = onDismiss, enabled = !working, modifier = Modifier.testTag("delete-cancel"), label = "Abbrechen", icon = Icons.Default.Close) },
     )
 }
 

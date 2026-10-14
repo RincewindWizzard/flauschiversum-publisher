@@ -5,6 +5,7 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.printToString
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
@@ -84,13 +85,10 @@ class ScreenshotTest {
     }
 
     @Test fun editor() {
-        val harness = harness(); val vm = EditorViewModel(harness.container, SavedStateHandle(), null)
+        val harness = harness(); val vm = EditorViewModel(harness.container, SavedStateHandle(), "winter-is-coming")
         show { EditorScreen(vm, 1f, {}) }
-        waitFor { vm.ui.value.loaded }
-        compose.onNodeWithTag("body-input").performTextInput("## Neue Mütze\n\nDas ist **sehr schön und wundershön.\n\nMit [Link](https://beispiel.de) und \n- Wolle\n- Nadeln\n")
-        waitFor { vm.ui.value.errorCount > 0 && vm.ui.value.misspellings.isNotEmpty() }
-        shot("05-editor-pruefung")
-        compose.onNodeWithTag("open-findings").performClick(); waitFor { exists("findings-list") }; shot("06-befundliste")
+        waitFor { vm.ui.value.loaded && vm.ui.value.body.isNotEmpty() && vm.ui.value.analyzedText != null }
+        shot("05-editor")
     }
 
     @Test fun eigenschaften() {

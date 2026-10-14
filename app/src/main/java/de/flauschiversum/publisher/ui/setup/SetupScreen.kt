@@ -40,6 +40,23 @@ import de.flauschiversum.publisher.setup.SetupStep
 import de.flauschiversum.publisher.ssh.AccessResult
 import de.flauschiversum.publisher.ssh.HostKeyInfo
 import de.flauschiversum.publisher.ui.Platform
+import androidx.compose.material.icons.filled.VpnKey
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.Icons
+import de.flauschiversum.publisher.ui.components.AppButton
+import de.flauschiversum.publisher.ui.components.AppOutlinedButton
+import de.flauschiversum.publisher.ui.components.AppTextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,9 +88,9 @@ fun SetupScreen(vm: SetupViewModel, onFinished: () -> Unit) {
 private fun StepNavigation(ui: SetupUi, vm: SetupViewModel) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         val prev = SetupStep.entries.firstOrNull { it.number == ui.shown.number - 1 }
-        if (prev != null) TextButton(onClick = { vm.goTo(prev) }) { Text("Zurück") }
+        if (prev != null) AppTextButton(onClick = { vm.goTo(prev) }, label = "Zurück", icon = Icons.Default.ArrowBack)
         val next = SetupStep.entries.firstOrNull { it.number == ui.shown.number + 1 }
-        if (next != null && SetupFlow.canOpen(next, ui.facts)) TextButton(onClick = { vm.goTo(next) }) { Text("Weiter") }
+        if (next != null && SetupFlow.canOpen(next, ui.facts)) AppTextButton(onClick = { vm.goTo(next) }, label = "Weiter", icon = Icons.Default.ArrowForward)
     }
 }
 
@@ -85,8 +102,8 @@ private fun RepositoryStep(ui: SetupUi, vm: SetupViewModel) {
         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("address-input"), isError = ui.addressMessage != null && ui.httpsSuggestion == null,
     )
     ui.addressMessage?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("address-message")) }
-    ui.httpsSuggestion?.let { Button(onClick = vm::useSuggestion) { Text("SSH-Adresse übernehmen") } }
-    Button(onClick = vm::submitAddress, modifier = Modifier.testTag("address-next")) { Text("Weiter") }
+    ui.httpsSuggestion?.let { AppButton(onClick = vm::useSuggestion, label = "SSH-Adresse übernehmen", icon = Icons.Default.Check) }
+    AppButton(onClick = vm::submitAddress, modifier = Modifier.testTag("address-next"), label = "Weiter", icon = Icons.Default.ArrowForward)
 }
 
 @Composable
@@ -94,19 +111,19 @@ private fun KeyStep(ui: SetupUi, vm: SetupViewModel) {
     val context = LocalContext.current
     if (ui.key == null) {
         Text("Die App erzeugt einen SSH-Schlüssel (Ed25519). Der private Schlüssel bleibt auf diesem Gerät und verlässt die App nie.")
-        Button(onClick = vm::generateKey, modifier = Modifier.testTag("generate-key")) { Text("Schlüssel erzeugen") }
+        AppButton(onClick = vm::generateKey, modifier = Modifier.testTag("generate-key"), label = "Schlüssel erzeugen", icon = Icons.Default.Key)
     } else {
         Text("Ein Schlüssel ist vorhanden.")
         Fingerprint(ui.key.fingerprint)
-        OutlinedButton(onClick = { Platform.copy(context, "Öffentlicher Schlüssel", ui.key.publicLine, "Öffentlicher Schlüssel kopiert") }) { Text("Öffentlichen Schlüssel kopieren") }
+        AppOutlinedButton(onClick = { Platform.copy(context, "Öffentlicher Schlüssel", ui.key.publicLine, "Öffentlicher Schlüssel kopiert") }, label = "Öffentlichen Schlüssel kopieren", icon = Icons.Default.ContentCopy)
         var confirm by remember { mutableStateOf(false) }
-        TextButton(onClick = { confirm = true }) { Text("Neu erzeugen …") }
+        AppTextButton(onClick = { confirm = true }, label = "Neu erzeugen …", icon = Icons.Default.Key)
         if (confirm) AlertDialog(
             onDismissRequest = { confirm = false },
             title = { Text("Schlüssel ersetzen?") },
             text = { Text("Der alte Schlüssel wird unwiderruflich ersetzt. Der neue muss danach erneut eingetragen werden.") },
-            confirmButton = { TextButton(onClick = { confirm = false; vm.generateKey() }) { Text("Ersetzen") } },
-            dismissButton = { TextButton(onClick = { confirm = false }) { Text("Abbrechen") } },
+            confirmButton = { AppTextButton(onClick = { confirm = false; vm.generateKey() }, label = "Ersetzen") },
+            dismissButton = { AppTextButton(onClick = { confirm = false }, label = "Abbrechen", icon = Icons.Default.Close) },
         )
     }
 }
@@ -125,30 +142,30 @@ private fun RegisterStep(ui: SetupUi, vm: SetupViewModel) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         SelectionContainer { Text(key.publicLine, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(12.dp).testTag("public-key")) }
     }
-    OutlinedButton(onClick = { Platform.copy(context, "Öffentlicher Schlüssel", key.publicLine, "Öffentlicher Schlüssel kopiert") }) { Text("Schlüssel kopieren") }
-    OutlinedButton(onClick = { Platform.shareText(context, "Öffentlicher Schlüssel", key.publicLine) }) { Text("Teilen …") }
+    AppOutlinedButton(onClick = { Platform.copy(context, "Öffentlicher Schlüssel", key.publicLine, "Öffentlicher Schlüssel kopiert") }, label = "Schlüssel kopieren", icon = Icons.Default.ContentCopy)
+    AppOutlinedButton(onClick = { Platform.shareText(context, "Öffentlicher Schlüssel", key.publicLine) }, label = "Teilen …", icon = Icons.Default.Share)
     when (val plan = ui.plan) {
         is KeyInstructions.Plan.GitHub -> {
             Text("Bei GitHub: Öffne die Seite „Deploy key hinzufügen“, gib als Titel „${plan.suggestedTitle}“ ein, füge den Schlüssel ein, hake „Allow write access“ an und speichere.", modifier = Modifier.testTag("plan-github"))
-            Button(onClick = { Platform.openUrl(context, plan.url) }) { Text("GitHub-Seite öffnen") }
+            AppButton(onClick = { Platform.openUrl(context, plan.url) }, label = "GitHub-Seite öffnen", icon = Icons.Default.OpenInNew)
         }
         is KeyInstructions.Plan.OwnServer -> {
             Text("Auf deinem Server (Benutzer „${plan.user}“ auf ${plan.host}): Führe diesen Befehl aus, um den Schlüssel in die authorized_keys einzutragen. Bei Git-Hostern wie GitLab oder Gitea trägst du den Schlüssel stattdessen als Deploy Key mit Schreibrecht in der Weboberfläche ein.", modifier = Modifier.testTag("plan-server"))
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                 SelectionContainer { Text(plan.command, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(12.dp)) }
             }
-            OutlinedButton(onClick = { Platform.copy(context, "Befehl", plan.command, "Befehl kopiert") }) { Text("Befehl kopieren") }
+            AppOutlinedButton(onClick = { Platform.copy(context, "Befehl", plan.command, "Befehl kopiert") }, label = "Befehl kopieren", icon = Icons.Default.ContentCopy)
         }
         null -> Unit
     }
-    Button(onClick = vm::confirmRegistered, modifier = Modifier.testTag("register-next")) { Text("Weiter zur Prüfung") }
+    AppButton(onClick = vm::confirmRegistered, modifier = Modifier.testTag("register-next"), label = "Weiter zur Prüfung", icon = Icons.Default.CheckCircle)
 }
 
 @Composable
 private fun CheckStep(ui: SetupUi, vm: SetupViewModel) {
     Text("Die App prüft jetzt die Verbindung und das Schreibrecht, ohne am Repository etwas zu ändern.")
     when (val c = ui.check) {
-        CheckUi.Idle -> Button(onClick = vm::runCheck, modifier = Modifier.testTag("run-check")) { Text("Verbindung prüfen") }
+        CheckUi.Idle -> AppButton(onClick = vm::runCheck, modifier = Modifier.testTag("run-check"), label = "Verbindung prüfen", icon = Icons.Default.CheckCircle)
         CheckUi.Running -> { LinearProgressIndicator(Modifier.fillMaxWidth()); Text("Prüfe …") }
         is CheckUi.NeedsHostTrust -> HostKeyDialog(c.key, onTrust = { vm.trustHostKey(c.key) }, onReject = vm::rejectHostKey)
         is CheckUi.Done -> CheckResult(c.result, ui, vm)
@@ -167,8 +184,8 @@ private fun HostKeyDialog(key: HostKeyInfo, onTrust: () -> Unit, onReject: () ->
                 Fingerprint(key.fingerprint)
             }
         },
-        confirmButton = { TextButton(onClick = onTrust, modifier = Modifier.testTag("trust-host")) { Text("Vertrauen") } },
-        dismissButton = { TextButton(onClick = onReject) { Text("Abbrechen") } },
+        confirmButton = { AppTextButton(onClick = onTrust, modifier = Modifier.testTag("trust-host"), label = "Vertrauen") },
+        dismissButton = { AppTextButton(onClick = onReject, label = "Abbrechen", icon = Icons.Default.Close) },
     )
 }
 
@@ -178,16 +195,16 @@ private fun CheckResult(result: AccessResult, ui: SetupUi, vm: SetupViewModel) {
         is AccessResult.Ok -> {
             Text("Zugang eingerichtet.", style = MaterialTheme.typography.titleMedium, modifier = Modifier.testTag("check-ok"))
             if (!result.writeConfirmed) Text("Zugang erfolgreich, Schreibrecht wird beim ersten Veröffentlichen bestätigt.", modifier = Modifier.testTag("check-write-unverified"))
-            Button(onClick = vm::continueAfterCheck, modifier = Modifier.testTag("check-next")) { Text("Weiter") }
+            AppButton(onClick = vm::continueAfterCheck, modifier = Modifier.testTag("check-next"), label = "Weiter", icon = Icons.Default.ArrowForward)
         }
         AccessResult.NoKey -> Text("Es gibt noch keinen Schlüssel.")
         is AccessResult.Failed -> {
             Text(result.failure.message, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("check-error"))
             if (result.failure is GitFailure.HostKeyChanged) Text("Aus Sicherheitsgründen bricht die App ab. Ist der Server neu installiert worden, kannst du den bekannten Schlüssel in den Einstellungen unter „Bekannte Server“ zurücksetzen.")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = vm::runCheck) { Text("Erneut prüfen") }
+                AppButton(onClick = vm::runCheck, label = "Erneut prüfen", icon = Icons.Default.Refresh)
                 if (result.failure is GitFailure.KeyRejected || result.failure is GitFailure.ReadOnly) {
-                    OutlinedButton(onClick = { vm.goTo(SetupStep.REGISTER) }) { Text("Zum Eintragen") }
+                    AppOutlinedButton(onClick = { vm.goTo(SetupStep.REGISTER) }, label = "Zum Eintragen", icon = Icons.Default.VpnKey)
                 }
             }
         }
@@ -200,26 +217,26 @@ private fun CloneStep(ui: SetupUi, vm: SetupViewModel) {
         CloneUi.Idle -> {
             Text("Jetzt holt die App das Repository (nur der aktuelle Stand, mehrere hundert MB) in ihren privaten Speicher. Es werden mindestens 1,5 GB freier Speicher gebraucht; am besten über WLAN.")
             Text("Zielbranch: ${ui.targetBranch}")
-            Button(onClick = { vm.startClone() }, modifier = Modifier.testTag("start-clone")) { Text("Repository holen") }
+            AppButton(onClick = { vm.startClone() }, modifier = Modifier.testTag("start-clone"), label = "Repository holen", icon = Icons.Default.CloudDownload)
         }
         CloneUi.ConfirmMobile -> AlertDialog(
             onDismissRequest = vm::cancelMobileConfirm,
             title = { Text("Über Mobilfunk laden?") },
             text = { Text("Du bist nicht im WLAN. Das Repository ist mehrere hundert MB groß. Wirklich über Mobilfunk laden?") },
-            confirmButton = { TextButton(onClick = { vm.startClone(confirmedMobile = true) }, modifier = Modifier.testTag("confirm-mobile")) { Text("Ja, laden") } },
-            dismissButton = { TextButton(onClick = vm::cancelMobileConfirm) { Text("Abbrechen") } },
+            confirmButton = { AppTextButton(onClick = { vm.startClone(confirmedMobile = true) }, modifier = Modifier.testTag("confirm-mobile"), label = "Ja, laden") },
+            dismissButton = { AppTextButton(onClick = vm::cancelMobileConfirm, label = "Abbrechen", icon = Icons.Default.Close) },
         )
         is CloneUi.Running -> {
             Text("${c.task}${if (c.total > 0) " (${c.done}/${c.total})" else ""}")
             if (c.total > 0) LinearProgressIndicator(progress = { (c.done.toFloat() / c.total).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
             else LinearProgressIndicator(Modifier.fillMaxWidth())
-            OutlinedButton(onClick = vm::cancelClone, modifier = Modifier.testTag("cancel-clone")) { Text("Abbrechen") }
+            AppOutlinedButton(onClick = vm::cancelClone, modifier = Modifier.testTag("cancel-clone"), label = "Abbrechen", icon = Icons.Default.Close)
         }
         is CloneUi.Problem -> {
             Text(c.message, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("clone-problem"))
-            if (c.canPickBranch) c.branches.forEach { b -> OutlinedButton(onClick = { vm.pickBranch(b) }) { Text("Branch „$b“ verwenden") } }
-            Button(onClick = { vm.dismissCloneProblem() }) { Text("Erneut versuchen") }
-            OutlinedButton(onClick = { vm.goTo(SetupStep.REPOSITORY) }) { Text("Adresse ändern") }
+            if (c.canPickBranch) c.branches.forEach { b -> AppOutlinedButton(onClick = { vm.pickBranch(b) }, label = "Branch „$b“ verwenden") }
+            AppButton(onClick = { vm.dismissCloneProblem() }, label = "Erneut versuchen", icon = Icons.Default.Refresh)
+            AppOutlinedButton(onClick = { vm.goTo(SetupStep.REPOSITORY) }, label = "Adresse ändern", icon = Icons.Default.Edit)
         }
     }
 }

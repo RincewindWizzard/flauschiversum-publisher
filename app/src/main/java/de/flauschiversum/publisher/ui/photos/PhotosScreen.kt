@@ -41,6 +41,18 @@ import androidx.compose.ui.unit.dp
 import de.flauschiversum.publisher.posts.PhotoInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.Icons
+import de.flauschiversum.publisher.ui.components.AppOutlinedButton
+import de.flauschiversum.publisher.ui.components.AppTextButton
+import de.flauschiversum.publisher.ui.components.AppIconButton
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -49,7 +61,7 @@ fun PhotosScreen(vm: PhotosViewModel, onBack: () -> Unit) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(ui.message) { ui.message?.let { snackbar.showSnackbar(it); vm.messageShown() } }
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Fotos: ${ui.title}", maxLines = 1) }, navigationIcon = { TextButton(onClick = onBack, modifier = Modifier.testTag("photos-back")) { Text("Zurück") } }) },
+        topBar = { TopAppBar(title = { Text("Fotos: ${ui.title}", maxLines = 1) }, navigationIcon = { AppIconButton(icon = Icons.Default.ArrowBack, label = "Zurück", onClick = onBack, modifier = Modifier.testTag("photos-back")) }) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { pad ->
         LazyColumn(Modifier.padding(pad).padding(horizontal = 16.dp).testTag("photos-list"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -68,12 +80,12 @@ fun PhotosScreen(vm: PhotosViewModel, onBack: () -> Unit) {
                             }
                             OutlinedTextField(vm.altFor(p), { vm.editAlt(p.file, it) }, label = { Text("Beschreibung (Alt-Text)") }, modifier = Modifier.fillMaxWidth().testTag("alt-${p.file}"))
                             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                if (!p.notInText) OutlinedButton(onClick = { vm.saveAlt(p.file) }, enabled = vm.altFor(p) != p.alt, modifier = Modifier.testTag("save-alt-${p.file}")) { Text("Speichern") }
-                                if (p.notInText) OutlinedButton(onClick = { vm.include(p.file) }, modifier = Modifier.testTag("include-${p.file}")) { Text("Einbinden") }
-                                if (canMoveUp) OutlinedButton(onClick = { vm.move(p.file, -1) }, modifier = Modifier.testTag("up-${p.file}")) { Text("↑") }
-                                if (canMoveDown) OutlinedButton(onClick = { vm.move(p.file, +1) }, modifier = Modifier.testTag("down-${p.file}")) { Text("↓") }
-                                if (!p.isCover) OutlinedButton(onClick = { vm.setCover(p.file) }, modifier = Modifier.testTag("cover-${p.file}")) { Text("Als Titelbild") }
-                                OutlinedButton(onClick = { vm.askRemove(p) }, modifier = Modifier.testTag("remove-${p.file}")) { Text("Entfernen") }
+                                if (!p.notInText) AppOutlinedButton(onClick = { vm.saveAlt(p.file) }, enabled = vm.altFor(p) != p.alt, modifier = Modifier.testTag("save-alt-${p.file}"), label = "Speichern", icon = Icons.Default.Save)
+                                if (p.notInText) AppOutlinedButton(onClick = { vm.include(p.file) }, modifier = Modifier.testTag("include-${p.file}"), label = "Einbinden", icon = Icons.Default.AddPhotoAlternate)
+                                if (canMoveUp) AppIconButton(icon = Icons.Default.KeyboardArrowUp, label = "Nach oben", onClick = { vm.move(p.file, -1) }, modifier = Modifier.testTag("up-${p.file}"))
+                                if (canMoveDown) AppIconButton(icon = Icons.Default.KeyboardArrowDown, label = "Nach unten", onClick = { vm.move(p.file, +1) }, modifier = Modifier.testTag("down-${p.file}"))
+                                if (!p.isCover) AppOutlinedButton(onClick = { vm.setCover(p.file) }, modifier = Modifier.testTag("cover-${p.file}"), label = "Als Titelbild", icon = Icons.Default.Image)
+                                AppOutlinedButton(onClick = { vm.askRemove(p) }, modifier = Modifier.testTag("remove-${p.file}"), label = "Entfernen", icon = Icons.Default.Delete)
                             }
                             if (p.outsideRefs > 0) Text("Steht im Fließtext: Position nur im Editor änderbar.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("hint-text-${p.file}"))
                         }
@@ -118,7 +130,7 @@ private fun RemoveDialog(r: RemoveRequest, photos: List<PhotoInfo>, vm: PhotosVi
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { vm.confirmRemove(newCover, chosen) }, enabled = !needsCover || chosen, modifier = Modifier.testTag("remove-confirm")) { Text("Entfernen") } },
-        dismissButton = { TextButton(onClick = vm::cancelRemove, modifier = Modifier.testTag("remove-cancel")) { Text("Abbrechen") } },
+        confirmButton = { AppTextButton(onClick = { vm.confirmRemove(newCover, chosen) }, enabled = !needsCover || chosen, modifier = Modifier.testTag("remove-confirm"), label = "Entfernen", icon = Icons.Default.Delete) },
+        dismissButton = { AppTextButton(onClick = vm::cancelRemove, modifier = Modifier.testTag("remove-cancel"), label = "Abbrechen", icon = Icons.Default.Close) },
     )
 }

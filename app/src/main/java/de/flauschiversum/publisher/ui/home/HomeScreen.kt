@@ -69,6 +69,33 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Publish
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import de.flauschiversum.publisher.ui.components.AppButton
+import de.flauschiversum.publisher.ui.components.AppOutlinedButton
+import de.flauschiversum.publisher.ui.components.AppTextButton
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Outbox
+import androidx.compose.material3.Icon
+import de.flauschiversum.publisher.ui.components.AppIconButton
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Label
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Add
 
 fun draftLabel(kind: DraftKind) = when (kind) { DraftKind.NEW -> "Neu"; DraftKind.CHANGED -> "Geändert"; DraftKind.DELETED -> "Gelöscht" }
 
@@ -93,12 +120,12 @@ fun HomeScreen(
         topBar = { TopAppBar(title = { Text("Flauschiversum", style = MaterialTheme.typography.headlineSmall) }, actions = {
             val jobs by vm.c.uploads.jobs.collectAsState()
             val active = jobs.count { it.status != de.flauschiversum.publisher.upload.JobStatus.DONE }
-            TextButton(onClick = onOpenOutbox, modifier = Modifier.testTag("open-outbox")) { Text(if (active > 0) "Ausgang ($active)" else "Ausgang") }
-            TextButton(onClick = vm::refreshNow) { Text("Aktualisieren") }
-            TextButton(onClick = onSettings, modifier = Modifier.testTag("open-settings")) { Text("Einstellungen") }
+            androidx.compose.material3.BadgedBox(badge = { if (active > 0) androidx.compose.material3.Badge { Text(active.toString()) } }) { AppIconButton(icon = Icons.Default.Outbox, label = if (active > 0) "Ausgang, $active offen" else "Ausgang", onClick = onOpenOutbox, modifier = Modifier.testTag("open-outbox")) }
+            AppIconButton(icon = Icons.Default.Refresh, label = "Aktualisieren", onClick = vm::refreshNow, modifier = Modifier.testTag("refresh"))
+            AppIconButton(icon = Icons.Default.Settings, label = "Einstellungen", onClick = onSettings, modifier = Modifier.testTag("open-settings"))
         }) },
         snackbarHost = { SnackbarHost(snackbar) },
-        floatingActionButton = { ExtendedFloatingActionButton(onClick = { onOpenPost(null) }, modifier = Modifier.testTag("new-post")) { Text("Neuer Beitrag") } },
+        floatingActionButton = { ExtendedFloatingActionButton(onClick = { onOpenPost(null) }, modifier = Modifier.testTag("new-post")) { Icon(Icons.Default.Add, contentDescription = null); Spacer(Modifier.width(8.dp)); Text("Neuer Beitrag") } },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             if (ui.syncing || ui.publishing) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("sync-indicator"))
@@ -112,7 +139,7 @@ fun HomeScreen(
                         if (ui.accessProblem) Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer), modifier = Modifier.padding(16.dp).fillMaxWidth().testTag("access-problem")) {
                             Column(Modifier.padding(12.dp)) {
                                 Text("Zugriff verweigert. Ist der Schlüssel noch auf dem Server eingetragen?")
-                                TextButton(onClick = { vm.fixAccess(onFixAccess) }, modifier = Modifier.testTag("fix-access")) { Text("Prüfen und erneut eintragen") }
+                                AppTextButton(onClick = { vm.fixAccess(onFixAccess) }, modifier = Modifier.testTag("fix-access"), label = "Prüfen und erneut eintragen", icon = Icons.Default.Refresh)
                             }
                         }
                     }
@@ -126,14 +153,14 @@ fun HomeScreen(
                 if (ui.noClone) item(key = "keinklon") {
                     Column(Modifier.padding(16.dp).testTag("no-clone")) {
                         Text("Das Repository ist noch nicht geholt. Schließe die Einrichtung ab, um Beiträge zu sehen.")
-                        TextButton(onClick = onFixAccess, modifier = Modifier.testTag("to-setup")) { Text("Zur Einrichtung") }
+                        AppTextButton(onClick = onFixAccess, modifier = Modifier.testTag("to-setup"), label = "Zur Einrichtung", icon = Icons.Default.Settings)
                     }
                 }
                 if (ui.loading) item { Text("Lade Beiträge …", Modifier.padding(16.dp)) }
                 if (!ui.loading && ui.posts.isEmpty() && ui.totalPosts > 0) item(key = "leer") {
                     Column(Modifier.padding(16.dp)) {
                         Text("Keine Beiträge gefunden.", modifier = Modifier.testTag("no-results"))
-                        TextButton(onClick = { vm.setQuery(PostQuery(sort = ui.query.sort)) }, modifier = Modifier.testTag("reset-filters")) { Text("Zurücksetzen") }
+                        AppTextButton(onClick = { vm.setQuery(PostQuery(sort = ui.query.sort)) }, modifier = Modifier.testTag("reset-filters"), label = "Zurücksetzen", icon = Icons.Default.Refresh)
                     }
                 }
                 items(ui.posts, key = { it.summary.dir }) { row -> PostItem(row, vm.c, onClick = { onOpenPost(row.summary.dir) }, actions = PostActions(onOpenPost, onOpenProperties, onAddPhoto, onOpenPhotos, onOpenPreview, vm)) }
@@ -154,9 +181,9 @@ private fun DraftsHeader(ui: HomeUi, vm: HomeViewModel) {
         if (upload == UploadState.PENDING) Text("Noch nicht hochgeladen", color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("upload-pending"))
         if (upload == UploadState.DIVERGED) Text("Entwurf weicht vom Server ab", color = MaterialTheme.colorScheme.error)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = vm::askPublish, enabled = !ui.publishing, modifier = Modifier.testTag("publish")) { Text("Veröffentlichen") }
-            if (upload == UploadState.PENDING) OutlinedButton(onClick = vm::retryUpload) { Text("Hochladen") }
-            OutlinedButton(onClick = vm::discardAll) { Text("Alle verwerfen") }
+            AppButton(onClick = vm::askPublish, enabled = !ui.publishing, modifier = Modifier.testTag("publish"), label = "Veröffentlichen", icon = Icons.Default.Publish)
+            if (upload == UploadState.PENDING) AppOutlinedButton(onClick = vm::retryUpload, label = "Hochladen", icon = Icons.Default.CloudUpload)
+            AppOutlinedButton(onClick = vm::discardAll, label = "Alle verwerfen", icon = Icons.Default.DeleteSweep)
         }
     }
 }
@@ -181,17 +208,17 @@ private fun PostItem(row: PostRow, c: de.flauschiversum.publisher.app.AppContain
             row.summary.problem?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
         }
         Box {
-            TextButton(onClick = { menu = true }, modifier = Modifier.testTag("menu-$dir")) { Text("⋮") }
+            AppIconButton(icon = Icons.Default.MoreVert, label = "Aktionen für ${row.summary.title}", onClick = { menu = true }, modifier = Modifier.testTag("menu-$dir"))
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                 if (row.draft != DraftKind.DELETED) {
-                    DropdownMenuItem(text = { Text("Bearbeiten") }, onClick = { menu = false; actions.onEdit(dir) }, modifier = Modifier.testTag("action-edit-$dir"))
-                    DropdownMenuItem(text = { Text("Eigenschaften") }, onClick = { menu = false; actions.onProperties(dir) }, modifier = Modifier.testTag("action-props-$dir"))
-                    DropdownMenuItem(text = { Text("Vorschau") }, onClick = { menu = false; actions.onPreview(dir) }, modifier = Modifier.testTag("action-preview-$dir"))
-                    DropdownMenuItem(text = { Text("Fotos") }, onClick = { menu = false; actions.onPhotos(dir) }, modifier = Modifier.testTag("action-photos-$dir"))
-                    DropdownMenuItem(text = { Text("Foto hinzufügen") }, onClick = { menu = false; actions.onPhoto(dir) }, modifier = Modifier.testTag("action-photo-$dir"))
+                    DropdownMenuItem(text = { Text("Bearbeiten") }, leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }, onClick = { menu = false; actions.onEdit(dir) }, modifier = Modifier.testTag("action-edit-$dir"))
+                    DropdownMenuItem(text = { Text("Eigenschaften") }, leadingIcon = { Icon(Icons.Default.Tune, contentDescription = null) }, onClick = { menu = false; actions.onProperties(dir) }, modifier = Modifier.testTag("action-props-$dir"))
+                    DropdownMenuItem(text = { Text("Vorschau") }, leadingIcon = { Icon(Icons.Default.Visibility, contentDescription = null) }, onClick = { menu = false; actions.onPreview(dir) }, modifier = Modifier.testTag("action-preview-$dir"))
+                    DropdownMenuItem(text = { Text("Fotos") }, leadingIcon = { Icon(Icons.Default.PhotoLibrary, contentDescription = null) }, onClick = { menu = false; actions.onPhotos(dir) }, modifier = Modifier.testTag("action-photos-$dir"))
+                    DropdownMenuItem(text = { Text("Foto hinzufügen") }, leadingIcon = { Icon(Icons.Default.AddPhotoAlternate, contentDescription = null) }, onClick = { menu = false; actions.onPhoto(dir) }, modifier = Modifier.testTag("action-photo-$dir"))
                 }
-                if (row.draft != null) DropdownMenuItem(text = { Text("Verwerfen") }, onClick = { menu = false; actions.vm.discard(dir) }, modifier = Modifier.testTag("action-discard-$dir"))
-                if (row.draft != DraftKind.DELETED) DropdownMenuItem(text = { Text("Löschen") }, onClick = { menu = false; actions.vm.askDelete(dir) }, modifier = Modifier.testTag("action-delete-$dir"))
+                if (row.draft != null) DropdownMenuItem(text = { Text("Verwerfen") }, leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) }, onClick = { menu = false; actions.vm.discard(dir) }, modifier = Modifier.testTag("action-discard-$dir"))
+                if (row.draft != DraftKind.DELETED) DropdownMenuItem(text = { Text("Löschen") }, leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }, onClick = { menu = false; actions.vm.askDelete(dir) }, modifier = Modifier.testTag("action-delete-$dir"))
             }
         }
     }
@@ -220,13 +247,13 @@ private fun SearchBar(ui: HomeUi, vm: HomeViewModel) {
     Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
         OutlinedTextField(q.text, { vm.setQuery(q.copy(text = it)) }, singleLine = true, label = { Text("Beitrag suchen …") }, modifier = Modifier.fillMaxWidth().testTag("search"))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            AssistChip(onClick = { showTags = true }, label = { Text("Schlagwort") }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).testTag("filter-tags"))
+            AssistChip(onClick = { showTags = true }, label = { Text("Schlagwort") }, leadingIcon = { Icon(Icons.Default.Label, contentDescription = null) }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).testTag("filter-tags"))
             Box {
-                AssistChip(onClick = { yearMenu = true }, label = { Text("Jahr") }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).testTag("filter-year"))
+                AssistChip(onClick = { yearMenu = true }, label = { Text("Jahr") }, leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).testTag("filter-year"))
                 DropdownMenu(yearMenu, { yearMenu = false }) { ui.years.forEach { y -> DropdownMenuItem(text = { Text(y.toString()) }, onClick = { yearMenu = false; vm.setQuery(q.copy(year = y)) }, modifier = Modifier.testTag("year-$y")) } }
             }
             Box {
-                AssistChip(onClick = { sortMenu = true }, label = { Text(q.sort.label) }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).testTag("sort"))
+                AssistChip(onClick = { sortMenu = true }, label = { Text(q.sort.label) }, leadingIcon = { Icon(Icons.Default.SwapVert, contentDescription = null) }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).testTag("sort"))
                 DropdownMenu(sortMenu, { sortMenu = false }) { SortOrder.entries.forEach { o -> DropdownMenuItem(text = { Text(o.label) }, onClick = { sortMenu = false; vm.setQuery(q.copy(sort = o)) }, modifier = Modifier.testTag("sort-${o.name}")) } }
             }
         }
@@ -241,7 +268,7 @@ private fun SearchBar(ui: HomeUi, vm: HomeViewModel) {
         text = { Column(Modifier.verticalScroll(rememberScrollState())) { FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ui.allTags.forEach { t -> FilterChip(selected = t in q.tags, onClick = { vm.setQuery(q.copy(tags = if (t in q.tags) q.tags - t else q.tags + t)) }, label = { Text(t) }, modifier = Modifier.testTag("tagfilter-$t")) }
         } } },
-        confirmButton = { TextButton(onClick = { showTags = false }, modifier = Modifier.testTag("tagfilter-done")) { Text("Fertig") } },
+        confirmButton = { AppTextButton(onClick = { showTags = false }, modifier = Modifier.testTag("tagfilter-done"), label = "Fertig", icon = Icons.Default.Check) },
     )
 }
 
@@ -271,7 +298,7 @@ private fun PublishDialog(ui: HomeUi, vm: HomeViewModel) {
                 }
             }
         },
-        confirmButton = { TextButton(onClick = vm::publish, modifier = Modifier.testTag("publish-confirm")) { Text("Veröffentlichen") } },
-        dismissButton = { TextButton(onClick = vm::cancelPublish) { Text("Abbrechen") } },
+        confirmButton = { AppTextButton(onClick = vm::publish, modifier = Modifier.testTag("publish-confirm"), label = "Veröffentlichen", icon = Icons.Default.Publish) },
+        dismissButton = { AppTextButton(onClick = vm::cancelPublish, label = "Abbrechen", icon = Icons.Default.Close) },
     )
 }

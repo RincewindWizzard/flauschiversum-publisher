@@ -24,6 +24,9 @@ import androidx.compose.ui.unit.dp
 import de.flauschiversum.publisher.app.AppContainer
 import de.flauschiversum.publisher.lock.AuthResult
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.Icons
+import de.flauschiversum.publisher.ui.components.AppButton
 
 /**
  * Zeigt [content] nur, solange die App nicht gesperrt ist. Bei Sperre erscheint ein leerer Bildschirm mit der Aufforderung zur
@@ -53,6 +56,6 @@ fun LockGate(c: AppContainer, content: @Composable () -> Unit) {
         Text("Flauschiversum", style = MaterialTheme.typography.headlineMedium)
         Text("Die App ist gesperrt.", modifier = Modifier.padding(top = 8.dp))
         if (failures > 0) Text("Das Entsperren hat nicht geklappt. Bitte erneut mit der Gerätesperre versuchen.", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp).testTag("lock-failed"))
-        Button(onClick = ::ask, enabled = !running, modifier = Modifier.padding(top = 16.dp).testTag("unlock")) { Text("Entsperren") }
+        AppButton(onClick = ::ask, enabled = !running, modifier = Modifier.padding(top = 16.dp).testTag("unlock"), label = "Entsperren", icon = Icons.Default.LockOpen)
     }
 }

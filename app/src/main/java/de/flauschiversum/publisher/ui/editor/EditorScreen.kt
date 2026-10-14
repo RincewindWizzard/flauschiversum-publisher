@@ -89,6 +89,31 @@ import de.flauschiversum.publisher.posts.PostDate
 import de.flauschiversum.publisher.ui.theme.editorTextStyle
 import java.time.Instant
 import java.time.ZoneOffset
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.Icons
+import de.flauschiversum.publisher.ui.components.AppButton
+import de.flauschiversum.publisher.ui.components.AppOutlinedButton
+import de.flauschiversum.publisher.ui.components.AppTextButton
+import de.flauschiversum.publisher.ui.components.AppIconButton
+import androidx.compose.material.icons.filled.Redo
+import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material.icons.filled.FormatQuote
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.FormatListBulleted
+import androidx.compose.material.icons.filled.Title
+import androidx.compose.material.icons.filled.FormatItalic
+import androidx.compose.material.icons.filled.FormatBold
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Visibility
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,18 +128,18 @@ fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit, onPh
     Scaffold(
         topBar = { TopAppBar(
             title = { Text(if (ui.showProperties) "Eigenschaften" else ui.title.ifBlank { if (ui.isNew) "Neuer Beitrag" else ui.dir.orEmpty() }, maxLines = 1) },
-            navigationIcon = { TextButton(onClick = { if (ui.showProperties) vm.showProperties(false) else if (ui.showPreview) vm.showPreview(false) else vm.requestLeave(onDone) }, modifier = Modifier.testTag("editor-back")) { Text("Zurück") } },
+            navigationIcon = { AppIconButton(icon = Icons.Default.ArrowBack, label = "Zurück", onClick = { if (ui.showProperties) vm.showProperties(false) else if (ui.showPreview) vm.showPreview(false) else vm.requestLeave(onDone) }, modifier = Modifier.testTag("editor-back")) },
             actions = {
-                if (!ui.showProperties) TextButton(onClick = { vm.showPreview(!ui.showPreview) }, modifier = Modifier.testTag("toggle-preview")) { Text(if (ui.showPreview) "Bearbeiten" else "Vorschau") }
+                if (!ui.showProperties) AppIconButton(icon = if (ui.showPreview) Icons.Default.Edit else Icons.Default.Visibility, label = if (ui.showPreview) "Bearbeiten" else "Vorschau", onClick = { vm.showPreview(!ui.showPreview) }, modifier = Modifier.testTag("toggle-preview"))
                 if (!ui.showProperties && !ui.showPreview) Box {
-                    TextButton(onClick = { menuOpen = true }, modifier = Modifier.testTag("editor-menu")) { Text("⋮") }
+                    AppIconButton(icon = Icons.Default.MoreVert, label = "Weitere Aktionen", onClick = { menuOpen = true }, modifier = Modifier.testTag("editor-menu"))
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         DropdownMenuItem(text = { Text("Eigenschaften") }, onClick = { menuOpen = false; vm.showProperties(true) }, modifier = Modifier.testTag("open-properties"))
                         if (!ui.isNew) DropdownMenuItem(text = { Text("Fotos") }, onClick = { menuOpen = false; ui.dir?.let(onPhotos) }, modifier = Modifier.testTag("editor-photos"))
                         if (!ui.isNew) DropdownMenuItem(text = { Text("Löschen") }, onClick = { menuOpen = false; showDelete = true }, modifier = Modifier.testTag("editor-delete"))
                     }
                 }
-                TextButton(onClick = vm::save, enabled = ui.loaded && ui.loadProblem == null && !ui.saving, modifier = Modifier.testTag("save")) { Text("Speichern") }
+                AppIconButton(icon = Icons.Default.Save, label = "Speichern", onClick = vm::save, enabled = ui.loaded && ui.loadProblem == null && !ui.saving, modifier = Modifier.testTag("save"))
             },
         ) },
         snackbarHost = { SnackbarHost(snackbar) },
@@ -124,14 +149,14 @@ fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit, onPh
         if (ui.confirmLeave) AlertDialog(
             onDismissRequest = vm::cancelLeave, title = { Text("Änderungen verwerfen?") },
             text = { Text("Der Beitrag enthält Änderungen, die noch nicht gespeichert sind.") },
-            confirmButton = { TextButton(onClick = { vm.leaveDiscarding(onDone) }, modifier = Modifier.testTag("leave-discard")) { Text("Verwerfen") } },
-            dismissButton = { TextButton(onClick = vm::cancelLeave, modifier = Modifier.testTag("leave-stay")) { Text("Weiter bearbeiten") } },
+            confirmButton = { AppTextButton(onClick = { vm.leaveDiscarding(onDone) }, modifier = Modifier.testTag("leave-discard"), label = "Verwerfen", icon = Icons.Default.Close) },
+            dismissButton = { AppTextButton(onClick = vm::cancelLeave, modifier = Modifier.testTag("leave-stay"), label = "Weiter bearbeiten", icon = Icons.Default.Edit) },
         )
         ui.confirmSaveErrors?.let { n -> AlertDialog(
             onDismissRequest = vm::cancelSaveConfirm, title = { Text("Markdown-Fehler") },
             text = { Text(if (n == 1) "Der Text enthält noch 1 Fehler. Trotzdem speichern?" else "Der Text enthält noch $n Fehler. Trotzdem speichern?") },
-            confirmButton = { TextButton(onClick = { vm.save(force = true) }, modifier = Modifier.testTag("save-anyway")) { Text("Trotzdem speichern") } },
-            dismissButton = { TextButton(onClick = vm::cancelSaveConfirm, modifier = Modifier.testTag("save-back")) { Text("Zurück") } },
+            confirmButton = { AppTextButton(onClick = { vm.save(force = true) }, modifier = Modifier.testTag("save-anyway"), label = "Trotzdem speichern", icon = Icons.Default.Save) },
+            dismissButton = { AppTextButton(onClick = vm::cancelSaveConfirm, modifier = Modifier.testTag("save-back"), label = "Zurück", icon = Icons.Default.ArrowBack) },
         ) }
         Column(Modifier.padding(padding).fillMaxSize()) {
             if (ui.saving || !ui.loaded) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -176,19 +201,17 @@ private fun BodyContent(ui: EditorUi, vm: EditorViewModel, fontScale: Float) {
             apply(EditState(value.text.replaceRange(under.start, under.end, replacement), under.start + replacement.length))
         }
         Row(Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            ToolButton("F", "Fett", "tool-bold") { apply(FormatActions.bold(state())) }
-            ToolButton("K", "Kursiv", "tool-italic") { apply(FormatActions.italic(state())) }
-            ToolButton("H", "Überschrift", "tool-heading") { apply(FormatActions.heading(state())) }
-            ToolButton("•", "Aufzählung", "tool-bullet") { apply(FormatActions.bullet(state())) }
-            ToolButton("Link", "Link", "tool-link") { apply(FormatActions.link(state())) }
-            ToolButton("„“", "Zitat", "tool-quote") { apply(FormatActions.quote(state())) }
-            ToolButton("↶", "Rückgängig", "tool-undo", enabled = ui.canUndo) { vm.undo()?.let { apply(it, record = false) } }
-            ToolButton("↷", "Wiederholen", "tool-redo", enabled = ui.canRedo) { vm.redo()?.let { apply(it, record = false) } }
-            OutlinedButton(onClick = { showImageDialog = true }, enabled = ui.imageFiles.isNotEmpty(), modifier = Modifier.testTag("insert-image")) { Text("Bild einfügen") }
+            ToolButton(Icons.Default.FormatBold, "Fett", "tool-bold") { apply(FormatActions.bold(state())) }
+            ToolButton(Icons.Default.FormatItalic, "Kursiv", "tool-italic") { apply(FormatActions.italic(state())) }
+            ToolButton(Icons.Default.Title, "Überschrift", "tool-heading") { apply(FormatActions.heading(state())) }
+            ToolButton(Icons.Default.FormatListBulleted, "Aufzählung", "tool-bullet") { apply(FormatActions.bullet(state())) }
+            ToolButton(Icons.Default.Link, "Link", "tool-link") { apply(FormatActions.link(state())) }
+            ToolButton(Icons.Default.FormatQuote, "Zitat", "tool-quote") { apply(FormatActions.quote(state())) }
+            ToolButton(Icons.Default.Undo, "Rückgängig", "tool-undo", enabled = ui.canUndo) { vm.undo()?.let { apply(it, record = false) } }
+            ToolButton(Icons.Default.Redo, "Wiederholen", "tool-redo", enabled = ui.canRedo) { vm.redo()?.let { apply(it, record = false) } }
+            AppOutlinedButton(onClick = { showImageDialog = true }, enabled = ui.imageFiles.isNotEmpty(), modifier = Modifier.testTag("insert-image"), label = "Bild einfügen", icon = Icons.Default.AddPhotoAlternate)
         }
-        TextButton(onClick = { vm.showFindings(true) }, modifier = Modifier.testTag("open-findings")) {
-            Text("Prüfung: ${ui.errorCount} Fehler, ${ui.warningCount} Warnungen, ${ui.misspellings.size} Rechtschreibung")
-        }
+        AppTextButton(onClick = { vm.showFindings(true) }, modifier = Modifier.testTag("open-findings"), label = "Prüfung: ${ui.errorCount} Fehler, ${ui.warningCount} Warnungen, ${ui.misspellings.size} Rechtschreibung", icon = Icons.Default.CheckCircle)
     }
     if (showImageDialog) ImageInsertDialog(ui.imageFiles, onDismiss = { showImageDialog = false }) { ref ->
         val r = MarkdownEdit.insertImage(value.text, value.selection.start, ref)
@@ -201,8 +224,8 @@ private fun BodyContent(ui: EditorUi, vm: EditorViewModel, fontScale: Float) {
 }
 
 @Composable
-private fun ToolButton(label: String, description: String, tag: String, enabled: Boolean = true, onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick, enabled = enabled, modifier = Modifier.testTag(tag).semantics { contentDescription = description }) { Text(label) }
+private fun ToolButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, tag: String, enabled: Boolean = true, onClick: () -> Unit) {
+    AppIconButton(icon = icon, label = description, onClick = onClick, enabled = enabled, modifier = Modifier.testTag(tag))
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -237,7 +260,7 @@ private fun FindingsDialog(ui: EditorUi, onDismiss: () -> Unit, onJump: (Finding
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { AppTextButton(onClick = onDismiss, label = "Schließen", icon = Icons.Default.Close) },
     )
 }
 
@@ -276,8 +299,8 @@ private fun ImageInsertDialog(files: List<String>, onDismiss: () -> Unit, onInse
             files.forEach { f -> Row { FilterChip(selected = selected == f, onClick = { selected = f }, label = { Text(f) }) } }
             OutlinedTextField(value = alt, onValueChange = { alt = it }, label = { Text("Beschreibung (Alt-Text)") }, modifier = Modifier.testTag("alt-input"))
         } },
-        confirmButton = { TextButton(onClick = { selected?.let { onInsert(ImageRef(alt, it)) } }, enabled = selected != null, modifier = Modifier.testTag("insert-confirm")) { Text("Einfügen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { AppTextButton(onClick = { selected?.let { onInsert(ImageRef(alt, it)) } }, enabled = selected != null, modifier = Modifier.testTag("insert-confirm"), label = "Einfügen") },
+        dismissButton = { AppTextButton(onClick = onDismiss, label = "Abbrechen", icon = Icons.Default.Close) },
     )
 }
 
@@ -292,14 +315,14 @@ private fun PropertiesContent(ui: EditorUi, vm: EditorViewModel) {
         OutlinedTextField(ui.title, vm::setTitle, label = { Text("Titel") }, singleLine = true, isError = ui.error(Fields.TITLE) != null,
             supportingText = { ui.error(Fields.TITLE)?.let { Text("⚠ $it") } }, modifier = Modifier.fillMaxWidth().testTag("prop-title"))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = { showDate = true }, modifier = Modifier.weight(1f).testTag("prop-date")) { Text("Datum: ${ui.date?.date?.toString() ?: "wählen"}") }
-            OutlinedButton(onClick = { showTime = true }, modifier = Modifier.weight(1f).testTag("prop-time")) { Text(ui.date?.time?.let { "Uhrzeit: %02d:%02d".format(it.hour, it.minute) } ?: "Uhrzeit hinzufügen") }
-            if (ui.date?.time != null) TextButton(onClick = { vm.setTime(null) }, modifier = Modifier.testTag("prop-time-clear")) { Text("Entfernen") }
+            AppOutlinedButton(onClick = { showDate = true }, modifier = Modifier.weight(1f).testTag("prop-date"), label = "Datum: ${ui.date?.date?.toString() ?: "wählen"}")
+            AppOutlinedButton(onClick = { showTime = true }, modifier = Modifier.weight(1f).testTag("prop-time"), label = ui.date?.time?.let { "Uhrzeit: %02d:%02d".format(it.hour, it.minute) } ?: "Uhrzeit hinzufügen")
+            if (ui.date?.time != null) AppTextButton(onClick = { vm.setTime(null) }, modifier = Modifier.testTag("prop-time-clear"), label = "Entfernen", icon = Icons.Default.Delete)
         }
         ui.error(Fields.DATE)?.let { Text("⚠ $it", color = MaterialTheme.colorScheme.error) }
         OutlinedTextField(ui.permalink, vm::setPermalink, label = { Text("Permalink") }, singleLine = true, isError = ui.error(Fields.PERMALINK) != null,
             supportingText = { Text(ui.error(Fields.PERMALINK)?.let { "⚠ $it" } ?: if (ui.permalinkAuto && ui.isNew) "Automatisch aus Datum und Titel" else "") }, modifier = Modifier.fillMaxWidth().testTag("prop-permalink"))
-        if (ui.isNew && !ui.permalinkAuto) TextButton(onClick = vm::useAutoPermalink) { Text("Automatisch vorschlagen") }
+        if (ui.isNew && !ui.permalinkAuto) AppTextButton(onClick = vm::useAutoPermalink, label = "Automatisch vorschlagen", icon = Icons.Default.AutoFixHigh)
 
         Text("Schlagworte", style = MaterialTheme.typography.titleSmall)
         OutlinedTextField(ui.tagQuery, vm::setTagQuery, label = { Text("Schlagwort suchen") }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("tag-search"))
@@ -312,7 +335,7 @@ private fun PropertiesContent(ui: EditorUi, vm: EditorViewModel) {
             if (shown.isEmpty() && q.isNotEmpty()) Text("Kein Schlagwort gefunden.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("tag-none"))
         }
         ui.error(Fields.TAGS)?.let { Text("⚠ $it", color = MaterialTheme.colorScheme.error) }
-        TextButton(onClick = { showNewTag = true }, modifier = Modifier.testTag("new-tag")) { Text("Neues Schlagwort …") }
+        AppTextButton(onClick = { showNewTag = true }, modifier = Modifier.testTag("new-tag"), label = "Neues Schlagwort …", icon = Icons.Default.Add)
         ui.newTagMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("new-tag-message")) }
 
         OutlinedTextField(ui.author, vm::setAuthor, label = { Text("Autor") }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("prop-author"))
@@ -333,19 +356,19 @@ private fun PropertiesContent(ui: EditorUi, vm: EditorViewModel) {
         OutlinedTextField(ui.excerpt, vm::setExcerpt, label = { Text("Kurzbeschreibung") }, minLines = 2, visualTransformation = excerptTransformation,
             supportingText = { Text("${ui.excerpt.length} Zeichen" + if (ui.excerptMisspellings.isNotEmpty()) " · Rechtschreibung: " + ui.excerptMisspellings.joinToString { it.word } else "", modifier = Modifier.testTag("excerpt-counter")) },
             modifier = Modifier.fillMaxWidth().testTag("prop-excerpt"))
-        TextButton(onClick = vm::excerptFromText, modifier = Modifier.testTag("excerpt-from-text")) { Text("Aus Text übernehmen") }
-        Button(onClick = { vm.showProperties(false) }) { Text("Fertig") }
+        AppTextButton(onClick = vm::excerptFromText, modifier = Modifier.testTag("excerpt-from-text"), label = "Aus Text übernehmen", icon = Icons.Default.Check)
+        AppButton(onClick = { vm.showProperties(false) }, label = "Fertig", icon = Icons.Default.Check)
     }
     if (showDate) {
         val initial = ui.date?.date?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
         val state = rememberDatePickerState(initialSelectedDateMillis = initial)
         DatePickerDialog(
             onDismissRequest = { showDate = false },
-            confirmButton = { TextButton(onClick = {
+            confirmButton = { AppTextButton(onClick = {
                 state.selectedDateMillis?.let { ms -> vm.setDate(PostDate(Instant.ofEpochMilli(ms).atZone(ZoneOffset.UTC).toLocalDate(), ui.date?.time)) }
                 showDate = false
-            }) { Text("OK") } },
-            dismissButton = { TextButton(onClick = { showDate = false }) { Text("Abbrechen") } },
+            }, label = "OK", icon = Icons.Default.Check) },
+            dismissButton = { AppTextButton(onClick = { showDate = false }, label = "Abbrechen", icon = Icons.Default.Close) },
         ) { DatePicker(state = state) }
     }
     if (showNewTag) NewTagDialog(ui.allowedTags, onDismiss = { showNewTag = false }) { name -> vm.createTag(name); showNewTag = false }
@@ -355,8 +378,8 @@ private fun PropertiesContent(ui: EditorUi, vm: EditorViewModel) {
         AlertDialog(
             onDismissRequest = { showTime = false }, title = { Text("Uhrzeit") },
             text = { TimePicker(state = state) },
-            confirmButton = { TextButton(onClick = { vm.setTime(java.time.LocalTime.of(state.hour, state.minute, t?.second ?: 0)); showTime = false }, modifier = Modifier.testTag("time-ok")) { Text("OK") } },
-            dismissButton = { TextButton(onClick = { showTime = false }) { Text("Abbrechen") } },
+            confirmButton = { AppTextButton(onClick = { vm.setTime(java.time.LocalTime.of(state.hour, state.minute, t?.second ?: 0)); showTime = false }, modifier = Modifier.testTag("time-ok"), label = "OK", icon = Icons.Default.Check) },
+            dismissButton = { AppTextButton(onClick = { showTime = false }, label = "Abbrechen", icon = Icons.Default.Close) },
         )
     }
 }
@@ -395,9 +418,9 @@ private fun NewTagDialog(existing: List<String>, onDismiss: () -> Unit, onCreate
         text = { Column {
             OutlinedTextField(name, { name = it }, label = { Text("Name") }, singleLine = true, isError = error != null,
                 supportingText = { Text(error ?: "${name.trim().length}/${de.flauschiversum.publisher.posts.TagsFile.MAX_LENGTH}") }, modifier = Modifier.testTag("new-tag-name"))
-            if (duplicate != null) TextButton(onClick = { onCreate(duplicate) }, modifier = Modifier.testTag("new-tag-use-existing")) { Text("„$duplicate“ auswählen") }
+            if (duplicate != null) AppTextButton(onClick = { onCreate(duplicate) }, modifier = Modifier.testTag("new-tag-use-existing"), label = "„$duplicate“ auswählen", icon = Icons.Default.Check)
         } },
-        confirmButton = { TextButton(onClick = { onCreate(name) }, enabled = name.isNotBlank() && de.flauschiversum.publisher.posts.TagsFile.validate(name, existing) == null, modifier = Modifier.testTag("new-tag-create")) { Text("Anlegen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { AppTextButton(onClick = { onCreate(name) }, enabled = name.isNotBlank() && de.flauschiversum.publisher.posts.TagsFile.validate(name, existing) == null, modifier = Modifier.testTag("new-tag-create"), label = "Anlegen", icon = Icons.Default.Check) },
+        dismissButton = { AppTextButton(onClick = onDismiss, label = "Abbrechen", icon = Icons.Default.Close) },
     )
 }

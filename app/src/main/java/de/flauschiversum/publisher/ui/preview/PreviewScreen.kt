@@ -35,6 +35,13 @@ import de.flauschiversum.publisher.preview.PreviewWebView
 import de.flauschiversum.publisher.preview.openExternally
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.Icons
+import de.flauschiversum.publisher.ui.components.AppTextButton
+import de.flauschiversum.publisher.ui.components.AppIconButton
 
 /** Was die Vorschau braucht: die Eingabe und die Dateien im Beitragsverzeichnis samt Stand, aus dem Bilder gelesen werden. */
 class PreviewData(val input: PreviewInput, val files: List<String>, val rev: String)
@@ -66,7 +73,7 @@ fun PreviewPane(c: AppContainer, data: PreviewData, modifier: Modifier = Modifie
         if (showHint) Card(Modifier.fillMaxWidth().padding(8.dp).testTag("preview-hint")) {
             Column(Modifier.padding(12.dp)) {
                 Text("Die Vorschau ist eine Annäherung: Suche, verwandte Beiträge, Navigation und Wasserzeichen auf den Bildern erscheinen nicht.", style = MaterialTheme.typography.bodySmall)
-                TextButton(onClick = { showHint = false }, modifier = Modifier.testTag("preview-hint-ok")) { Text("Verstanden") }
+                AppTextButton(onClick = { showHint = false }, modifier = Modifier.testTag("preview-hint-ok"), label = "Verstanden", icon = Icons.Default.Check)
             }
         }
         PreviewWebView(html, imageBytes = { dir, file -> c.session.store()?.readBytes(data.rev, "${PostReader.POSTS_DIR}/$dir/$file") }, onLink = { link = it }, modifier = Modifier.fillMaxSize())
@@ -74,8 +81,8 @@ fun PreviewPane(c: AppContainer, data: PreviewData, modifier: Modifier = Modifie
     link?.let { u ->
         AlertDialog(
             onDismissRequest = { link = null }, title = { Text("Im Browser öffnen?") }, text = { Text(u.toString(), modifier = Modifier.testTag("link-url")) },
-            confirmButton = { TextButton(onClick = { openExternally(context, u); link = null }, modifier = Modifier.testTag("link-open")) { Text("Öffnen") } },
-            dismissButton = { TextButton(onClick = { link = null }, modifier = Modifier.testTag("link-cancel")) { Text("Abbrechen") } },
+            confirmButton = { AppTextButton(onClick = { openExternally(context, u); link = null }, modifier = Modifier.testTag("link-open"), label = "Öffnen", icon = Icons.Default.OpenInNew) },
+            dismissButton = { AppTextButton(onClick = { link = null }, modifier = Modifier.testTag("link-cancel"), label = "Abbrechen", icon = Icons.Default.Close) },
         )
     }
 }
@@ -84,7 +91,7 @@ fun PreviewPane(c: AppContainer, data: PreviewData, modifier: Modifier = Modifie
 @Composable
 fun PreviewScreen(c: AppContainer, dir: String, onBack: () -> Unit) {
     val data by produceState<PreviewData?>(null, dir) { value = PreviewLoader.load(c, dir) }
-    Scaffold(topBar = { TopAppBar(title = { Text("Vorschau: ${data?.input?.title ?: dir}", maxLines = 1) }, navigationIcon = { TextButton(onClick = onBack, modifier = Modifier.testTag("preview-back")) { Text("Zurück") } }) }) { pad ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Vorschau: ${data?.input?.title ?: dir}", maxLines = 1) }, navigationIcon = { AppIconButton(icon = Icons.Default.ArrowBack, label = "Zurück", onClick = onBack, modifier = Modifier.testTag("preview-back")) }) }) { pad ->
         val d = data
         if (d == null) Text("Lädt …", Modifier.padding(pad).padding(16.dp)) else PreviewPane(c, d, Modifier.padding(pad))
     }
