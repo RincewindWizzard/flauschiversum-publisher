@@ -15,7 +15,7 @@
 ## 3. Abschluss
 
 - [x] 3.1 Bestehende Tests anpassen (Platzhalter-Erwartung Buchstabe → Symbol); Zugänglichkeitstest (Beschriftung, 48 dp) bleibt grün — Platzhalter-Erwartungen angepasst; `AccessibilityUiTest` grün
-- [ ] 3.2 Bildschirmfotos der Liste mit echten Bildern; auf einem Gerät prüfen, dass Bilder erscheinen und das Scrollen flüssig bleibt (kein Gerät verfügbar: als offen vermerken) — Bildschirmfotos mit echten Bildern sind erstellt (JVM); die Prüfung auf einem Gerät (Bilder erscheinen, Scrollen flüssig) steht aus
+- [x] 3.2 Bildschirmfotos der Liste mit echten Bildern (JVM); auf dem Gerät vom Nutzer bestätigt: Bilder erscheinen, Scrollen bleibt flüssig
 - [x] 3.3 `README.md` Abschnitt „Übersicht“ um die Vorschau ergänzen — `README.md` ergänzt
 
 ## Workflow follow-up
