@@ -140,10 +140,12 @@ class EditorViewModel(private val c: AppContainer, private val handle: SavedStat
         val allowed = wf.store.readText(wf.baseRev(), "content/tags.yaml")?.let { TagsFile.names(it) }.orEmpty()
         c.spell.setTags(allowed)
         contentRev = rev
-        authors = (reader.summaries(wf.refs.target) + (if (wf.hasDraft()) reader.summaries(wf.refs.draft) else emptyList())).mapNotNull { it.author?.trim() }.filter { it.isNotEmpty() }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.map { it.key }
+        // Alle Beiträge aus dem Index (Zwischenspeicher pro Verzeichnis) statt jede index.md neu zu lesen
+        fun summaries(rev: String) = c.postIndex()?.build(rev)?.map { it.summary }?.sortedWith(PostReader.NEWEST_FIRST) ?: reader.summaries(rev)
+        val all = summaries(wf.refs.target) + (if (wf.hasDraft()) summaries(wf.refs.draft) else emptyList())
+        authors = all.mapNotNull { it.author?.trim() }.filter { it.isNotEmpty() }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.map { it.key }
         existingDirs = (reader.dirNames(wf.refs.target) + (if (wf.hasDraft()) reader.dirNames(wf.refs.draft) else emptyList())).toSet()
-        otherPermalinks = (reader.summaries(wf.refs.target) + (if (wf.hasDraft()) reader.summaries(wf.refs.draft) else emptyList()))
-            .filter { it.dir != dir && it.permalink != null }.associate { it.permalink!! to it.title }
+        otherPermalinks = all.filter { it.dir != dir && it.permalink != null }.associate { it.permalink!! to it.title }
         if (dir == null) {
             val today = LocalDate.now(ZoneId.of("Europe/Berlin"))
             val date = PostDate(today, null)
