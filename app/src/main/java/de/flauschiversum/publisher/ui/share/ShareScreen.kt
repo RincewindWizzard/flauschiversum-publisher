@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 /** Wohin mit den geteilten Fotos? Beitrag wählen oder neu anlegen, Beschreibung je Bild, Speichern oder Abbrechen. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShareScreen(vm: ShareViewModel, onClose: () -> Unit) {
+fun ShareScreen(vm: ShareViewModel, onClose: () -> Unit, beforeSave: ((proceed: () -> Unit) -> Unit)? = null) {
     val ui by vm.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(ui.done) { if (ui.done) onClose() }
@@ -50,7 +50,7 @@ fun ShareScreen(vm: ShareViewModel, onClose: () -> Unit) {
         bottomBar = {
             Row(Modifier.fillMaxWidth().padding(16.dp)) {
                 OutlinedButton(onClick = vm::cancel, modifier = Modifier.padding(end = 8.dp).testTag("share-cancel")) { Text("Abbrechen") }
-                Button(onClick = vm::save, enabled = ui.canSave, modifier = Modifier.testTag("share-save")) { Text(if (ui.saving) "Speichert …" else "Ablegen") }
+                Button(onClick = { if (beforeSave != null) beforeSave { vm.save() } else vm.save() }, enabled = ui.canSave, modifier = Modifier.testTag("share-save")) { Text(if (ui.saving) "Speichert …" else "Ablegen") }
             }
         },
     ) { pad ->

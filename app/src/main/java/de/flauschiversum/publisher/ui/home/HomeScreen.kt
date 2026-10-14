@@ -77,7 +77,7 @@ fun formatSync(millis: Long): String =
 @Composable
 fun HomeScreen(
     vm: HomeViewModel, onOpenPost: (String?) -> Unit, onSettings: () -> Unit, onFixAccess: () -> Unit,
-    onOpenProperties: (String) -> Unit = { onOpenPost(it) }, onAddPhoto: (String) -> Unit = {}, onOpenPhotos: (String) -> Unit = {}, onOpenPreview: (String) -> Unit = {},
+    onOpenProperties: (String) -> Unit = { onOpenPost(it) }, onAddPhoto: (String) -> Unit = {}, onOpenPhotos: (String) -> Unit = {}, onOpenPreview: (String) -> Unit = {}, onOpenOutbox: () -> Unit = {},
 ) {
     val ui by vm.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
@@ -89,6 +89,9 @@ fun HomeScreen(
     LaunchedEffect(ui.message) { ui.message?.let { snackbar.showSnackbar(it); vm.messageShown() } }
     Scaffold(
         topBar = { TopAppBar(title = { Text("Flauschiversum", style = MaterialTheme.typography.headlineSmall) }, actions = {
+            val jobs by vm.c.uploads.jobs.collectAsState()
+            val active = jobs.count { it.status != de.flauschiversum.publisher.upload.JobStatus.DONE }
+            TextButton(onClick = onOpenOutbox, modifier = Modifier.testTag("open-outbox")) { Text(if (active > 0) "Ausgang ($active)" else "Ausgang") }
             TextButton(onClick = vm::refreshNow) { Text("Aktualisieren") }
             TextButton(onClick = onSettings, modifier = Modifier.testTag("open-settings")) { Text("Einstellungen") }
         }) },

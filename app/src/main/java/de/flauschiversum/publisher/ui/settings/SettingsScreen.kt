@@ -82,6 +82,8 @@ fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit, onSetup: () -> Uni
                 Switch(checked = s.uploadWifiOnly, onCheckedChange = { v -> vm.update { it.copy(uploadWifiOnly = v) } }, modifier = Modifier.testTag("wifi-only"))
                 Text("Nur über WLAN hochladen")
             }
+            Text("Manche Hersteller beenden Hintergrundaufgaben früh. Wenn Uploads nicht von selbst laufen, nimm die App von der Akku-Optimierung aus.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("battery-hint"))
+            OutlinedButton(onClick = { runCatching { context.startActivity(android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } }, modifier = Modifier.testTag("battery-settings")) { Text("Akku-Einstellungen öffnen") }
             HorizontalDivider()
 
             Section("SSH-Schlüssel")

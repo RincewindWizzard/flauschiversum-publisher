@@ -51,7 +51,7 @@ class PropertiesUiTest {
         val vm = EditorViewModel(harness.container, SavedStateHandle(), dir)
         compose.setContent { FlauschiversumPublisherTheme { EditorScreen(vm, 1f, {}) } }
         waitFor { vm.ui.value.loaded }
-        compose.onNodeWithTag("open-properties").performClick()
+        compose.onNodeWithTag("editor-menu").performClick(); compose.onNodeWithTag("open-properties").performClick()
         waitFor { exists("prop-title") }
         return vm
     }

@@ -62,6 +62,9 @@ class TestSshGitServer(val root: File) : AutoCloseable {
                 return git.createCommand(channel, command)
             }
         }
+        sshd.addSessionListener(object : org.apache.sshd.common.session.SessionListener {
+            override fun sessionCreated(session: org.apache.sshd.common.session.Session) { if (paused) session.close(true) }
+        })
         sshd.start()
     }
 
@@ -76,6 +79,12 @@ class TestSshGitServer(val root: File) : AutoCloseable {
 
     /** Host-Schlüssel des Servers als SSH-Block. */
     fun hostPublicKey(): PublicKey = sshd.keyPairProvider.loadKeys(null).first().public
+
+    @Volatile private var paused = false
+    /** Weist neue Verbindungen ab (wie ein Funkloch: die Verbindung wird sofort geschlossen). */
+    fun pause() { paused = true }
+    /** Nimmt wieder Verbindungen an. */
+    fun resume() { paused = false }
 
     override fun close() { sshd.stop(true) }
 

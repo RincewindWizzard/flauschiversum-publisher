@@ -42,6 +42,7 @@ object Routes {
     const val HOME = "home"
     const val SETTINGS = "settings"
     const val SHARE = "share"
+    const val OUTBOX = "outbox"
     const val PREVIEW = "preview/{dir}"
     fun preview(dir: String) = "preview/" + URLEncoder.encode(dir, "UTF-8")
     const val PHOTOS = "photos/{dir}"
@@ -56,6 +57,10 @@ object Routes {
 fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
     val factory = AppViewModelFactory(container)
     // Geteilte Fotos öffnen die Zuordnung, sobald die Einrichtung abgeschlossen ist
+    val openOutbox by container.openOutbox.collectAsState()
+    LaunchedEffect(openOutbox, start) {
+        if (openOutbox && start != Routes.SETUP) { container.openOutbox.value = false; nav.navigate(Routes.OUTBOX) { launchSingleTop = true } }
+    }
     val pending by container.incoming.pending.collectAsState()
     LaunchedEffect(pending.isNotEmpty(), start) {
         if (pending.isNotEmpty() && start != Routes.SETUP) nav.navigate(Routes.SHARE) { launchSingleTop = true }
@@ -73,12 +78,25 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
                 if (uris.isNotEmpty()) container.appScope.launch(Dispatchers.IO) { container.incoming.receiveUris(uris, dir) }
             }
             HomeScreen(vm, onOpenPost = { nav.navigate(Routes.editor(it)) }, onSettings = { nav.navigate(Routes.SETTINGS) },
-                onFixAccess = { nav.navigate(Routes.SETUP) }, onOpenProperties = { nav.navigate(Routes.editor(it, properties = true)) }, onOpenPhotos = { nav.navigate(Routes.photos(it)) }, onOpenPreview = { nav.navigate(Routes.preview(it)) },
+                onFixAccess = { nav.navigate(Routes.SETUP) }, onOpenProperties = { nav.navigate(Routes.editor(it, properties = true)) }, onOpenPhotos = { nav.navigate(Routes.photos(it)) }, onOpenPreview = { nav.navigate(Routes.preview(it)) }, onOpenOutbox = { nav.navigate(Routes.OUTBOX) },
                 onAddPhoto = { photoTarget = it; picker.launch("image/*") })
         }
         composable(Routes.SHARE) {
             val vm: ShareViewModel = viewModel(factory = factory)
-            ShareScreen(vm, onClose = { if (!nav.popBackStack()) nav.navigate(Routes.HOME) })
+            val askedKey = "notifications_asked"
+            var afterPermission by remember { mutableStateOf<(() -> Unit)?>(null) }
+            val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { afterPermission?.invoke(); afterPermission = null }
+            val context = androidx.compose.ui.platform.LocalContext.current
+            ShareScreen(vm, onClose = { if (!nav.popBackStack()) nav.navigate(Routes.HOME) }, beforeSave = { proceed ->
+                // Berechtigung für Benachrichtigungen erst beim ersten Auftrag erbitten; die App funktioniert auch ohne
+                val prefs = context.getSharedPreferences("app", android.content.Context.MODE_PRIVATE)
+                if (android.os.Build.VERSION.SDK_INT >= 33 && !prefs.getBoolean(askedKey, false) &&
+                    androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    prefs.edit().putBoolean(askedKey, true).apply()
+                    afterPermission = proceed
+                    permission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                } else proceed()
+            })
         }
         composable(Routes.PHOTOS, arguments = listOf(navArgument("dir") { type = NavType.StringType })) { entry ->
             val dir = Routes.decodeDir(entry.arguments?.getString("dir")) ?: return@composable
@@ -91,6 +109,9 @@ fun AppNav(container: AppContainer, nav: NavHostController, start: String) {
         composable(Routes.PREVIEW, arguments = listOf(navArgument("dir") { type = NavType.StringType })) { entry ->
             val dir = Routes.decodeDir(entry.arguments?.getString("dir")) ?: return@composable
             de.flauschiversum.publisher.ui.preview.PreviewScreen(container, dir, onBack = { nav.popBackStack() })
+        }
+        composable(Routes.OUTBOX) {
+            de.flauschiversum.publisher.ui.outbox.OutboxScreen(container, onBack = { nav.popBackStack() }, onFixAccess = { nav.navigate(Routes.SETUP) })
         }
         composable(Routes.SETTINGS) {
             val vm: SettingsViewModel = viewModel(factory = factory)

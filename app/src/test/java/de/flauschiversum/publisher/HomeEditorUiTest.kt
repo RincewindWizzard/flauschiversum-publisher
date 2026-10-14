@@ -190,7 +190,7 @@ class HomeEditorUiTest {
         val h = harness(); var done = false; val vm = editor(h, null) { done = true }
         waitFor { vm.ui.value.loaded }
         compose.onNodeWithTag("body-input").performTextInput("Eine warme Mütze.")
-        compose.onNodeWithTag("open-properties").performClick()
+        compose.onNodeWithTag("editor-menu").performClick(); compose.onNodeWithTag("open-properties").performClick()
         waitFor { exists("prop-title") }
         compose.onNodeWithTag("prop-title").performTextInput("Mütze")
         compose.onNodeWithTag("tag-Hüte").performScrollTo().performClick()

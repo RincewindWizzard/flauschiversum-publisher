@@ -19,6 +19,7 @@ import de.flauschiversum.publisher.ui.AppNav
 import de.flauschiversum.publisher.ui.Routes
 import de.flauschiversum.publisher.ui.theme.FlauschiversumPublisherTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
@@ -28,6 +29,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         handleShare(intent)
+        if (intent?.getBooleanExtra(de.flauschiversum.publisher.upload.UploadNotifications.EXTRA_OPEN_OUTBOX, false) == true) container.openOutbox.value = true
+        container.appScope.launch(Dispatchers.IO) { container.uploads.cleanup(); container.uploads.resumeAll() }
         setContent {
             val settings by container.settings.settings.collectAsState(initial = container.settingsSnapshot)
             var start by remember { mutableStateOf<String?>(null) }
@@ -42,6 +45,7 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleShare(intent)
+        if (intent.getBooleanExtra(de.flauschiversum.publisher.upload.UploadNotifications.EXTRA_OPEN_OUTBOX, false)) container.openOutbox.value = true
     }
 
     /** Geteilte Bilder in den App-Speicher kopieren; die Navigation zeigt dann die Zuordnung. */

@@ -94,6 +94,7 @@ class ShareUiTest {
         compose.onNodeWithTag("share-save").assertIsEnabled().performClick()
         waitFor { closed.get() }
         val wf = h.container.session.workflow()!!
+        waitFor { wf.hasDraft() }
         val index = wf.store.readText(wf.refs.draft, "content/posts/baumaerkte/index.md")!!
         assertTrue(index.trimEnd().endsWith("## Anhänge\n\n![Ein Baum](IMG_1.jpg)"))
         assertEquals("IMG_1.jpg", String(wf.store.readBytes(wf.refs.draft, "content/posts/baumaerkte/IMG_1.jpg")!!))
@@ -111,6 +112,7 @@ class ShareUiTest {
         compose.onNodeWithTag("share-save").assertIsEnabled().performClick()
         waitFor { closed.get() }
         val wf = h.container.session.workflow()!!
+        waitFor { wf.hasDraft() }
         assertTrue(wf.store.exists(wf.refs.draft, "content/posts/fotoabend/index.md"))
     }
 

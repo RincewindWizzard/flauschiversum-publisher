@@ -155,7 +155,7 @@ class TagsUiTest {
         val vm = EditorViewModel(harness.container, SavedStateHandle(), null)
         compose.setContent { FlauschiversumPublisherTheme { EditorScreen(vm, 1f, {}) } }
         waitFor { vm.ui.value.loaded }
-        compose.onNodeWithTag("open-properties").performClick()
+        compose.onNodeWithTag("editor-menu").performClick(); compose.onNodeWithTag("open-properties").performClick()
         waitFor { exists("new-tag") }
         return vm
     }

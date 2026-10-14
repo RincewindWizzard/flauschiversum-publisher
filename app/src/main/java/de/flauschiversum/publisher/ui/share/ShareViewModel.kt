@@ -3,7 +3,6 @@ package de.flauschiversum.publisher.ui.share
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.flauschiversum.publisher.app.AppContainer
-import de.flauschiversum.publisher.git.GitFailure
 import de.flauschiversum.publisher.photos.PhotoTarget
 import de.flauschiversum.publisher.photos.PhotoWithAlt
 import de.flauschiversum.publisher.photos.SharedPhoto
@@ -62,22 +61,19 @@ class ShareViewModel(private val c: AppContainer) : ViewModel() {
     /** Bricht ab: nichts wird geändert, die Kopien werden gelöscht. */
     fun cancel() { c.incoming.clear(); _ui.update { it.copy(done = true) } }
 
+    /** Sichert die Fotos als Hintergrundauftrag und kehrt sofort zurück; Commit und Upload laufen danach im Hintergrund. */
     fun save() {
         val u = _ui.value
         if (!u.canSave) return
         _ui.update { it.copy(saving = true) }
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val wf = c.session.workflow() ?: error("Das Repository ist nicht eingerichtet.")
                 val target = if (u.creatingNew) PhotoTarget.New(u.newTitle, c.settingsSnapshot.defaultAuthor) else PhotoTarget.Existing(u.selectedDir!!)
-                val items = u.photos.mapIndexed { i, p -> PhotoWithAlt(p, u.alts.getOrNull(i).orEmpty()) }
-                val result = c.session.locked { c.photoPlacement.place(wf, target, items) }
-                c.incoming.clear()
-                c.uploadDraftInBackground()
-                _ui.update { it.copy(saving = false, done = true, message = result.warnings.firstOrNull()) }
+                c.uploads.submit(u.photos, u.alts, target)
+                c.incoming.release()
+                _ui.update { it.copy(saving = false, done = true) }
             } catch (e: Exception) {
-                val f = c.session.classify(e)
-                _ui.update { it.copy(saving = false, message = if (f is GitFailure.Other) "Speichern fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}" else f.message) }
+                _ui.update { it.copy(saving = false, message = "Sichern fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}") }
             }
         }
     }

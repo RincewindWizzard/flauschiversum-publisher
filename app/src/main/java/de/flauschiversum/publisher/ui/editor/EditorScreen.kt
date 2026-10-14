@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +17,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -94,6 +96,7 @@ fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit, onPh
     val ui by vm.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
     var showDelete by remember { mutableStateOf(false) }
+    var menuOpen by remember { mutableStateOf(false) }
     LaunchedEffect(ui.saved) { if (ui.saved) onDone() }
     LaunchedEffect(ui.message) { ui.message?.let { snackbar.showSnackbar(it); vm.messageShown() } }
     BackHandler(enabled = true) { if (ui.showProperties) vm.showProperties(false) else if (ui.showPreview) vm.showPreview(false) else vm.requestLeave(onDone) }
@@ -103,9 +106,14 @@ fun EditorScreen(vm: EditorViewModel, fontScale: Float, onDone: () -> Unit, onPh
             navigationIcon = { TextButton(onClick = { if (ui.showProperties) vm.showProperties(false) else if (ui.showPreview) vm.showPreview(false) else vm.requestLeave(onDone) }, modifier = Modifier.testTag("editor-back")) { Text("Zurück") } },
             actions = {
                 if (!ui.showProperties) TextButton(onClick = { vm.showPreview(!ui.showPreview) }, modifier = Modifier.testTag("toggle-preview")) { Text(if (ui.showPreview) "Bearbeiten" else "Vorschau") }
-                if (!ui.showProperties && !ui.showPreview && !ui.isNew) TextButton(onClick = { ui.dir?.let(onPhotos) }, modifier = Modifier.testTag("editor-photos")) { Text("Fotos") }
-                if (!ui.showProperties && !ui.showPreview && !ui.isNew) TextButton(onClick = { showDelete = true }, modifier = Modifier.testTag("editor-delete")) { Text("Löschen") }
-                if (!ui.showProperties && !ui.showPreview) TextButton(onClick = { vm.showProperties(true) }, modifier = Modifier.testTag("open-properties")) { Text("Eigenschaften") }
+                if (!ui.showProperties && !ui.showPreview) Box {
+                    TextButton(onClick = { menuOpen = true }, modifier = Modifier.testTag("editor-menu")) { Text("⋮") }
+                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(text = { Text("Eigenschaften") }, onClick = { menuOpen = false; vm.showProperties(true) }, modifier = Modifier.testTag("open-properties"))
+                        if (!ui.isNew) DropdownMenuItem(text = { Text("Fotos") }, onClick = { menuOpen = false; ui.dir?.let(onPhotos) }, modifier = Modifier.testTag("editor-photos"))
+                        if (!ui.isNew) DropdownMenuItem(text = { Text("Löschen") }, onClick = { menuOpen = false; showDelete = true }, modifier = Modifier.testTag("editor-delete"))
+                    }
+                }
                 TextButton(onClick = vm::save, enabled = ui.loaded && ui.loadProblem == null && !ui.saving, modifier = Modifier.testTag("save")) { Text("Speichern") }
             },
         ) },

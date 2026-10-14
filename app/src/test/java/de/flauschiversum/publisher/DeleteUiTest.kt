@@ -137,7 +137,7 @@ class DeleteUiTest {
         val vm = EditorViewModel(harness.container, SavedStateHandle(), "baumaerkte")
         compose.setContent { FlauschiversumPublisherTheme { EditorScreen(vm, 1f, { done = true }) } }
         waitFor { vm.ui.value.loaded && vm.ui.value.body.isNotEmpty() }
-        compose.onNodeWithTag("editor-delete").performClick()
+        compose.onNodeWithTag("editor-menu").performClick(); compose.onNodeWithTag("editor-delete").performClick()
         waitFor { exists("delete-dialog") }
         compose.onNodeWithTag("delete-confirm").performClick()
         waitFor { done }

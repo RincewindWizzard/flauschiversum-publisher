@@ -59,6 +59,9 @@ class IncomingPhotos(private val context: Context) {
         SharedPhoto(target, name, resolver.getType(uri))
     }.getOrNull()
 
+    /** Die Bilder sind in einen Auftrag übergegangen: Zustand leeren, ohne die Dateien zu löschen. */
+    fun release() { pending.value = emptyList(); targetDir.value = null }
+
     /** Verwirft die vorgemerkten Bilder samt Kopien. */
     fun clear() {
         pending.value = emptyList()

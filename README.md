@@ -48,6 +48,13 @@ Mit *Einstellungen → Einrichtung wiederholen* lässt sich jeder Schritt erneut
 - **Eigenschaften** (Menü im Editor): Titel, Datum mit Kalender und optionaler Uhrzeit, Permalink (Vorschlag aus Datum
   und Titel), Schlagworte mit Suche, Autor (bekannte Autoren zum Antippen), Titelbild als Vorschau-Raster und
   Kurzbeschreibung mit Zähler und „Aus Text übernehmen“.
+- **Hintergrund-Upload und Ausgang**: Beim Ablegen geteilter Fotos sichert die App die Dateien sofort und kehrt zurück.
+  Verkleinern, Commit auf `draft` und Upload laufen als Hintergrundauftrag (WorkManager), der App-Schließen und Neustart
+  übersteht. Der Commit entsteht auch ohne Netz; der Upload wartet auf Netz und wiederholt sich mit wachsendem Abstand
+  (ab 30 s). Bei dauerhaften Fehlern (Zugriff verweigert, Server lehnt ab) wird nicht wiederholt. Der „Ausgang“ in
+  der Übersicht zeigt alle Aufträge (Wartet auf Netz/WLAN, Läuft, Fehlgeschlagen, Erledigt), erlaubt Wiederholen,
+  Abbrechen vor dem Commit und „Jetzt senden“ über Mobilfunk; erledigte Einträge verschwinden nach sieben Tagen.
+  Einstellung „Nur über WLAN hochladen“ unter Einstellungen → Hochladen. Benachrichtigungen sind optional.
 - **Vorschau**: „Vorschau“ im Editor (zeigt den aktuellen, auch ungespeicherten Text samt Eigenschaften) oder im Menü am
   Beitrag. Dargestellt werden Kopf, Text mit Tabellen, Durchgestrichenem und eingebettetem HTML, Bilder mit
   Unterschrift, Bildgruppen als wischbares Karussell, fehlende Bilder als Platzhalter. Sie ist eine Annäherung ohne

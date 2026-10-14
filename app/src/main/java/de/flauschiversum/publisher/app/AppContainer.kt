@@ -61,6 +61,18 @@ class AppContainer(val context: Context) {
     /** Vorschaubilder der Beiträge aus dem lokalen Klon. */
     val thumbnails = de.flauschiversum.publisher.overview.Thumbnails { rev, path -> runCatching { session.store()?.readBytes(rev, path) }.getOrNull() }
 
+    val uploads: de.flauschiversum.publisher.upload.UploadService = run {
+        val store = de.flauschiversum.publisher.upload.JobStore(File(filesDir, "outbox"))
+        val runner = de.flauschiversum.publisher.upload.UploadRunner(store, session, { photoPlacement }, { settingsSnapshot }, network, onDraftChanged = { draftChanges.value++ })
+        de.flauschiversum.publisher.upload.UploadService(
+            store, runner, de.flauschiversum.publisher.upload.WorkManagerScheduler(context), { settingsSnapshot }, network,
+            de.flauschiversum.publisher.upload.UploadNotifications(context), appScope,
+        )
+    }
+
+    /** Soll die Ausgangsbox geöffnet werden (Tipp auf eine Benachrichtigung)? */
+    val openOutbox = kotlinx.coroutines.flow.MutableStateFlow(false)
+
     val incoming = de.flauschiversum.publisher.photos.IncomingPhotos(context)
     val imageProcessor: de.flauschiversum.publisher.images.ImageProcessor = de.flauschiversum.publisher.images.AndroidImageProcessor(File(context.cacheDir, "exif"))
     /** Legt Fotos in Beiträgen ab; die Rechteangaben kommen aus den Einstellungen. */

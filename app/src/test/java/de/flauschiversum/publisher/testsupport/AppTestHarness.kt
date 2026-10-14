@@ -18,6 +18,7 @@ class AppTestHarness(tmp: File, files: Map<String, String> = BlogFixture.default
     val app: PublisherApp = ApplicationProvider.getApplicationContext()
     val container: AppContainer get() = app.container
     var metered = false
+    val scheduler: InlineScheduler get() = container.uploads.scheduler as InlineScheduler
 
     init {
         container.network.delegate = object : NetworkInfo {
@@ -25,6 +26,7 @@ class AppTestHarness(tmp: File, files: Map<String, String> = BlogFixture.default
             override fun isMetered() = metered
         }
         container.freeSpace = { 10_000_000_000L }
+        container.uploads.scheduler = InlineScheduler { container.uploads }
     }
 
     /** Adresse des Test-Servers in der Schreibweise der Einstellungen. */
