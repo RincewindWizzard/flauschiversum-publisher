@@ -14,7 +14,7 @@
 
 ## 3. Integration und Dokumentation
 
-- [ ] 3.1 Einstieg „Fotos“ aus Editor und Beitragsübersicht; End-to-End im Emulator: Foto hinzufügen, beschreiben, ordnen, entfernen, veröffentlichen — Einstieg „Fotos“ im Editor und im Menü der Übersicht ist eingebaut; der End-to-End-Lauf im Emulator fehlt
+- [x] 3.1 Einstieg „Fotos“ aus Editor und Beitragsübersicht; End-to-End im Emulator: Foto hinzufügen, beschreiben, ordnen, entfernen, veröffentlichen — Einstieg „Fotos“ im Editor und im Menü der Übersicht; Hinzufügen, Beschreiben, Ordnen, Entfernen und Veröffentlichen vom Nutzer auf dem Gerät bestätigt (kein Emulatorlauf)
 - [x] 3.2 Beitrag nach Änderungen mit dem Generator des Blogs prüfen (`cargo run --release -- check` in einer Kopie); keine Fehler und keine Warnungen zu fehlenden Medien — `GeneratorCheckTest.fotoverwaltungErzeugtKeineWarnungen…`
 - [x] 3.3 `README.md` um Fotoverwaltung ergänzen; Schritte funktionieren wie beschrieben — `README.md` ergänzt
 
