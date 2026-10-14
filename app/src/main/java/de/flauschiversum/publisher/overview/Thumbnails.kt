@@ -7,9 +7,9 @@ import android.graphics.BitmapFactory
  * Vorschaubilder (etwa [size] Pixel) mit Downsampling und einem Zwischenspeicher im Arbeitsspeicher (zuletzt benutzte
  * zuerst verdrängt). [load] liefert die Bytes des Bildes.
  */
-class Thumbnails(private val maxEntries: Int = 96, private val size: Int = 200, private val load: (rev: String, path: String) -> ByteArray?) {
-    private val cache = object : LinkedHashMap<String, Bitmap?>(32, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Bitmap?>?) = this.size > maxEntries
+class Thumbnails(private val maxEntries: Int = 96, private val size: Int = 256, private val load: (rev: String, path: String) -> ByteArray?) {
+    private val cache = object : LinkedHashMap<String, Bitmap>(32, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Bitmap>?) = this.size > maxEntries
     }
     /** Wie oft ein Bild wirklich dekodiert wurde (für Tests). */
     @Volatile var decodeCount = 0
@@ -17,10 +17,11 @@ class Thumbnails(private val maxEntries: Int = 96, private val size: Int = 200, 
 
     fun get(rev: String, path: String): Bitmap? {
         val key = "$rev:$path"
-        synchronized(cache) { if (cache.containsKey(key)) return cache[key] }
+        synchronized(cache) { cache[key]?.let { return it } }
         val bytes = load(rev, path)
         val bmp = bytes?.let { decode(it) }
-        synchronized(cache) { cache[key] = bmp }
+        // Nur Erfolge merken: ein Fehlschlag wird beim nächsten Aufbau der Zeile erneut versucht
+        if (bmp != null) synchronized(cache) { cache[key] = bmp }
         return bmp
     }
 

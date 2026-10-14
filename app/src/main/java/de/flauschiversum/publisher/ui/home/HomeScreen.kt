@@ -34,6 +34,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.flauschiversum.publisher.git.DraftKind
 import de.flauschiversum.publisher.git.UploadState
@@ -77,6 +80,7 @@ import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Delete
 import de.flauschiversum.publisher.ui.components.AppButton
 import de.flauschiversum.publisher.ui.components.AppOutlinedButton
@@ -121,7 +125,6 @@ fun HomeScreen(
             val jobs by vm.c.uploads.jobs.collectAsState()
             val active = jobs.count { it.status != de.flauschiversum.publisher.upload.JobStatus.DONE }
             androidx.compose.material3.BadgedBox(badge = { if (active > 0) androidx.compose.material3.Badge { Text(active.toString()) } }) { AppIconButton(icon = Icons.Default.Outbox, label = if (active > 0) "Ausgang, $active offen" else "Ausgang", onClick = onOpenOutbox, modifier = Modifier.testTag("open-outbox")) }
-            AppIconButton(icon = Icons.Default.Refresh, label = "Aktualisieren", onClick = vm::refreshNow, modifier = Modifier.testTag("refresh"))
             AppIconButton(icon = Icons.Default.Settings, label = "Einstellungen", onClick = onSettings, modifier = Modifier.testTag("open-settings"))
         }) },
         snackbarHost = { SnackbarHost(snackbar) },
@@ -129,8 +132,8 @@ fun HomeScreen(
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             if (ui.syncing || ui.publishing) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("sync-indicator"))
-            PullToRefreshBox(isRefreshing = ui.syncing, onRefresh = vm::refreshNow, modifier = Modifier.fillMaxSize()) {
-            LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp), modifier = Modifier.fillMaxSize().testTag("list")) {
+            PullToRefreshBox(isRefreshing = ui.refreshing, onRefresh = vm::refreshNow, modifier = Modifier.fillMaxSize()) {
+            LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp), modifier = Modifier.fillMaxSize().testTag("list").semantics { customActions = listOf(CustomAccessibilityAction("Aktualisieren") { vm.refreshNow(); true }) }) {
                 // Das erste Element bleibt immer an seinem Platz: So rutschen neue Beiträge und Entwürfe darunter ins Bild.
                 item(key = "kopf") {
                     Column {
@@ -230,10 +233,10 @@ private fun Thumb(row: PostRow, c: de.flauschiversum.publisher.app.AppContainer)
     val bitmap by produceState<android.graphics.Bitmap?>(null, row.summary.dir, cover, row.rev) {
         value = if (cover == null) null else withContext(Dispatchers.IO) { c.thumbnails.get(row.rev, "content/posts/${row.summary.dir}/$cover") }
     }
-    Box(Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant).testTag("thumb-${row.summary.dir}"), contentAlignment = Alignment.Center) {
+    Box(Modifier.size(72.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant).testTag("thumb-${row.summary.dir}"), contentAlignment = Alignment.Center) {
         val b = bitmap
         if (b != null) Image(b.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-        else Text(row.summary.title.take(1).uppercase(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        else Icon(Icons.Default.Image, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(32.dp).testTag("thumb-placeholder-${row.summary.dir}"))
     }
 }
 

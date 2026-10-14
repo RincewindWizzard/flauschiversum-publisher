@@ -38,7 +38,7 @@ class ThumbnailsTest {
     @Test fun nichtLesbaresBildErgibtNullUndWirdMerkWuerdig() {
         val t = Thumbnails { _, _ -> byteArrayOf(1, 2, 3) }
         assertNull(t.get("r", "x.jpg")); assertNull(t.get("r", "x.jpg"))
-        assertEquals(1, t.decodeCount)
+        assertEquals(2, t.decodeCount) // Fehlschläge werden nicht gemerkt, sondern erneut versucht
         assertNull(Thumbnails { _, _ -> null }.get("r", "fehlt.jpg"))
     }
 
@@ -49,5 +49,19 @@ class ThumbnailsTest {
         t.get("r", "1")
         assertEquals(4, t.decodeCount)
         assertNotNull(t.get("r", "3"))
+    }
+
+    @Test fun voruebergehendNichtLesbaresBildErscheintBeimNaechstenAufruf() {
+        var ok = false; val good = jpeg(300, 300)
+        val t = Thumbnails { _, _ -> if (ok) good else null }
+        assertNull(t.get("r", "a.jpg"))
+        ok = true
+        assertNotNull(t.get("r", "a.jpg"))
+    }
+
+    @Test fun vorschauIstFuerEinenSiebzigDpFeldScharfGenug() {
+        val t = Thumbnails { _, _ -> jpeg(3000, 2000) }
+        val b = t.get("r", "a.jpg")!!
+        assertTrue("${b.width}x${b.height}", b.width >= 256 && b.height >= 256)
     }
 }

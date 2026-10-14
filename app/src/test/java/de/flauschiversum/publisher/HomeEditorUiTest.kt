@@ -7,6 +7,8 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
@@ -61,6 +63,13 @@ class HomeEditorUiTest {
     private fun exists(tag: String) = compose.onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty()
     private fun textExists(t: String) = compose.onAllNodes(androidx.compose.ui.test.hasText(t, substring = true)).fetchSemanticsNodes().isNotEmpty()
 
+    /** Aktualisieren per Wischgeste: nach unten ziehen und warten, bis der Ladekreis wieder weg ist. */
+    private fun pull(vm: HomeViewModel) {
+        compose.onNodeWithTag("list").performTouchInput { swipeDown() }
+        waitFor { vm.ui.value.refreshing }
+        waitFor { !vm.ui.value.refreshing }
+    }
+
     private fun home(h: AppTestHarness): HomeViewModel {
         val vm = HomeViewModel(h.container)
         compose.setContent { FlauschiversumPublisherTheme { HomeScreen(vm, onOpenPost = {}, onSettings = {}, onFixAccess = {}) } }
@@ -90,7 +99,7 @@ class HomeEditorUiTest {
         val h = harness(); val vm = home(h); waitFor { !vm.ui.value.loading }
         waitFor { !h.container.sync.state.value.running && h.container.sync.state.value.generation >= 1 } // erste Aktualisierung beim Start abwarten
         TestRepos.commit(h.blog.bare, "main", mapOf("content/posts/frisch/index.md" to "---\ntitle: \"Frisch\"\ndate: 2026-10-13\n---\nText\n"), "frisch")
-        compose.onNodeWithTag("refresh").performClick()
+        pull(vm)
         try { waitFor { vm.ui.value.posts.any { it.summary.dir == "frisch" } } } catch (e: Throwable) { throw AssertionError("Zustand: msg=${vm.ui.value.message} sync=${h.container.sync.state.value} posts=${vm.ui.value.posts.size}", e) }
         waitFor { exists("post-frisch") } // neuester Beitrag steht oben
         assertTrue(h.container.sync.state.value.lastSuccessMillis > 0)
@@ -100,10 +109,10 @@ class HomeEditorUiTest {
     @Test fun entfernterSchluesselZeigtHinweisNachZweiFehlschlaegen() {
         val h = harness(); val vm = home(h); waitFor { !vm.ui.value.loading }
         h.blog.server.revokeAll()
-        compose.onNodeWithTag("refresh").performClick()
+        pull(vm)
         waitFor { !h.container.sync.state.value.running && h.container.sync.state.value.lastFailure != null }
         assertFalse("nach einem Fehlschlag noch kein Hinweis", exists("access-problem"))
-        compose.onNodeWithTag("refresh").performClick()
+        pull(vm)
         waitFor { exists("access-problem") }
         compose.onNodeWithText("Prüfen und erneut eintragen").assertIsDisplayed()
     }
@@ -113,7 +122,7 @@ class HomeEditorUiTest {
         h.container.network.delegate = object : de.flauschiversum.publisher.git.NetworkInfo { override fun isOnline() = false; override fun isMetered() = false }
         h.blog.server.close()
         repeat(3) {
-            compose.onNodeWithTag("refresh").performClick()
+            pull(vm)
             waitFor { !h.container.sync.state.value.running && h.container.sync.state.value.generation > it }
         }
         assertFalse(exists("access-problem"))

@@ -10,11 +10,12 @@ object TestRepos {
     private val author = PersonIdent("Test", "test@example.org")
 
     /** Legt ein Bare-Repository mit einem ersten Commit auf [branch] an. */
-    fun createBare(dir: File, files: Map<String, String>, branch: String = "main"): File {
+    fun createBare(dir: File, files: Map<String, String>, branch: String = "main", binaries: Map<String, ByteArray> = emptyMap()): File {
         val work = Files.createTempDirectory("work").toFile()
         try {
             Git.init().setDirectory(work).setInitialBranch(branch).call().use { git ->
                 files.forEach { (path, content) -> write(work, path, content) }
+                binaries.forEach { (path, bytes) -> File(work, path).also { it.parentFile.mkdirs() }.writeBytes(bytes) }
                 git.add().addFilepattern(".").call()
                 git.commit().setMessage("Anfang").setAuthor(author).setCommitter(author).setSign(false).call()
                 dir.mkdirs()

@@ -76,6 +76,31 @@ class ScreenshotTest {
         waitFor { vm.ui.value.query.text == "Filz" }; shot("02-suche")
     }
 
+    private fun photo(w: Int, h: Int, color: Int): ByteArray {
+        val bmp = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+        val c = android.graphics.Canvas(bmp); c.drawColor(color)
+        val p = android.graphics.Paint().apply { this.color = 0xFFFFFFFF.toInt() }; c.drawCircle(w / 2f, h / 2f, h / 4f, p)
+        return java.io.ByteArrayOutputStream().also { bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, it) }.toByteArray()
+    }
+
+    @Test fun uebersichtMitBildern() {
+        val real = File("/home/user/flauschiversum/content/posts/winter-is-coming/DSCF5737.JPG").takeIf { it.isFile }?.readBytes() ?: photo(4000, 3000, 0xFF6D4FE0.toInt())
+        val files = mapOf(
+            "content/posts/a/index.md" to "---\ntitle: \"Mit Titelbild\"\ndate: 2026-10-13\nimage: x.jpg\ntags: [Wolle]\n---\nT\n",
+            "content/posts/b/index.md" to "---\ntitle: \"Nur ein Foto im Ordner\"\ndate: 2026-10-12\n---\nT\n",
+            "content/posts/c/index.md" to "---\ntitle: \"Großes Originalfoto\"\ndate: 2026-10-11\n---\nT\n",
+            "content/posts/d/index.md" to "---\ntitle: \"Ganz ohne Bild\"\ndate: 2026-10-10\n---\nT\n",
+            "content/tags.yaml" to "- name: Wolle\n", "content/redirects.yaml" to "",
+        )
+        val bin = mapOf("content/posts/a/x.jpg" to photo(800, 600, 0xFFE0794F.toInt()), "content/posts/b/foto.jpg" to photo(600, 800, 0xFF3CC8DC.toInt()), "content/posts/c/o.JPG" to real)
+        val harness = AppTestHarness(tmp.newFolder(), files, bin).also { it.completeSetup(); h = it }
+        val vm = HomeViewModel(harness.container)
+        show { HomeScreen(vm, onOpenPost = {}, onSettings = {}, onFixAccess = {}) }
+        waitFor { vm.ui.value.posts.size == 4 }
+        Thread.sleep(1500); compose.mainClock.advanceTimeBy(500)
+        shot("13-uebersicht-bilder")
+    }
+
     @Test fun uebersichtMitEntwuerfenDunkel() {
         val harness = harness(); val vm = HomeViewModel(harness.container)
         harness.container.session.workflow()!!.commit(listOf(de.flauschiversum.publisher.git.TreeChange.Put("content/posts/muetze/index.md", "---\ntitle: \"Warme Mütze\"\ndate: 2026-10-13\ntags: [Hüte]\n---\nText\n".toByteArray())), "x")

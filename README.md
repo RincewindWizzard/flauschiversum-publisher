@@ -27,11 +27,11 @@ Mit *Einstellungen → Einrichtung wiederholen* lässt sich jeder Schritt erneut
 
 ## Bedienung
 
-- **Übersicht**: oben die offenen Entwürfe (*Neu*, *Geändert*, *Gelöscht*), darunter alle Beiträge mit Vorschaubild
-  (Titelbild oder erstes Bild), Datum und Schlagworten. Die Suche durchsucht Titel, Kurzbeschreibung, Schlagworte und
+- **Übersicht**: oben die offenen Entwürfe (*Neu*, *Geändert*, *Gelöscht*), darunter alle Beiträge mit dem Beitragsbild als
+  Vorschau neben dem Titel (Feld `image`, sonst erstes Bild; ohne Bild ein Bildsymbol), Datum und Schlagworten. Die Suche durchsucht Titel, Kurzbeschreibung, Schlagworte und
   Text (mehrere Wörter = alle müssen vorkommen); Filter nach Schlagwort (alle gewählten) und Jahr lassen sich einzeln
   entfernen; sortiert wird nach neuesten, ältesten oder Titel A–Z. Das Menü „⋮“ am Beitrag bietet Bearbeiten,
-  Eigenschaften, Foto hinzufügen, Verwerfen und Löschen. Nach unten wischen aktualisiert.
+  Eigenschaften, Foto hinzufügen, Verwerfen und Löschen. Zum Aktualisieren die Liste am oberen Rand nach unten ziehen (Ladekreis; für TalkBack gibt es die Aktion „Aktualisieren“ an der Liste).
   Im Hintergrund holt die App regelmäßig den Stand des Servers, damit Konflikte selten werden.
 - **Beitrag schreiben/bearbeiten**: Der Editor zeigt nur den Text. Titel, Datum, Schlagworte, Autor, Titelbild und
   Kurzbeschreibung stehen im Menü *Eigenschaften*. Eingaben gehen bei Unterbrechung nicht verloren.

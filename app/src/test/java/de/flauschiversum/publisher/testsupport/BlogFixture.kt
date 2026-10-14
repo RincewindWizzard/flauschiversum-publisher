@@ -22,7 +22,7 @@ import org.eclipse.jgit.lib.PersonIdent
  * Ein Test-Blog: SSH-Server mit einem Bare-Repository (mit den echten Beispielbeiträgen), dazu ein flacher Klon
  * der App mit [DraftWorkflow].
  */
-class BlogFixture(val root: File, files: Map<String, String> = defaultFiles()) : AutoCloseable {
+class BlogFixture(val root: File, files: Map<String, String> = defaultFiles(), binaries: Map<String, ByteArray> = emptyMap()) : AutoCloseable {
     val server: TestSshGitServer
     val bare: File
     val key: SshKeyPair
@@ -38,7 +38,7 @@ class BlogFixture(val root: File, files: Map<String, String> = defaultFiles()) :
     init {
         TestGit.isolate(); CryptoProviders.install(); AppSshSessionFactory.configureJsch()
         server = TestSshGitServer(File(root, "repos"))
-        bare = TestRepos.createBare(File(server.root, "blog.git"), files)
+        bare = TestRepos.createBare(File(server.root, "blog.git"), files, binaries = binaries)
         keyStore = SshKeyStore(File(root, "ssh")); key = keyStore.generate("test")
         server.allowWrite(key.publicLine)
         hostKeys = HostKeyStore(File(root, "known_hosts"))

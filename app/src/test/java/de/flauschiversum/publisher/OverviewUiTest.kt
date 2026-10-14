@@ -49,6 +49,8 @@ class OverviewUiTest {
     }
     private fun exists(tag: String) = compose.onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty()
 
+    private fun unmerged(tag: String) = compose.onAllNodes(hasTestTag(tag), useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+
     private class Calls { val opened = mutableListOf<String?>(); val props = mutableListOf<String>(); val photos = mutableListOf<String>() }
 
     private fun home(setup: Boolean = true, calls: Calls = Calls()): HomeViewModel {
@@ -65,6 +67,33 @@ class OverviewUiTest {
         compose.onNodeWithTag("post-flauschangriff").assertIsDisplayed()
         compose.onNodeWithText("Flauschangriff").assertIsDisplayed()
         compose.onNodeWithTag("thumb-flauschangriff", useUnmergedTree = true).assertIsDisplayed() // Platzhalter mit Anfangsbuchstabe
+    }
+
+    private fun photo(color: Int): ByteArray {
+        val bmp = android.graphics.Bitmap.createBitmap(600, 400, android.graphics.Bitmap.Config.ARGB_8888); bmp.eraseColor(color)
+        return java.io.ByteArrayOutputStream().also { bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, it) }.toByteArray()
+    }
+
+    @Test fun beitragsbildStattPlatzhalterNurOhneBildDasSymbol() {
+        val files = mapOf(
+            "content/posts/mit/index.md" to "---\ntitle: \"Mit Bild\"\ndate: 2026-10-13\nimage: f.jpg\n---\nT\n",
+            "content/posts/erstes/index.md" to "---\ntitle: \"Erstes Bild\"\ndate: 2026-10-12\n---\nT\n",
+            "content/posts/ohne/index.md" to "---\ntitle: \"Ohne Bild\"\ndate: 2026-10-11\n---\nT\n",
+            "content/tags.yaml" to "- name: Wolle\n", "content/redirects.yaml" to "",
+        )
+        val bin = mapOf("content/posts/mit/f.jpg" to photo(0xFFE0794F.toInt()), "content/posts/erstes/B.JPG" to photo(0xFF3CC8DC.toInt()), "content/posts/erstes/a.jpg" to photo(0xFF6D4FE0.toInt()))
+        val harness = AppTestHarness(tmp.newFolder(), files, bin).also { it.completeSetup(); h = it }
+        val vm = HomeViewModel(harness.container)
+        compose.setContent { FlauschiversumPublisherTheme { HomeScreen(vm, onOpenPost = {}, onSettings = {}, onFixAccess = {}) } }
+        waitFor { vm.ui.value.posts.size == 3 }
+        assertEquals(mapOf("mit" to "f.jpg", "erstes" to "a.jpg", "ohne" to null), vm.ui.value.posts.associate { it.summary.dir to it.cover })
+        // Bilder erscheinen: Platzhalter bleibt nur beim Beitrag ohne Bild
+        waitFor { !unmerged("thumb-placeholder-mit") && !unmerged("thumb-placeholder-erstes") }
+        assertTrue(unmerged("thumb-placeholder-ohne"))
+        // auch Suchtreffer und Entwürfe
+        compose.onNodeWithTag("list").performScrollToNode(hasTestTag("search")); compose.onNodeWithTag("search").performTextInput("Mit")
+        waitFor { vm.ui.value.posts.map { it.summary.dir } == listOf("mit") }
+        assertFalse(unmerged("thumb-placeholder-mit"))
     }
 
     @Test fun ohneKlonKommtEinHinweis() {

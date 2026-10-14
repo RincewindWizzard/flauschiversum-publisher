@@ -18,6 +18,7 @@ import de.flauschiversum.publisher.posts.PostSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -50,10 +51,12 @@ data class HomeUi(
     val totalPosts: Int = 0,
     /** Das Repository ist noch nicht geholt. */
     val noClone: Boolean = false,
+    /** Der Nutzer hat per Wischgeste aktualisiert und die Anzeige läuft (mindestens [HomeViewModel.minRefreshMillis]). */
+    val refreshing: Boolean = false,
 )
 
 /** Beitragsübersicht mit Entwürfen und „Veröffentlichen“ (Specs `repository-klon`, `entwurf-veroeffentlichen`). */
-class HomeViewModel(val c: AppContainer) : ViewModel() {
+class HomeViewModel(val c: AppContainer, private val minRefreshMillis: Long = 500L) : ViewModel() {
     private val local = MutableStateFlow(HomeUi())
     private var newTagsLoaded: List<String> = emptyList()
     val ui: StateFlow<HomeUi> = local.asStateFlow()
@@ -115,7 +118,19 @@ class HomeViewModel(val c: AppContainer) : ViewModel() {
     fun deleted() { local.update { it.copy(deleteDir = null) }; reload() }
     fun deleteFailed(msg: String) { local.update { it.copy(deleteDir = null, message = msg) } }
 
-    fun refreshNow() { c.sync.request(SyncReason.MANUAL) }
+    /** Aktualisieren per Wischgeste oder Bedienungshilfe: startet einen Lauf (oder hängt sich an den laufenden) und zeigt den Ladekreis. */
+    fun refreshNow() {
+        if (local.value.refreshing) return
+        local.update { it.copy(refreshing = true) }
+        val started = System.currentTimeMillis()
+        c.sync.request(SyncReason.MANUAL) // läuft schon einer, wird kein zweiter gestartet
+        viewModelScope.launch {
+            kotlinx.coroutines.withTimeoutOrNull(120_000) { c.sync.state.first { !it.running } }
+            val rest = minRefreshMillis - (System.currentTimeMillis() - started)
+            if (rest > 0) kotlinx.coroutines.delay(rest)
+            local.update { it.copy(refreshing = false) }
+        }
+    }
 
     fun askPublish() {
         local.update { it.copy(confirmPublish = true, publishErrors = emptyMap()) }

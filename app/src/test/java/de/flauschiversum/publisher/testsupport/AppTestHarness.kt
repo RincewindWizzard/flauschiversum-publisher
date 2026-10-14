@@ -13,8 +13,8 @@ import java.io.File
 import kotlinx.coroutines.runBlocking
 
 /** Eine Test-App (Robolectric) mit einem Test-Blog auf einem lokalen SSH-Server. */
-class AppTestHarness(tmp: File, files: Map<String, String> = BlogFixture.defaultFiles()) : AutoCloseable {
-    val blog = BlogFixture(File(tmp, "blog"), files)
+class AppTestHarness(tmp: File, files: Map<String, String> = BlogFixture.defaultFiles(), binaries: Map<String, ByteArray> = emptyMap()) : AutoCloseable {
+    val blog = BlogFixture(File(tmp, "blog"), files, binaries)
     val app: PublisherApp = ApplicationProvider.getApplicationContext()
     val container: AppContainer get() = app.container
     var metered = false
