@@ -33,6 +33,7 @@ class BodyHtml(val html: String, val imageCount: Int, val groupCount: Int, val c
 object PreviewRenderer {
     /** Adresse, unter der der Asset-Loader die Bilder des Beitrags ausliefert. */
     const val HOST = "appassets.androidplatform.net"
+    val PAGE_URL get() = "https://$HOST/page/"
     fun imageUrl(dir: String, file: String) = "https://$HOST/post/${enc(dir)}/${enc(file)}"
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8").replace("+", "%20")
     private fun esc(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")

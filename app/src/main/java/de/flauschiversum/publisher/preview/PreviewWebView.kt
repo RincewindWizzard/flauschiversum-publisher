@@ -37,15 +37,9 @@ object PreviewPolicy {
 fun PreviewWebView(html: String, imageBytes: (dir: String, file: String) -> ByteArray?, onLink: (Uri) -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var lastHtml by remember { mutableStateOf<String?>(null) }
-    val loader = remember {
-        WebViewAssetLoader.Builder().setDomain(PreviewRenderer.HOST)
-            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
-            .addPathHandler("/post/") { path ->
-                val parts = path.split('/', limit = 2)
-                val bytes = if (parts.size == 2) imageBytes(Uri.decode(parts[0]), Uri.decode(parts[1])) else null
-                if (bytes == null) null else WebResourceResponse(mimeOf(parts[1]), null, ByteArrayInputStream(bytes))
-            }.build()
-    }
+    var currentHtml by remember { mutableStateOf(html) }
+    currentHtml = html
+    val loader = remember { buildPreviewLoader(context, { currentHtml }, imageBytes) }
     AndroidView(
         modifier = modifier.testTag("preview-web"),
         factory = { ctx ->
@@ -69,10 +63,25 @@ fun PreviewWebView(html: String, imageBytes: (dir: String, file: String) -> Byte
             }
         },
         update = { web ->
-            if (html != lastHtml) { lastHtml = html; web.loadDataWithBaseURL("https://${PreviewRenderer.HOST}/page", html, "text/html", "utf-8", null) }
+            if (html != lastHtml) { lastHtml = html; web.loadUrl(PreviewRenderer.PAGE_URL) }
         },
     )
 }
+
+/**
+ * Liefert die Vorschau aus dem Asset-Loader: die Seite selbst (`/page`), Stile und Schriften (`/assets/`) und die Bilder
+ * des Beitrags (`/post/`). Die Seite kommt als echte Ressource und nicht über `loadDataWithBaseURL`, denn dessen
+ * Hauptdokument läuft in neueren WebViews ebenfalls durch `shouldInterceptRequest` und würde dort abgewiesen.
+ */
+internal fun buildPreviewLoader(context: android.content.Context, html: () -> String, imageBytes: (dir: String, file: String) -> ByteArray?): WebViewAssetLoader =
+    WebViewAssetLoader.Builder().setDomain(PreviewRenderer.HOST)
+        .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
+        .addPathHandler("/page/") { WebResourceResponse("text/html", "utf-8", ByteArrayInputStream(html().toByteArray(Charsets.UTF_8))) }
+        .addPathHandler("/post/") { path ->
+            val parts = path.split('/', limit = 2)
+            val bytes = if (parts.size == 2) imageBytes(Uri.decode(parts[0]), Uri.decode(parts[1])) else null
+            if (bytes == null) null else WebResourceResponse(mimeOf(parts[1]), null, ByteArrayInputStream(bytes))
+        }.build()
 
 private fun mimeOf(name: String) = when (name.substringAfterLast('.', "").lowercase()) {
     "png" -> "image/png"; "gif" -> "image/gif"; "webp" -> "image/webp"; "svg" -> "image/svg+xml"; else -> "image/jpeg"
