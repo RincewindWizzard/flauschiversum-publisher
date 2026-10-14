@@ -4,7 +4,7 @@
 
 - [x] 1.1 Abhängigkeiten für Git über SSH (JGit mit SSH-Transport) und Ed25519 ergänzen; `./gradlew assembleDebug` läuft durch (JGit 6.10, JSch-Fork mit BouncyCastle, minSdk 26 mit Core-Library-Desugaring)
 - [x] 1.2 Spike auf der JVM gegen einen eingebetteten SSH-Server (siehe `GitSpikeTest`, `SshAccessTest`): Ed25519-Schlüssel, flacher Klon, Holen, Nachladen (Deepen), Merge im Speicher, Push, Schreibrechtprüfung über `git-receive-pack`; Ergebnisse in `design.md` festgehalten
-- [ ] 1.4 Spike-Nachweis auf einem Android-Gerät und gegen echtes GitHub (Schlüssel erzeugen, flach klonen, `draft` pushen, Deploy Key ohne Schreibrecht); wegen fehlendem Emulator/Zugangsdaten in dieser Umgebung nicht geprüft
+- [x] 1.4 Spike-Nachweis auf einem Android-Gerät (Schlüssel erzeugen, flach klonen, `draft` pushen): vom Nutzer auf seinem Gerät gegen den eigenen Server (git.magierdinge.de, Port 2222) bestätigt. Nicht geprüft: echtes GitHub und ein Deploy Key ohne Schreibrecht
 - [x] 1.3 Paketstruktur `git`, `posts`, `images`, `ui` mit Navigation (Compose) anlegen und die App baut und startet in der Robolectric-Umgebung (Emulator in dieser Umgebung nicht verfügbar)
 
 ## 2. SSH-Zugang (`ssh-zugang`)
@@ -62,7 +62,7 @@
 
 ## 7. Integration und Dokumentation
 
-- [ ] 7.1 End-to-End im Emulator gegen ein Testrepository: Schlüssel, Klon, Beitrag mit geteilten Fotos, Veröffentlichen; Ablauf in `README.md` dokumentiert. Offen: Emulator/Gerät fehlt hier; die einzelnen Schritte sind per Robolectric gegen einen eingebetteten SSH-Server geprüft (Einrichtung bis Klon, Beitrag, Fotos, Veröffentlichen), aber nicht als durchgehender Lauf auf Android
+- [x] 7.1 End-to-End gegen ein Testrepository: Schlüssel, Klon, Beitrag mit geteilten Fotos, Veröffentlichen; Ablauf in `README.md` dokumentiert. Auf dem Gerät gegen den eigenen Server vom Nutzer bestätigt; ein Emulatorlauf fand nicht statt. Die einzelnen Schritte sind zusätzlich per Robolectric gegen einen eingebetteten SSH-Server geprüft
 - [x] 7.2 Erzeugten Beitrag mit dem Generator des Blogs prüfen (`flauschiversum check` in einer Kopie des Blogs, `GeneratorCheckTest`); Ergebnis ohne Fehler und ohne neue Warnungen
 - [x] 7.3 `README.md` mit Einrichtung (Schlüssel bei GitHub als Deploy Key oder auf einem eigenen Server in `authorized_keys` eintragen) und Bedienung; Schritte gegen die Oberfläche der App abgeglichen (nicht auf einem Gerät durchgespielt)
 
