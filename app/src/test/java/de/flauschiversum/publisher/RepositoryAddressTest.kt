@@ -13,10 +13,32 @@ class RepositoryAddressTest {
     @Test fun vorgabeIstGueltigUndMerktEigentuemerUndName() {
         val a = valid(RepositoryAddresses.DEFAULT)
         assertEquals("git", a.user)
-        assertEquals("github.com", a.host)
-        assertEquals(22, a.port)
-        assertEquals("RincewindWizzard" to "flauschiversum", a.ownerAndName)
-        assertTrue(a.isGitHub)
+        assertEquals("git.magierdinge.de", a.host)
+        assertEquals(2222, a.port)
+        assertEquals("nadja/flauschiversum", a.path)
+        assertEquals("nadja" to "flauschiversum", a.ownerAndName)
+        assertEquals("ssh://git@git.magierdinge.de:2222/nadja/flauschiversum", a.gitUrl)
+        assertTrue(!a.isGitHub)
+    }
+
+    @Test fun kurzformMitPort() {
+        val a = valid("git@git.magierdinge.de:2222:nadja/flauschiversum")
+        assertEquals("git.magierdinge.de", a.host); assertEquals(2222, a.port); assertEquals("nadja/flauschiversum", a.path)
+        assertEquals("git@git.magierdinge.de:2222:nadja/flauschiversum", a.text)
+        assertEquals("ssh://git@git.magierdinge.de:2222/nadja/flauschiversum", a.gitUrl)
+        // JGit liest die Adresse mit dem richtigen Port, Benutzer und Pfad
+        val u = org.eclipse.jgit.transport.URIish(a.gitUrl)
+        assertEquals(2222, u.port); assertEquals("git.magierdinge.de", u.host); assertEquals("git", u.user); assertEquals("/nadja/flauschiversum", u.path)
+    }
+
+    @Test fun kurzformMitUngueltigemPort() {
+        assertTrue(RepositoryAddresses.parse("git@host:70000:a/b") is AddressParse.Invalid)
+        assertTrue(RepositoryAddresses.parse("git@host:0:a/b") is AddressParse.Invalid)
+    }
+
+    @Test fun kurzformOhnePortBleibtPortNull22() {
+        val a = valid("git@host.example:2222")  // Pfad "2222", kein Port
+        assertEquals(22, a.port); assertEquals("2222", a.path); assertEquals(a.text, a.gitUrl)
     }
 
     @Test fun eigenerServerMitPortUndPfad() {
@@ -58,7 +80,7 @@ class RepositoryAddressTest {
     @Test fun deployKeySeiteNurFuerGitHub() {
         assertEquals(
             "https://github.com/RincewindWizzard/flauschiversum/settings/keys/new",
-            valid(RepositoryAddresses.DEFAULT).gitHubDeployKeyUrl(),
+            valid("git@github.com:RincewindWizzard/flauschiversum.git").gitHubDeployKeyUrl(),
         )
         assertNull(valid("git@vps.beispiel.de:flauschiversum.git").gitHubDeployKeyUrl())
     }

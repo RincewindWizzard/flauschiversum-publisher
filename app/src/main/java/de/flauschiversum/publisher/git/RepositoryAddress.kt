@@ -9,6 +9,11 @@ data class RepositoryAddress(
     val path: String,
     /** Die Adresse in der vom Nutzer gewählten Schreibweise, bereinigt. */
     val text: String,
+    /**
+     * Die Adresse in einer Form, die JGit und Git eindeutig lesen. Bei der Kurzform mit Port (`git@host:2222:pfad`) ist das
+     * die `ssh://`-Schreibweise, denn als Kurzform läse JGit `2222:pfad` als Pfad und nähme Port 22.
+     */
+    val gitUrl: String = text,
 ) {
     /** Eigentümer und Name bei Git-Hostern mit Pfaden der Form `eigentümer/repo[.git]`. */
     val ownerAndName: Pair<String, String>?
@@ -36,10 +41,12 @@ sealed interface AddressParse {
 }
 
 object RepositoryAddresses {
-    const val DEFAULT = "git@github.com:RincewindWizzard/flauschiversum.git"
-    const val EXAMPLES = "git@github.com:eigentümer/repo.git oder ssh://git@server.example:2222/srv/git/repo.git"
+    const val DEFAULT = "git@git.magierdinge.de:2222:nadja/flauschiversum"
+    const val EXAMPLES = "git@github.com:eigentümer/repo.git, git@server.example:2222:eigentümer/repo oder ssh://git@server.example:2222/srv/git/repo.git"
 
     private val scpForm = Regex("""^([A-Za-z0-9._-]+)@(\[[0-9A-Fa-f:.]+]|[A-Za-z0-9._-]+):(?!//)(.+)$""")
+    /** Kurzform mit Port: `benutzer@host:port:pfad`. Ein Pfad, der mit Ziffern und Doppelpunkt beginnt, ist unüblich. */
+    private val scpFormWithPort = Regex("""^([A-Za-z0-9._-]+)@(\[[0-9A-Fa-f:.]+]|[A-Za-z0-9._-]+):(\d{1,5}):(?!//)(.+)$""")
     private val sshUrl = Regex("""^ssh://([A-Za-z0-9._-]+)@(\[[0-9A-Fa-f:.]+]|[A-Za-z0-9._-]+)(?::(\d{1,5}))?/(.+)$""")
     private val httpUrl = Regex("""^https?://(?:[^@/]+@)?([A-Za-z0-9._-]+)(?::\d+)?/(.+)$""", RegexOption.IGNORE_CASE)
 
@@ -60,6 +67,14 @@ object RepositoryAddresses {
             if (port !in 1..65535) return AddressParse.Invalid("Der Port $port ist ungültig (1 bis 65535).")
             val path = "/" + m.groupValues[4]
             return AddressParse.Valid(RepositoryAddress(m.groupValues[1], m.groupValues[2].trim('[', ']'), port, path, text))
+        }
+        scpFormWithPort.matchEntire(text)?.let { m ->
+            val port = m.groupValues[3].toInt()
+            if (port !in 1..65535) return AddressParse.Invalid("Der Port $port ist ungültig (1 bis 65535).")
+            val host = m.groupValues[2].trim('[', ']')
+            val shownHost = if (':' in host) "[$host]" else host
+            val path = m.groupValues[4]
+            return AddressParse.Valid(RepositoryAddress(m.groupValues[1], host, port, path, text, "ssh://${m.groupValues[1]}@$shownHost:$port/${path.trimStart('/')}"))
         }
         scpForm.matchEntire(text)?.let { m ->
             return AddressParse.Valid(RepositoryAddress(m.groupValues[1], m.groupValues[2].trim('[', ']'), 22, m.groupValues[3], text))

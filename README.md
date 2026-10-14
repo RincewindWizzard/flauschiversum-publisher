@@ -9,7 +9,7 @@ in den Zielbranch (`main`) zusammen. Die Anforderungen stehen in [`openspec/`](o
 
 Beim ersten Start führt die App in fünf Schritten durch die Einrichtung:
 
-1. **Repository**: SSH-Adresse des Blog-Repositorys, z. B. `git@github.com:RincewindWizzard/flauschiversum.git`
+1. **Repository**: SSH-Adresse des Blog-Repositorys, z. B. `git@git.magierdinge.de:2222:nadja/flauschiversum` (Vorgabe; `host:port:pfad` ist die Kurzform mit eigenem Port) oder `git@github.com:eigentümer/repo.git`
    oder `ssh://git@mein-server.example/srv/blog.git`. Nur SSH auf Port 22 wird unterstützt; eine HTTPS-Adresse
    erkennt die App und schlägt die passende SSH-Adresse vor.
 2. **Schlüssel**: Die App erzeugt ein Ed25519-Schlüsselpaar. Der private Schlüssel verlässt das Gerät nie.

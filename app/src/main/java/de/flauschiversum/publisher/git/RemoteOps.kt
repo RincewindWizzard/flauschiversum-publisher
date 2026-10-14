@@ -28,7 +28,7 @@ class RemoteOps(private val store: GitStore, private val remote: SshRemote) {
 
     /** Welche Branches der Server hat (nur Köpfe). */
     fun listRemoteHeads(): List<RemoteRef> =
-        with(remote) { Git.lsRemoteRepository().setRemote(remote.address.text).setHeads(true).setTags(false).useSsh().call() }
+        with(remote) { Git.lsRemoteRepository().setRemote(remote.address.gitUrl).setHeads(true).setTags(false).useSsh().call() }
             .map { RemoteRef(it.name, it.objectId) }
 
     /** Legt das bare Repository an und holt [branches] mit der Tiefe 1. */
@@ -37,7 +37,7 @@ class RemoteOps(private val store: GitStore, private val remote: SshRemote) {
         store.dir.mkdirs()
         Git.init().setBare(true).setDirectory(store.dir).setInitialBranch(branches.first()).call().use { git ->
             val config = git.repository.config
-            config.setString("remote", "origin", "url", remote.address.text)
+            config.setString("remote", "origin", "url", remote.address.gitUrl)
             config.setString("remote", "origin", "fetch", "+refs/heads/*:refs/remotes/origin/*")
             config.setBoolean("gc", null, "auto", false)
             config.save()

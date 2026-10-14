@@ -96,7 +96,7 @@ private fun StepNavigation(ui: SetupUi, vm: SetupViewModel) {
 
 @Composable
 private fun RepositoryStep(ui: SetupUi, vm: SetupViewModel) {
-    Text("Wo liegt das Repository des Blogs? Gib die SSH-Adresse ein, z. B. git@github.com:eigentümer/repo.git oder ssh://git@server.example:2222/srv/git/repo.git.")
+    Text("Wo liegt das Repository des Blogs? Gib die SSH-Adresse ein, z. B. git@github.com:eigentümer/repo.git, mit Port git@server.example:2222:eigentümer/repo oder ssh://git@server.example:2222/srv/git/repo.git.")
     OutlinedTextField(
         value = ui.addressInput, onValueChange = vm::onAddressChanged, label = { Text("Repository-Adresse (SSH)") },
         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("address-input"), isError = ui.addressMessage != null && ui.httpsSuggestion == null,

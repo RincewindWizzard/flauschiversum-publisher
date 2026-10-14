@@ -26,7 +26,7 @@ class AccessChecker(
         val factory = AppSshSessionFactory(key, hostKeys)
         val remote = SshRemote(address, factory)
         try {
-            with(remote) { Git.lsRemoteRepository().setRemote(address.text).setHeads(true).useSsh().call() }
+            with(remote) { Git.lsRemoteRepository().setRemote(address.gitUrl).setHeads(true).useSsh().call() }
         } catch (e: Exception) {
             return AccessResult.Failed(GitFailures.classify(e, address, network, factory.lastPresented, factory.lastCheck))
         }
@@ -47,7 +47,7 @@ class AccessChecker(
         val key = keyStore.load() ?: OpenSshKeys.generate("probe")
         val factory = AppSshSessionFactory(key, hostKeys, HostKeyMode.RECORD_ONLY)
         val remote = SshRemote(address, factory, timeoutSeconds = 15)
-        runCatching { with(remote) { Git.lsRemoteRepository().setRemote(address.text).useSsh().call() } }
+        runCatching { with(remote) { Git.lsRemoteRepository().setRemote(address.gitUrl).useSsh().call() } }
         return factory.lastPresented
     }
 

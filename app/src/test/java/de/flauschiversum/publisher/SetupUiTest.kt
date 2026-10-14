@@ -56,7 +56,7 @@ class SetupUiTest {
         val h = harness(); start(SetupViewModel(h.container))
         compose.onNodeWithTag("setup-step").assertIsDisplayed()
         compose.onNodeWithText("Schritt 1 von 5: Repository").assertIsDisplayed()
-        compose.onNodeWithText("git@github.com:RincewindWizzard/flauschiversum.git").assertIsDisplayed()
+        compose.onNodeWithText("git@git.magierdinge.de:2222:nadja/flauschiversum").assertIsDisplayed()
     }
 
     @Test fun httpsAdresseWirdErkanntUndSshVorgeschlagen() {

@@ -94,6 +94,17 @@ class SshAccessTest {
         assertTrue("war: $r", r is AccessResult.Failed && r.failure is GitFailure.HostKeyUnknown)
     }
 
+    @Test fun kurzformMitPortVerbindetSichAnDemAngegebenenPort() {
+        val key = keyStore.generate("t"); server.allowWrite(key.publicLine)
+        val a = (RepositoryAddresses.parse("git@127.0.0.1:${server.port}:blog.git") as AddressParse.Valid).address
+        assertEquals(server.port, a.port)
+        checker.trust(checker.probeHostKey(a)!!)
+        assertEquals(AccessResult.Ok(writeConfirmed = false), checker.check(a))
+        // ohne den Port in der Adresse wäre Port 22 gemeint und niemand antwortet
+        val ohnePort = (RepositoryAddresses.parse("git@127.0.0.1:blog.git") as AddressParse.Valid).address
+        assertEquals(22, ohnePort.port)
+    }
+
     @Test fun nachBestaetigungGeltenderServerAlsBekannt() {
         val key = keyStore.generate("t"); server.allowWrite(key.publicLine)
         trustServer()

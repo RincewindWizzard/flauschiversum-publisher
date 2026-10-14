@@ -33,7 +33,7 @@ class SettingsAndThemeTest {
     // ---- 3.1 Einstellungen
     @Test fun vorgabenBeimErstenStart() = runBlocking {
         val s = repo(File(tmp.root, "a.preferences_pb")).current()
-        assertEquals("git@github.com:RincewindWizzard/flauschiversum.git", s.repositoryAddress)
+        assertEquals("git@git.magierdinge.de:2222:nadja/flauschiversum", s.repositoryAddress)
         assertEquals("main", s.targetBranch)
         assertEquals("Flauschiversum / Ermeline Wollknoll", s.rightsText)
         assertEquals("Ermeline", s.defaultAuthor)

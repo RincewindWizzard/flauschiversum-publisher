@@ -8,7 +8,7 @@ import org.eclipse.jgit.transport.URIish
 
 /** Die Gegenstelle eines Repositorys und die dafür zu verwendende SSH-Fabrik. */
 class SshRemote(val address: RepositoryAddress, val factory: AppSshSessionFactory, private val timeoutSeconds: Int = 30) {
-    val uri: URIish get() = URIish(address.text)
+    val uri: URIish get() = URIish(address.gitUrl)
 
     private val callback = TransportConfigCallback { transport ->
         if (transport is SshTransport) transport.sshSessionFactory = factory
