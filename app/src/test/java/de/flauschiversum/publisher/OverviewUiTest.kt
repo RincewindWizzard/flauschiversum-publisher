@@ -201,8 +201,8 @@ class OverviewUiTest {
         waitFor { !h!!.container.sync.state.value.running && h!!.container.sync.state.value.generation >= 1 }
         h!!.blog.server.close()
         h!!.container.network.delegate = object : de.flauschiversum.publisher.git.NetworkInfo { override fun isOnline() = false; override fun isMetered() = false }
-        h!!.container.requestSync(SyncReason.MANUAL)
-        waitFor { exists("offline") }
+        // eine Anfrage, die mitten in einen laufenden Lauf fällt, wird zusammengefasst: so lange wiederholen, bis ein Lauf ohne Netz scheitert
+        waitFor(60_000) { if (!h!!.container.sync.state.value.running) h!!.container.requestSync(SyncReason.MANUAL); exists("offline") }
         assertTrue(vm.ui.value.posts.isNotEmpty())
     }
 

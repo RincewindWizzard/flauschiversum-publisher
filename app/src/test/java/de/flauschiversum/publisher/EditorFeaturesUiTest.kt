@@ -165,6 +165,32 @@ class EditorFeaturesUiTest {
         waitFor { vm.ui.value.misspellings.isEmpty() && vm.ui.value.analyzedText == vm.ui.value.body }
     }
 
+    @Test fun vorschlagsleisteIstImmerEineFesteZeileUndLaesstDasTextfeldStehen() {
+        val vm = editor()
+        // ohne Vorschläge: Leiste ist da, einzeilig, mit Hinweis
+        compose.onNodeWithTag("suggestion-bar").assertIsDisplayed()
+        compose.onNodeWithTag("suggestions-idle").assertIsDisplayed()
+        val idleBar = compose.onNodeWithTag("suggestion-bar").fetchSemanticsNode().boundsInRoot
+        val idleField = compose.onNodeWithTag("body-input").fetchSemanticsNode().boundsInRoot
+        compose.onNodeWithTag("body-input").performTextInput("Das ist wundershön und noch ein Zzyxwolle dazu.")
+        waitFor(60_000) { vm.ui.value.misspellings.size == 2 }
+        compose.onNodeWithTag("body-input").performTextInputSelection(TextRange(10))
+        waitFor { exists("suggestion-wunderschön") }
+        // mit Vorschlägen: gleiche Höhe, gleiche Lage, das Textfeld hat sich nicht bewegt
+        val bar = compose.onNodeWithTag("suggestion-bar").fetchSemanticsNode().boundsInRoot
+        val field = compose.onNodeWithTag("body-input").fetchSemanticsNode().boundsInRoot
+        assertEquals(idleBar.height, bar.height, 0.5f); assertEquals(idleBar.top, bar.top, 0.5f)
+        assertEquals(idleField.bottom, field.bottom, 0.5f)
+        // Chips stehen nebeneinander in einer Zeile (alle auf gleicher Höhe)
+        val tops = listOf("suggestion-wunderschön", "add-word", "ignore-word").map { compose.onNodeWithTag(it).fetchSemanticsNode().boundsInRoot.top }
+        assertEquals(1, tops.map { Math.round(it) }.toSet().size)
+        // Cursor weg vom Fehler: Leiste bleibt, zeigt wieder den Hinweis
+        compose.onNodeWithTag("body-input").performTextInputSelection(TextRange(1))
+        waitFor { exists("suggestions-idle") }
+        assertEquals(idleBar.height, compose.onNodeWithTag("suggestion-bar").fetchSemanticsNode().boundsInRoot.height, 0.5f)
+        assertEquals(idleField.bottom, compose.onNodeWithTag("body-input").fetchSemanticsNode().boundsInRoot.bottom, 0.5f)
+    }
+
     @Test fun wortInsPersoenlicheWoerterbuchAufnehmen() {
         val vm = editor()
         compose.onNodeWithTag("body-input").performTextInput("Zzyxwolle ist weich.")

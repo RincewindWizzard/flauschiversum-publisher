@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -200,8 +201,9 @@ private fun BodyContent(ui: EditorUi, vm: EditorViewModel, fontScale: Float) {
             textStyle = editorTextStyle(fontScale), visualTransformation = transformation,
             modifier = Modifier.weight(1f).fillMaxWidth().testTag("body-input"), label = { Text("Text (Markdown)") },
         )
-        if (under != null && ui.suggestionsFor == under) SuggestionBar(under, ui.suggestions, vm) { replacement ->
-            apply(EditState(value.text.replaceRange(under.start, under.end, replacement), under.start + replacement.length))
+        val shown = under?.takeIf { ui.suggestionsFor == it }
+        SuggestionBar(shown, ui.suggestions, vm) { replacement ->
+            if (shown != null) apply(EditState(value.text.replaceRange(shown.start, shown.end, replacement), shown.start + replacement.length))
         }
         Row(Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             ToolButton(Icons.Default.FormatBold, "Fett", "tool-bold") { apply(FormatActions.bold(state())) }
@@ -231,19 +233,30 @@ private fun ToolButton(icon: androidx.compose.ui.graphics.vector.ImageVector, de
     AppIconButton(icon = icon, label = description, onClick = onClick, enabled = enabled, modifier = Modifier.testTag(tag))
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * Rechtschreibvorschläge in einer festen Zeile über der Werkzeugleiste. Die Zeile ist immer da und immer gleich hoch,
+ * auch ohne Vorschläge, damit das Textfeld nicht springt, wenn der Cursor in ein falsches Wort kommt; die Vorschläge
+ * stehen nebeneinander und lassen sich seitlich wischen.
+ */
 @Composable
-private fun SuggestionBar(m: Misspelling, suggestions: List<String>, vm: EditorViewModel, onReplace: (String) -> Unit) {
-    Column(Modifier.fillMaxWidth().testTag("suggestion-bar")) {
-        Text("„${m.word}“ ist unbekannt", style = MaterialTheme.typography.bodySmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            if (suggestions.isEmpty()) Text("Keine Vorschläge", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("no-suggestions"))
-            suggestions.forEach { s -> AssistChip(onClick = { onReplace(s) }, label = { Text(s) }, modifier = Modifier.testTag("suggestion-$s")) }
-            AssistChip(onClick = { vm.addToDictionary(m.word) }, label = { Text("Ins Wörterbuch") }, modifier = Modifier.testTag("add-word"))
-            AssistChip(onClick = { vm.ignoreWord(m.word) }, label = { Text("Ignorieren") }, modifier = Modifier.testTag("ignore-word"))
+private fun SuggestionBar(m: Misspelling?, suggestions: List<String>, vm: EditorViewModel, onReplace: (String) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().height(SUGGESTION_BAR_HEIGHT).horizontalScroll(rememberScrollState()).testTag("suggestion-bar"),
+        horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (m == null) {
+            Text("Rechtschreibvorschläge erscheinen hier", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, modifier = Modifier.testTag("suggestions-idle"))
+        } else {
+            Text("„${m.word}“:", style = MaterialTheme.typography.bodySmall, maxLines = 1, modifier = Modifier.testTag("suggestion-word"))
+            if (suggestions.isEmpty()) Text("keine Vorschläge", style = MaterialTheme.typography.bodySmall, maxLines = 1, modifier = Modifier.testTag("no-suggestions"))
+            suggestions.forEach { s -> AssistChip(onClick = { onReplace(s) }, label = { Text(s, maxLines = 1) }, modifier = Modifier.testTag("suggestion-$s")) }
+            AssistChip(onClick = { vm.addToDictionary(m.word) }, label = { Text("Ins Wörterbuch", maxLines = 1) }, modifier = Modifier.testTag("add-word"))
+            AssistChip(onClick = { vm.ignoreWord(m.word) }, label = { Text("Ignorieren", maxLines = 1) }, modifier = Modifier.testTag("ignore-word"))
         }
     }
 }
+
+private val SUGGESTION_BAR_HEIGHT = 48.dp
 
 @Composable
 private fun FindingsDialog(ui: EditorUi, onDismiss: () -> Unit, onJump: (Finding) -> Unit) {
